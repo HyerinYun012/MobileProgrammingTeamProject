@@ -12,7 +12,7 @@
         android:layout_width="70dp"
         android:layout_height="70dp"
         android:layout_marginStart="8dp"
-        android:backgroundTint="#FFFFFF"
+        android:background="@null"
         android:contentDescription="@string/contentDescription_return"
         android:scaleType="fitStart"
         app:layout_constraintBottom_toTopOf="@+id/verticalLine"
