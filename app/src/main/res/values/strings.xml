@@ -1,0 +1,25 @@
+<resources>
+    <string name="app_name">Pet Place</string>
+    <string name="login">로그인</string>
+    <string name="signin">회원가입</string>
+    <string name="my">MY</string>
+    <string name="hint_id">아이디를 입력해주세요.</string>
+    <string name="hint_pw">비밀번호를 입력해주세요.</string>
+    <string name="save_id">아이디 저장</string>
+    <string name="retrieve_id">아이디 찾기</string>
+    <string name="retrieve_pw">비밀번호 찾기</string>
+    <string name="easy_login">간편 로그인</string>
+
+    <string name="contentDescription_loginscreen">로그인 화면</string>
+    <string name="contentDescription_return">돌아가기</string>
+    <string name="contentDescription_kakao">카카오로 로그인</string>
+    <string name="contentDescription_naver">네이버로 로그인</string>
+<!--    <string name="contentDescription_id">아이디 입력창</string>-->
+<!--    <string name="contentDescription_pw">비밀번호 입력창</string>-->
+    <string name="contentDescription_saveid">아이디 저장 체크박스</string>
+    <string name="contentDescription_retrieveid">아이디 찾기</string>
+    <string name="contentDescription_retrievepw">비밀번호 찾기</string>
+    <string name="contentDescription_login">로그인</string>
+    <string name="contentDescription_signin">회원가입</string>"
+
+</resources>

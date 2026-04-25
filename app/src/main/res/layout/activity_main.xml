@@ -1,0 +1,280 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+
+    <ImageButton
+        android:id="@+id/btnReturn"
+        android:layout_width="70dp"
+        android:layout_height="70dp"
+        android:layout_marginStart="8dp"
+        android:backgroundTint="#FFFFFF"
+        android:contentDescription="돌아가기"
+        android:scaleType="fitStart"
+        app:layout_constraintBottom_toTopOf="@+id/verticalLine"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:srcCompat="@drawable/ic_return" />
+
+    <ImageButton
+        android:id="@+id/btnKakao"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_marginTop="16dp"
+        android:backgroundTint="#FFFFFF"
+        android:contentDescription="@string/contentDescription_kakao"
+        android:scaleType="centerInside"
+        app:layout_constraintEnd_toStartOf="@+id/verticalLine3"
+        app:layout_constraintHeight_percent=".12"
+        app:layout_constraintHorizontal_bias="0.55"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/verticalLine2"
+        app:layout_constraintWidth_percent=".2"
+        app:srcCompat="@drawable/ic_kakao" />
+
+    <ImageButton
+        android:id="@+id/btnNaver"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_marginTop="16dp"
+        android:backgroundTint="#FFFFFF"
+        android:contentDescription="@string/contentDescription_naver"
+        android:scaleType="centerInside"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHeight_percent=".12"
+        app:layout_constraintHorizontal_bias="0.45"
+        app:layout_constraintStart_toEndOf="@+id/verticalLine2"
+        app:layout_constraintTop_toBottomOf="@+id/verticalLine3"
+        app:layout_constraintWidth_percent=".2"
+        app:srcCompat="@drawable/ic_naver" />
+
+    <View
+        android:id="@+id/verticalLine"
+        android:layout_width="0dp"
+        android:layout_height="1dp"
+        android:background="#E0E0E0"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.5"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.12" />
+
+    <View
+        android:id="@+id/verticalLine2"
+        android:layout_width="0dp"
+        android:layout_height="1dp"
+        android:layout_marginTop="-8dp"
+        android:layout_marginEnd="16dp"
+        android:background="#E0E0E0"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintEnd_toStartOf="@+id/textViewLogin2"
+        app:layout_constraintHorizontal_bias="0.165"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/textViewLogin2" />
+
+    <View
+        android:id="@+id/verticalLine3"
+        android:layout_width="0dp"
+        android:layout_height="1dp"
+        android:layout_marginLeft="16dp"
+        android:layout_marginTop="-8dp"
+        android:background="#E0E0E0"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="1.0"
+        app:layout_constraintStart_toEndOf="@+id/textViewLogin2"
+        app:layout_constraintTop_toBottomOf="@+id/textViewLogin2" />
+
+    <View
+        android:id="@+id/horizontalLine"
+        android:layout_width="1dp"
+        android:layout_height="0dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginBottom="8dp"
+        android:background="#E0E0E0"
+        app:layout_constraintBottom_toTopOf="@+id/btnLogin"
+        app:layout_constraintStart_toEndOf="@+id/btnRetrieveId"
+        app:layout_constraintTop_toBottomOf="@+id/editTextPw" />
+
+    <TextView
+        android:id="@+id/textViewTop"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:contentDescription="마이페이지"
+        android:fontFamily="@font/nanum_gothic_extra_bold"
+        android:text="@string/my"
+        android:textColor="#FF8E4F"
+        android:textSize="32dp"
+        app:layout_constraintBottom_toTopOf="@id/verticalLine"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.55" />
+
+    <TextView
+        android:id="@+id/textViewLogin"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:contentDescription="로그인화면"
+        android:fontFamily="@font/nanum_gothic_bold"
+        android:text="@string/login"
+        android:textSize="25sp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/verticalLine"
+        app:layout_constraintVertical_bias="0.05" />
+
+    <TextView
+        android:id="@+id/textViewLogin2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="32dp"
+        android:fontFamily="@font/nanum_gothic_bold"
+        android:text="@string/easy_login"
+        android:textSize="16sp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.65" />
+
+    <EditText
+        android:id="@+id/editTextId"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:background="@drawable/bg_chip_gray"
+        android:ems="10"
+        android:fontFamily="@font/nanum_gothic_regular"
+        android:hint="@string/hint_id"
+        android:inputType="text"
+        android:paddingLeft="20sp"
+        android:paddingRight="20sp"
+        android:textAlignment="textStart"
+        android:textSize="16sp"
+        app:layout_constraintBottom_toTopOf="@+id/textViewLogin2"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHeight_percent=".08"
+        app:layout_constraintHorizontal_bias="0.5"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/textViewLogin"
+        app:layout_constraintVertical_bias="0.060000002"
+        app:layout_constraintWidth_percent="0.7" />
+
+    <EditText
+        android:id="@+id/editTextPw"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_marginTop="8dp"
+        android:background="@drawable/bg_chip_gray"
+        android:ems="10"
+        android:fontFamily="@font/nanum_gothic_regular"
+        android:hint="@string/hint_pw"
+        android:inputType="text"
+        android:paddingLeft="20sp"
+        android:paddingRight="20sp"
+        android:textAlignment="textStart"
+        android:textSize="16sp"
+        app:layout_constraintBottom_toTopOf="@+id/textViewLogin2"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHeight_percent=".08"
+        app:layout_constraintHorizontal_bias="0.50"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/editTextId"
+        app:layout_constraintVertical_bias="0.0"
+        app:layout_constraintWidth_percent=".7" />
+
+    <CheckBox
+        android:id="@+id/checkBoxSaveId"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:background="@null"
+        android:contentDescription="@string/contentDescription_saveid"
+        android:text="@string/save_id"
+        android:textSize="12sp"
+        app:layout_constraintHeight_percent=".05"
+        app:layout_constraintStart_toStartOf="@+id/editTextPw"
+        app:layout_constraintTop_toBottomOf="@+id/editTextPw"
+        app:layout_constraintWidth_percent=".25" />
+
+    <Button
+        android:id="@+id/btnRetrieveId"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:background="@null"
+        android:backgroundTint="#FFFFFF"
+        android:contentDescription="@string/contentDescription_retrieveid"
+        android:forceDarkAllowed="false"
+        android:text="@string/retrieve_id"
+        android:textColor="#000000"
+        android:textSize="12sp"
+        android:theme="@style/CardView"
+        app:layout_constraintHeight_percent=".05"
+        app:layout_constraintStart_toEndOf="@+id/checkBoxSaveId"
+        app:layout_constraintTop_toBottomOf="@+id/editTextPw"
+        app:layout_constraintWidth_percent=".225" />
+
+    <Button
+        android:id="@+id/btnRetrievePw"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:background="@null"
+        android:backgroundTint="#FFFFFF"
+        android:contentDescription="@string/contentDescription_retrievepw"
+        android:forceDarkAllowed="false"
+        android:text="@string/retrieve_pw"
+        android:textColor="#000000"
+        android:textSize="12sp"
+        android:theme="@style/CardView"
+        app:layout_constraintEnd_toEndOf="@+id/editTextPw"
+        app:layout_constraintHeight_percent=".05"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toEndOf="@+id/btnRetrieveId"
+        app:layout_constraintTop_toBottomOf="@+id/editTextPw"
+        app:layout_constraintWidth_percent=".225" />
+
+    <Button
+        android:id="@+id/btnLogin"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:background="@drawable/bg_chip_orange"
+        android:backgroundTint="#FF8E4F"
+        android:contentDescription="@string/contentDescription_login"
+        android:fontFamily="@font/nanum_gothic_extra_bold"
+        android:text="@string/login"
+        android:textColor="@color/white"
+        app:cornerRadius="5dp"
+        app:layout_constraintBottom_toTopOf="@+id/textViewLogin2"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHeight_percent=".08"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/checkBoxSaveId"
+        app:layout_constraintVertical_bias="0.0"
+        app:layout_constraintWidth_percent=".7" />
+
+    <Button
+        android:id="@+id/btnSignIn"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_marginTop="8dp"
+        android:background="@drawable/bg_chip_orange"
+        android:contentDescription="@string/contentDescription_signin"
+        android:fontFamily="@font/nanum_gothic_extra_bold"
+        android:text="회원가입"
+        android:textColor="#FF8E4F"
+        app:cornerRadius="5dp"
+        app:layout_constraintBottom_toTopOf="@+id/textViewLogin2"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHeight_percent=".08"
+        app:layout_constraintHorizontal_bias="0.5"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/btnLogin"
+        app:layout_constraintVertical_bias="0.0"
+        app:layout_constraintWidth_percent=".7" />
+
+
+</androidx.constraintlayout.widget.ConstraintLayout>
