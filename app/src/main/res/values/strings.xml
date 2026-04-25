@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Pet Place</string>
+    <string name="app_name">펫 플레이스</string>
     <string name="login">로그인</string>
     <string name="signin">회원가입</string>
     <string name="my">MY</string>
