@@ -1,9 +1,12 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
 }
 
+
 android {
-    namespace = "com.example.PetPlace"
+    namespace = "com.example.petplace"
     compileSdk {
         version = release(36) {
             minorApiLevel = 1
@@ -11,7 +14,7 @@ android {
     }
 
     defaultConfig {
-        applicationId = "com.example.PetPlace"
+        applicationId = "com.example.petplace"
         minSdk = 35
         targetSdk = 36
         versionCode = 1
@@ -29,6 +32,10 @@ android {
             )
         }
     }
+
+    buildFeatures{
+        viewBinding = true
+    }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
@@ -41,6 +48,8 @@ dependencies {
     implementation(libs.material)
     implementation(libs.androidx.activity)
     implementation(libs.androidx.constraintlayout)
+    // Kakao Login
+    implementation("com.kakao.sdk:v2-user:2.20.6")
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

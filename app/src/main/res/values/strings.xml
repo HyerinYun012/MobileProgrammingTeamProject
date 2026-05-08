@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">펫 플레이스</string>
+    <string name="app_name">펫플레이스</string>
     <string name="login">로그인</string>
     <string name="signin">회원가입</string>
     <string name="my">MY</string>
@@ -22,5 +22,4 @@
     <string name="contentDescription_login">로그인</string>
     <string name="contentDescription_signin">회원가입</string>"
     <string name="contentDescription_mypage">마이페이지</string>"
-
 </resources>
