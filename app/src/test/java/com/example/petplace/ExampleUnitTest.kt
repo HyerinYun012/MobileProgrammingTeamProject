@@ -1,4 +1,4 @@
-package com.example.PetPlace
+package com.example.petplace
 
 import org.junit.Test
 

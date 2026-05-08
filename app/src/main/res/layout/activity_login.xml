@@ -2,20 +2,21 @@
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/main"
+    android:id="@+id/login"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
 
     <ImageButton
         android:id="@+id/btnReturn"
-        android:layout_width="70dp"
-        android:layout_height="70dp"
-        android:layout_marginStart="8dp"
+        android:layout_width="65dp"
+        android:layout_height="65dp"
         android:background="@null"
         android:contentDescription="@string/contentDescription_return"
         android:scaleType="fitStart"
         app:layout_constraintBottom_toTopOf="@+id/verticalLine"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.05"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:srcCompat="@drawable/ic_return" />
@@ -72,10 +73,10 @@
         android:layout_marginEnd="16dp"
         android:background="#E0E0E0"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintEnd_toStartOf="@+id/textViewLogin2"
+        app:layout_constraintEnd_toStartOf="@+id/textViewRecent"
         app:layout_constraintHorizontal_bias="0.165"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/textViewLogin2" />
+        app:layout_constraintTop_toBottomOf="@+id/textViewRecent" />
 
     <View
         android:id="@+id/verticalLine3"
@@ -86,8 +87,8 @@
         android:background="#E0E0E0"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="1.0"
-        app:layout_constraintStart_toEndOf="@+id/textViewLogin2"
-        app:layout_constraintTop_toBottomOf="@+id/textViewLogin2" />
+        app:layout_constraintStart_toEndOf="@+id/textViewRecent"
+        app:layout_constraintTop_toBottomOf="@+id/textViewRecent" />
 
     <View
         android:id="@+id/horizontalLine"
@@ -130,7 +131,7 @@
         app:layout_constraintVertical_bias="0.05" />
 
     <TextView
-        android:id="@+id/textViewLogin2"
+        android:id="@+id/textViewRecent"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="32dp"
@@ -157,7 +158,7 @@
         android:paddingRight="20sp"
         android:textAlignment="textStart"
         android:textSize="16sp"
-        app:layout_constraintBottom_toTopOf="@+id/textViewLogin2"
+        app:layout_constraintBottom_toTopOf="@+id/textViewRecent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHeight_percent=".08"
         app:layout_constraintHorizontal_bias="0.5"
@@ -181,7 +182,7 @@
         android:paddingRight="20sp"
         android:textAlignment="textStart"
         android:textSize="16sp"
-        app:layout_constraintBottom_toTopOf="@+id/textViewLogin2"
+        app:layout_constraintBottom_toTopOf="@+id/textViewRecent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHeight_percent=".08"
         app:layout_constraintHorizontal_bias="0.50"
@@ -250,7 +251,7 @@
         android:text="@string/login"
         android:textColor="@color/white"
         app:cornerRadius="5dp"
-        app:layout_constraintBottom_toTopOf="@+id/textViewLogin2"
+        app:layout_constraintBottom_toTopOf="@+id/textViewRecent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHeight_percent=".08"
         app:layout_constraintStart_toStartOf="parent"
@@ -269,7 +270,7 @@
         android:text="@string/signin"
         android:textColor="#FF8E4F"
         app:cornerRadius="5dp"
-        app:layout_constraintBottom_toTopOf="@+id/textViewLogin2"
+        app:layout_constraintBottom_toTopOf="@+id/textViewRecent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHeight_percent=".08"
         app:layout_constraintHorizontal_bias="0.5"
