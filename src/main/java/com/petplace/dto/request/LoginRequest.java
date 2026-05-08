@@ -1,0 +1,3 @@
+package com.petplace.dto.request;
+import lombok.Data;
+@Data public class LoginRequest { private String loginId; private String password; }
