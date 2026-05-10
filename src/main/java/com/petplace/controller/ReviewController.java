@@ -1,14 +1,20 @@
 package com.petplace.controller;
 
 import com.petplace.dto.request.ReviewRequest;
+import com.petplace.dto.response.ApiResponse;
 import com.petplace.service.ReviewService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.util.List;
 import java.util.Map;
 
 @Tag(name = "리뷰(Review) API", description = "장소별 리뷰 조회, 작성, 삭제 및 신고 관리 API")
@@ -18,41 +24,43 @@ import java.util.Map;
 public class ReviewController {
     private final ReviewService service;
 
-    @Operation(summary = "장소별 리뷰 조회", description = "특정 식당이나 카페에 등록된 모든 리뷰 목록을 가져옵니다.")
+    @Operation(summary = "장소별 리뷰 조회")
     @GetMapping("/restaurant/{restaurantId}")
-    public ResponseEntity<?> getReviews(
+    public ResponseEntity<ApiResponse<List<?>>> getReviews(
             @Parameter(description = "장소(식당) ID") @PathVariable Long restaurantId
     ) {
-        return ResponseEntity.ok(service.getReviews(restaurantId));
+        return ResponseEntity.ok(ApiResponse.success(service.getReviews(restaurantId)));
     }
 
-    @Operation(summary = "리뷰 작성", description = "장소에 대한 평점과 리뷰 내용을 등록합니다.")
-    @PostMapping("/restaurant/{restaurantId}")
-    public ResponseEntity<?> write(
+    @Operation(summary = "리뷰 작성")
+    @PostMapping(value = "/restaurant/{restaurantId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<ApiResponse<?>> write(
+            @AuthenticationPrincipal Long userId, // [수정] 인증된 유저 ID 주입
             @Parameter(description = "장소(식당) ID") @PathVariable Long restaurantId,
-            @Parameter(description = "작성자(User) ID") @RequestParam Long userId,
-            @RequestBody ReviewRequest req
+            @Valid @RequestPart("request") ReviewRequest req,
+            @RequestPart(value = "image", required = false) MultipartFile image
     ) {
-        return ResponseEntity.ok(service.write(restaurantId, userId, req));
+        return ResponseEntity.ok(ApiResponse.success("리뷰가 등록되었습니다.", service.write(restaurantId, userId, req, image)));
     }
 
-    @Operation(summary = "리뷰 삭제", description = "작성한 리뷰를 삭제합니다.")
+    @Operation(summary = "리뷰 삭제")
     @DeleteMapping("/{reviewId}")
-    public ResponseEntity<?> delete(
+    public ResponseEntity<ApiResponse<Void>> delete(
+            @AuthenticationPrincipal Long userId, // [추가] 삭제 권한 확인을 위해 주입
             @Parameter(description = "리뷰 ID") @PathVariable Long reviewId
     ) {
-        service.delete(reviewId);
-        return ResponseEntity.ok(Map.of("message","삭제 완료"));
+        service.delete(reviewId, userId); // 서비스에 userId 전달
+        return ResponseEntity.ok(ApiResponse.success("리뷰가 삭제되었습니다.", null));
     }
 
-    @Operation(summary = "리뷰 신고", description = "부적절한 리뷰를 사장님이 신고합니다.")
+    @Operation(summary = "리뷰 신고")
     @PostMapping("/{reviewId}/report")
-    public ResponseEntity<?> report(
+    public ResponseEntity<ApiResponse<Void>> report(
+            @AuthenticationPrincipal Long ownerId, // [수정] 인증된 사장님 ID 주입
             @Parameter(description = "리뷰 ID") @PathVariable Long reviewId,
-            @Parameter(description = "신고하는 사장님(Owner) ID") @RequestParam Long ownerId,
-            @RequestBody Map<String,String> req
+            @RequestBody Map<String, String> req
     ) {
         service.report(reviewId, ownerId, req.get("reason"));
-        return ResponseEntity.ok(Map.of("message","신고 접수"));
+        return ResponseEntity.ok(ApiResponse.success("신고가 정상적으로 접수되었습니다.", null));
     }
 }

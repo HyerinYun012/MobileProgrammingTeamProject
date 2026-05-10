@@ -1,55 +1,85 @@
 package com.petplace.service;
-import com.petplace.dto.request.*;
-import com.petplace.entity.*;
+
+import com.petplace.dto.request.RestaurantFilterRequest;
+import com.petplace.dto.request.RestaurantRequest;
+import com.petplace.entity.Restaurant;
+import com.petplace.entity.User;
+import com.petplace.exception.BusinessException;
 import com.petplace.repository.RestaurantRepository;
+import com.petplace.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
 import java.util.List;
-import java.util.stream.Collectors;
-@Service @RequiredArgsConstructor @Transactional
+
+@Service
+@RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class RestaurantService {
-    private final RestaurantRepository repo;
 
-    public List<Restaurant> findNearby(double lat, double lng, double radius) { return repo.findNearby(lat, lng, radius); }
-    public List<Restaurant> search(String keyword) { return repo.findByNameContainingIgnoreCase(keyword); }
+    private final RestaurantRepository restaurantRepository;
+    private final UserRepository userRepository;
 
-    public List<Restaurant> filter(RestaurantFilterRequest req) {
-        return repo.findAll().stream()
-            .filter(r -> req.getRegion() == null || (r.getRegion() != null && r.getRegion().name().equals(req.getRegion())))
-            .filter(r -> req.getHasParking() == null || r.isHasParking() == req.getHasParking())
-            .filter(r -> req.getHasRestroom() == null || r.isHasRestroom() == req.getHasRestroom())
-            .filter(r -> req.getAllowSmall() == null || r.isAllowSmall() == req.getAllowSmall())
-            .filter(r -> req.getAllowMedium() == null || r.isAllowMedium() == req.getAllowMedium())
-            .filter(r -> req.getAllowLarge() == null || r.isAllowLarge() == req.getAllowLarge())
-            .filter(r -> req.getHasFence() == null || r.isHasFence() == req.getHasFence())
-            .filter(r -> req.getHasSnack() == null || r.isHasSnack() == req.getHasSnack())
-            .filter(r -> req.getHasIndoor() == null || r.isHasIndoor() == req.getHasIndoor())
-            .filter(r -> req.getHasOutdoor() == null || r.isHasOutdoor() == req.getHasOutdoor())
-            .collect(Collectors.toList());
+    /**
+     * 내 주변 장소 조회
+     */
+    public List<Restaurant> findNearby(double lat, double lng, double radius) {
+        return restaurantRepository.findNearby(lat, lng, radius);
     }
 
-    public Restaurant getDetail(Long id) { return repo.findById(id).orElseThrow(() -> new IllegalArgumentException("가게 없음")); }
-
-    public Restaurant register(Long ownerId, RestaurantRequest req) {
-        Restaurant r = new Restaurant(); r.setOwner(new User(ownerId)); r.setName(req.getName());
-        r.setCategory(req.getCategory()); r.setRegion(req.getRegion()); r.setAddress(req.getAddress());
-        r.setLatitude(req.getLatitude()); r.setLongitude(req.getLongitude()); r.setPhone(req.getPhone());
-        r.setBusinessNo(req.getBusinessNo()); r.setHasFence(req.isHasFence());
-        r.setHasArtificialGrass(req.isHasArtificialGrass()); r.setHasNaturalGrass(req.isHasNaturalGrass());
-        r.setHasSnack(req.isHasSnack()); r.setHasParking(req.isHasParking()); r.setHasRestroom(req.isHasRestroom());
-        r.setHasIndoor(req.isHasIndoor()); r.setHasOutdoor(req.isHasOutdoor());
-        r.setAllowSmall(req.isAllowSmall()); r.setAllowMedium(req.isAllowMedium()); r.setAllowLarge(req.isAllowLarge());
-        return repo.save(r);
+    /**
+     * 조건 필터링 검색 (Querydsl)
+     */
+    public List<Restaurant> searchRestaurants(RestaurantFilterRequest condition) {
+        return restaurantRepository.findByFilters(condition);
     }
 
-    public Restaurant update(Long id, RestaurantRequest req) {
-        Restaurant r = getDetail(id); r.setName(req.getName()); r.setCategory(req.getCategory());
-        r.setRegion(req.getRegion()); r.setAddress(req.getAddress()); r.setHasFence(req.isHasFence());
-        r.setHasArtificialGrass(req.isHasArtificialGrass()); r.setHasNaturalGrass(req.isHasNaturalGrass());
-        r.setHasSnack(req.isHasSnack()); r.setHasParking(req.isHasParking()); r.setHasRestroom(req.isHasRestroom());
-        r.setHasIndoor(req.isHasIndoor()); r.setHasOutdoor(req.isHasOutdoor());
-        r.setAllowSmall(req.isAllowSmall()); r.setAllowMedium(req.isAllowMedium()); r.setAllowLarge(req.isAllowLarge());
-        return repo.save(r);
+    /**
+     * 상세 정보 조회
+     */
+    public Restaurant getDetail(Long id) {
+        return restaurantRepository.findById(id)
+                .orElseThrow(() -> new BusinessException("해당 장소 정보를 찾을 수 없습니다."));
+    }
+
+    /**
+     * 신규 장소 등록 (사장님 권한 검증 포함)
+     */
+    @Transactional
+    public Long register(Long ownerId, RestaurantRequest req) {
+        User owner = userRepository.findById(ownerId)
+                .orElseThrow(() -> new BusinessException("존재하지 않는 사용자입니다."));
+
+        if (owner.getRole() != User.Role.OWNER) {
+            throw new BusinessException("장소 등록 권한이 없는 계정입니다.");
+        }
+
+        if (restaurantRepository.existsByBusinessNo(req.getBusinessNo())) {
+            throw new BusinessException("이미 등록된 사업자 번호입니다.");
+        }
+
+        // DTO -> Entity 변환 및 연관관계 설정
+        Restaurant restaurant = req.toEntity(ownerId);
+        restaurant.setOwner(owner);
+
+        return restaurantRepository.save(restaurant).getId();
+    }
+
+    /**
+     * 장소 정보 수정 (소유권 검증 포함)
+     */
+    @Transactional
+    public Long update(Long id, Long ownerId, RestaurantRequest req) {
+        Restaurant restaurant = restaurantRepository.findById(id)
+                .orElseThrow(() -> new BusinessException("해당 장소 정보를 찾을 수 없습니다."));
+
+        // 인가 체크: 수정 요청자가 실제 장소 소유자인지 확인
+        if (!restaurant.getOwner().getId().equals(ownerId)) {
+            throw new BusinessException("해당 장소 정보를 수정할 권한이 없습니다.");
+        }
+
+        restaurant.update(req);
+        return restaurant.getId();
     }
 }
