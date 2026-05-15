@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/login"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <Button
+        android:id="@+id/btnOwner"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:background="@drawable/bg_round_pastel_orange"
+        android:clipToOutline="true"
+        android:contentDescription="@string/contentDescription_owner_signup"
+        android:drawableEnd="@drawable/image_owner_resize"
+        android:drawablePadding="0dp"
+        android:elevation="20dp"
+        android:fontFamily="@font/br_b"
+        android:paddingStart="2dp"
+        android:paddingEnd="40dp"
+        android:stateListAnimator="@null"
+        android:text="@string/owner"
+        android:textColor="@color/white"
+        android:textSize="48sp"
+        app:cornerRadius="5dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHeight_percent="0.22"
+        app:layout_constraintHorizontal_bias="0.5"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.3"
+        app:layout_constraintWidth_percent=".8" />
+
+    <Button
+        android:id="@+id/btnCustomer"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:background="@drawable/bg_round_white"
+        android:clipToOutline="true"
+        android:contentDescription="@string/contentDescription_customer_signup"
+        android:drawableStart="@drawable/image_customer_resize"
+        android:drawablePadding="0dp"
+        android:elevation="20dp"
+        android:fontFamily="@font/br_b"
+        android:paddingStart="15dp"
+        android:paddingEnd="40dp"
+        android:stateListAnimator="@null"
+        android:text="@string/customer"
+        android:textColor="@color/brown"
+        android:textSize="48sp"
+        app:cornerRadius="5dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHeight_percent="0.22"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/btnOwner"
+        app:layout_constraintVertical_bias=".15"
+        app:layout_constraintWidth_percent=".8" />
+
+
+</androidx.constraintlayout.widget.ConstraintLayout>

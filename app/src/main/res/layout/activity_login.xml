@@ -26,14 +26,14 @@
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:layout_marginTop="16dp"
-        android:backgroundTint="#FFFFFF"
+        android:background="@null"
         android:contentDescription="@string/contentDescription_kakao"
         android:scaleType="centerInside"
         app:layout_constraintEnd_toStartOf="@+id/verticalLine3"
         app:layout_constraintHeight_percent=".12"
         app:layout_constraintHorizontal_bias="0.55"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/verticalLine2"
+        app:layout_constraintTop_toBottomOf="@+id/verticalLine5"
         app:layout_constraintWidth_percent=".2"
         app:srcCompat="@drawable/ic_kakao" />
 
@@ -42,13 +42,13 @@
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:layout_marginTop="16dp"
-        android:backgroundTint="#FFFFFF"
+        android:background="@null"
         android:contentDescription="@string/contentDescription_naver"
         android:scaleType="centerInside"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHeight_percent=".12"
         app:layout_constraintHorizontal_bias="0.45"
-        app:layout_constraintStart_toEndOf="@+id/verticalLine2"
+        app:layout_constraintStart_toEndOf="@+id/verticalLine5"
         app:layout_constraintTop_toBottomOf="@+id/verticalLine3"
         app:layout_constraintWidth_percent=".2"
         app:srcCompat="@drawable/ic_naver" />
@@ -66,7 +66,7 @@
         app:layout_constraintVertical_bias="0.12" />
 
     <View
-        android:id="@+id/verticalLine2"
+        android:id="@+id/verticalLine5"
         android:layout_width="0dp"
         android:layout_height="1dp"
         android:layout_marginTop="-8dp"
@@ -145,7 +145,7 @@
         app:layout_constraintVertical_bias="0.65" />
 
     <EditText
-        android:id="@+id/editTextId"
+        android:id="@+id/editTextPhone"
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:background="@drawable/bg_chip_gray"
@@ -187,7 +187,7 @@
         app:layout_constraintHeight_percent=".08"
         app:layout_constraintHorizontal_bias="0.50"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/editTextId"
+        app:layout_constraintTop_toBottomOf="@+id/editTextPhone"
         app:layout_constraintVertical_bias="0.0"
         app:layout_constraintWidth_percent=".7" />
 
@@ -245,7 +245,7 @@
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:background="@drawable/bg_chip_orange"
-        android:backgroundTint="#FF8E4F"
+        android:backgroundTint="@color/orange"
         android:contentDescription="@string/contentDescription_login"
         android:fontFamily="@font/nanum_gothic_extra_bold"
         android:text="@string/login"
@@ -265,9 +265,10 @@
         android:layout_height="0dp"
         android:layout_marginTop="8dp"
         android:background="@drawable/bg_chip_orange"
+        android:backgroundTint="@null"
         android:contentDescription="@string/contentDescription_signin"
         android:fontFamily="@font/nanum_gothic_extra_bold"
-        android:text="@string/signin"
+        android:text="@string/signup"
         android:textColor="#FF8E4F"
         app:cornerRadius="5dp"
         app:layout_constraintBottom_toTopOf="@+id/textViewRecent"

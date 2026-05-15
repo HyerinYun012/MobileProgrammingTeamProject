@@ -1,0 +1,263 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="20dp">
+
+    <TextView
+        android:id="@+id/textViewTop"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:contentDescription="@string/contentDescription_mypage"
+        android:fontFamily="@font/nanum_gothic_extra_bold"
+        android:text="반려동물"
+        android:textAlignment="center"
+        android:textColor="#FF8E4F"
+        android:textSize="32sp"
+        app:layout_constraintBottom_toTopOf="@id/verticalLine"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.55" />
+
+    <TextView
+        android:id="@+id/textViewTop3"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:contentDescription="@string/contentDescription_mypage"
+        android:fontFamily="@font/nanum_gothic_extra_bold"
+        android:text="동반기준"
+        android:textAlignment="viewStart"
+        android:textColor="#FF8E4F"
+        android:textSize="24sp"
+        app:layout_constraintBottom_toTopOf="@id/verticalLine"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.55" />
+
+    <com.google.android.flexbox.FlexboxLayout
+        android:id="@+id/recommendLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:clipToPadding="false"
+        android:padding="12dp"
+        app:flexDirection="row"
+        app:flexWrap="wrap"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/textViewRecent2">
+
+        <CheckBox
+            android:id="@+id/checkBox1"
+            android:layout_width="100dp"
+            android:layout_height="48dp"
+            android:layout_marginEnd="15dp"
+            android:layout_marginBottom="8dp"
+            android:background="@null"
+            android:buttonTint="@color/orange"
+            android:fontFamily="@font/nanum_gothic_bold"
+            android:text="소형"
+            android:textAlignment="center"
+            android:textColor="@color/orange"
+            android:textSize="14sp" />
+
+        <CheckBox
+            android:id="@+id/checkBox2"
+            android:layout_width="100dp"
+            android:layout_height="48dp"
+            android:layout_marginEnd="15dp"
+            android:layout_marginBottom="8dp"
+            android:background="@null"
+            android:buttonTint="@color/orange"
+            android:fontFamily="@font/nanum_gothic_bold"
+            android:text="중형"
+            android:textAlignment="center"
+            android:textColor="@color/orange"
+            android:textSize="14sp" />
+
+        <CheckBox
+            android:id="@+id/checkBox3"
+            android:layout_width="100dp"
+            android:layout_height="48dp"
+            android:layout_marginEnd="15dp"
+            android:layout_marginBottom="8dp"
+            android:background="@null"
+            android:buttonTint="@color/orange"
+            android:fontFamily="@font/nanum_gothic_bold"
+            android:text="대형"
+            android:textAlignment="center"
+            android:textColor="@color/orange"
+            android:textSize="14sp" />
+
+    </com.google.android.flexbox.FlexboxLayout>
+
+    <TextView
+        android:id="@+id/textViewTop4"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:contentDescription="@string/contentDescription_mypage"
+        android:fontFamily="@font/nanum_gothic_extra_bold"
+        android:text="시설 특징"
+        android:textAlignment="viewStart"
+        android:textColor="#FF8E4F"
+        android:textSize="24sp"
+        app:layout_constraintBottom_toTopOf="@id/verticalLine"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.55" />
+
+    <com.google.android.flexbox.FlexboxLayout
+        android:id="@+id/recommendLayout2"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:clipToPadding="false"
+        android:padding="12dp"
+        app:flexDirection="row"
+        app:flexWrap="wrap"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/textViewRecent2">
+
+        <CheckBox
+            android:id="@+id/checkBox4"
+            android:layout_width="100dp"
+            android:layout_height="48dp"
+            android:layout_marginEnd="15dp"
+            android:layout_marginBottom="8dp"
+            android:background="@null"
+            android:buttonTint="@color/orange"
+            android:fontFamily="@font/nanum_gothic_bold"
+            android:text="울타리"
+            android:textAlignment="center"
+            android:textColor="@color/orange"
+            android:textSize="14sp" />
+
+        <CheckBox
+            android:id="@+id/checkBox5"
+            android:layout_width="100dp"
+            android:layout_height="48dp"
+            android:layout_marginEnd="15dp"
+            android:layout_marginBottom="8dp"
+            android:background="@null"
+            android:buttonTint="@color/orange"
+            android:fontFamily="@font/nanum_gothic_bold"
+            android:text="인조 잔디"
+            android:textAlignment="center"
+            android:textColor="@color/orange"
+            android:textSize="14sp" />
+
+        <CheckBox
+            android:id="@+id/checkBox6"
+            android:layout_width="100dp"
+            android:layout_height="48dp"
+            android:layout_marginEnd="15dp"
+            android:layout_marginBottom="8dp"
+            android:background="@null"
+            android:buttonTint="@color/orange"
+            android:fontFamily="@font/nanum_gothic_bold"
+            android:text="천연 잔디"
+            android:textAlignment="center"
+            android:textColor="@color/orange"
+            android:textSize="14sp" />
+
+        <CheckBox
+            android:id="@+id/checkBox7"
+            android:layout_width="100dp"
+            android:layout_height="48dp"
+            android:layout_marginEnd="15dp"
+            android:layout_marginBottom="8dp"
+            android:background="@null"
+            android:buttonTint="@color/orange"
+            android:fontFamily="@font/nanum_gothic_bold"
+            android:text="간식구비"
+            android:textAlignment="center"
+            android:textColor="@color/orange"
+            android:textSize="14sp" />
+
+    </com.google.android.flexbox.FlexboxLayout>
+
+    <TextView
+        android:id="@+id/textViewTop5"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:contentDescription="@string/contentDescription_mypage"
+        android:fontFamily="@font/nanum_gothic_extra_bold"
+        android:text="공간 유형"
+        android:textAlignment="viewStart"
+        android:textColor="#FF8E4F"
+        android:textSize="24sp"
+        app:layout_constraintBottom_toTopOf="@id/verticalLine"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.55" />
+
+    <com.google.android.flexbox.FlexboxLayout
+        android:id="@+id/recommendLayout3"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:clipToPadding="false"
+        android:padding="12dp"
+        app:flexDirection="row"
+        app:flexWrap="wrap"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/textViewRecent2">
+
+        <CheckBox
+            android:id="@+id/checkBox8"
+            android:layout_width="100dp"
+            android:layout_height="48dp"
+            android:layout_marginEnd="15dp"
+            android:layout_marginBottom="8dp"
+            android:background="@null"
+            android:buttonTint="@color/orange"
+            android:fontFamily="@font/nanum_gothic_bold"
+            android:text="실외"
+            android:textAlignment="center"
+            android:textColor="@color/orange"
+            android:textSize="14sp" />
+
+        <CheckBox
+            android:id="@+id/checkBox9"
+            android:layout_width="100dp"
+            android:layout_height="48dp"
+            android:layout_marginEnd="15dp"
+            android:layout_marginBottom="8dp"
+            android:background="@null"
+            android:buttonTint="@color/orange"
+            android:fontFamily="@font/nanum_gothic_bold"
+            android:text="실내"
+            android:textAlignment="center"
+            android:textColor="@color/orange"
+            android:textSize="14sp" />
+
+    </com.google.android.flexbox.FlexboxLayout>
+
+    <Button
+        android:id="@+id/btnApply"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:background="@drawable/bg_chip_orange"
+        android:backgroundTint="@color/orange"
+        android:contentDescription="@string/contentDescription_login"
+        android:fontFamily="@font/nanum_gothic_extra_bold"
+        android:text="적용"
+        android:textColor="@color/white"
+        android:textSize="24sp"
+        app:cornerRadius="5dp"
+        app:layout_constraintBottom_toTopOf="@+id/textViewRecent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHeight_percent=".08"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/checkBoxSaveId"
+        app:layout_constraintVertical_bias="0.0"
+        app:layout_constraintWidth_percent=".7" />
+
+
+</LinearLayout>

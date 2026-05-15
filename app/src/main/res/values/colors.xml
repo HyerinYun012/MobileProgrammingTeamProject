@@ -2,6 +2,12 @@
 <resources>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
+    <color name="bright_gray">#ECECEC</color>
     <color name="gray">#7c7c7c</color>
+    <color name="brown">#6C4D00</color>
     <color name="orange">#FF8E4F</color>
+    <color name="dark_orange">#E07C44</color>
+    <color name="pastel_orange">#F89A66</color>
+    <color name="green">#03A94D</color>
+    <color name="dark_green">#00883D</color>
 </resources>
