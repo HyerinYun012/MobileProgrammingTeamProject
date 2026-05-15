@@ -1,0 +1,367 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#FFFFFF"
+    android:fitsSystemWindows="true"
+    tools:context=".ReviewWriteActivity">
+
+    <RelativeLayout
+        android:id="@+id/layout_header"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:paddingHorizontal="20dp"
+        android:paddingTop="20dp"
+        android:paddingBottom="20dp"
+        android:background="#FFFFFF"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <ImageView
+            android:id="@+id/btn_back"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:layout_centerVertical="true"
+            android:src="@drawable/ic_back" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerInParent="true"
+            android:fontFamily="@font/nanum_gothic_extrabold"
+            android:text="업장 정보 등록 &amp; 수정"
+            android:textColor="#FF8A4C"
+            android:textSize="20sp" />
+    </RelativeLayout>
+
+    <View
+        android:id="@+id/view_divider"
+        android:layout_width="0dp"
+        android:layout_height="1dp"
+        android:layout_marginHorizontal="20dp"
+        android:background="#E0E0E0"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/layout_header" />
+
+    <ScrollView
+        android:id="@+id/scroll_view"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        app:layout_constraintBottom_toTopOf="@+id/iv_save_button"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/view_divider">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingHorizontal="20dp"
+            android:paddingTop="24dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="12dp"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="@font/nanum_gothic_bold"
+                    android:text="업장 사진 등록- 썸네일"
+                    android:textColor="#000000"
+                    android:textSize="18sp" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:fontFamily="@font/nanum_gothic_bold"
+                    android:text="(1장만 등록 가능)"
+                    android:textColor="#FF8A4C"
+                    android:textSize="14sp" />
+            </LinearLayout>
+
+            <ImageView
+                android:id="@+id/iv_thumbnail_add"
+                android:layout_width="100dp"
+                android:layout_height="100dp"
+                android:layout_marginBottom="24dp"
+                android:scaleType="fitCenter"
+                android:src="@drawable/ic_add_photo" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="12dp"
+                android:fontFamily="@font/nanum_gothic_bold"
+                android:text="업장 사진 등록- 배너"
+                android:textColor="#000000"
+                android:textSize="18sp" />
+
+            <ImageView
+                android:id="@+id/iv_banner_add"
+                android:layout_width="100dp"
+                android:layout_height="100dp"
+                android:layout_marginBottom="24dp"
+                android:scaleType="fitCenter"
+                android:src="@drawable/ic_add_photo" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="8dp"
+                android:fontFamily="@font/nanum_gothic_bold"
+                android:text="업장 이름"
+                android:textColor="#000000"
+                android:textSize="18sp" />
+
+            <EditText
+                android:id="@+id/et_store_name"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="24dp"
+                android:backgroundTint="#CCCCCC"
+                android:fontFamily="@font/nanum_gothic_regular"
+                android:hint="업장 이름을 입력해주세요"
+                android:textColor="#000000"
+                android:textSize="16sp" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="8dp"
+                android:fontFamily="@font/nanum_gothic_bold"
+                android:text="업장 주소"
+                android:textColor="#000000"
+                android:textSize="18sp" />
+
+            <EditText
+                android:id="@+id/et_store_address"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="32dp"
+                android:backgroundTint="#CCCCCC"
+                android:fontFamily="@font/nanum_gothic_regular"
+                android:hint="업장 주소를 입력해주세요"
+                android:textColor="#000000"
+                android:textSize="16sp" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp"
+                android:fontFamily="@font/nanum_gothic_bold"
+                android:text="반려동물 정보"
+                android:textColor="#000000"
+                android:textSize="20sp" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="8dp"
+                android:fontFamily="@font/nanum_gothic_bold"
+                android:text="동반 기준"
+                android:textColor="#000000"
+                android:textSize="16sp" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp"
+                android:orientation="horizontal">
+
+                <CheckBox
+                    android:id="@+id/cb_small_animal"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="16dp"
+                    android:button="@drawable/custom_checkbox"
+                    android:buttonTint="@null"
+                    app:buttonTint="@null"
+                    android:paddingTop="7dp"
+                    android:checked="false"
+                    android:fontFamily="@font/nanum_gothic_bold"
+                    android:gravity="center_vertical"
+                    android:text="소동물"
+                    android:textColor="#000000"
+                    android:textSize="12sp"/>
+
+                <CheckBox
+                    android:id="@+id/cb_medium_animal"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="16dp"
+                    android:button="@drawable/custom_checkbox"
+                    android:buttonTint="@null"
+                    app:buttonTint="@null"
+                    android:paddingTop="7dp"
+                    android:fontFamily="@font/nanum_gothic_bold"
+                    android:gravity="center_vertical"
+                    android:text="중동물"
+                    android:textColor="#000000"
+                    android:textSize="12sp"/>
+
+                <CheckBox
+                    android:id="@+id/cb_large_animal"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:button="@drawable/custom_checkbox"
+                    android:buttonTint="@null"
+                    app:buttonTint="@null"
+                    android:paddingTop="7dp"
+                    android:fontFamily="@font/nanum_gothic_bold"
+                    android:gravity="center_vertical"
+                    android:text="대동물"
+                    android:textColor="#000000"
+                    android:textSize="12sp"/>
+            </LinearLayout>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="8dp"
+                android:fontFamily="@font/nanum_gothic_bold"
+                android:text="시설 특징"
+                android:textColor="#000000"
+                android:textSize="16sp" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp"
+                android:orientation="horizontal">
+
+                <CheckBox
+                    android:id="@+id/cb_fence"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="6dp"
+                    android:button="@drawable/custom_checkbox"
+                    android:buttonTint="@null"
+                    app:buttonTint="@null"
+                    android:checked="false"
+                    android:paddingTop="7dp"
+                    android:fontFamily="@font/nanum_gothic_bold"
+                    android:gravity="center_vertical"
+                    android:text="울타리"
+                    android:textColor="#000000"
+                    android:textSize="12sp" />
+
+                <CheckBox
+                    android:id="@+id/cb_artificial_grass"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="6dp"
+                    android:button="@drawable/custom_checkbox"
+                    android:buttonTint="@null"
+                    app:buttonTint="@null"
+                    android:paddingTop="7dp"
+                    android:fontFamily="@font/nanum_gothic_bold"
+                    android:gravity="center_vertical"
+                    android:text="인조잔디"
+                    android:textColor="#000000"
+                    android:textSize="12sp" />
+
+                <CheckBox
+                    android:id="@+id/cb_natural_grass"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="6dp"
+                    android:button="@drawable/custom_checkbox"
+                    android:buttonTint="@null"
+                    app:buttonTint="@null"
+                    android:paddingTop="7dp"
+                    android:fontFamily="@font/nanum_gothic_bold"
+                    android:gravity="center_vertical"
+                    android:text="천연잔디"
+                    android:textColor="#000000"
+                    android:textSize="12sp" />
+
+                <CheckBox
+                    android:id="@+id/cb_snack"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="6dp"
+                    android:button="@drawable/custom_checkbox"
+                    android:buttonTint="@null"
+                    app:buttonTint="@null"
+                    android:checked="false"
+                    android:paddingTop="7dp"
+                    android:fontFamily="@font/nanum_gothic_bold"
+                    android:gravity="center_vertical"
+                    android:text="간식구비"
+                    android:textColor="#000000"
+                    android:textSize="12sp" />
+            </LinearLayout>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="8dp"
+                android:fontFamily="@font/nanum_gothic_bold"
+                android:text="시설 실내/외"
+                android:textColor="#000000"
+                android:textSize="16sp" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="32dp"
+                android:orientation="horizontal">
+
+                <CheckBox
+                    android:id="@+id/cb_indoor"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="16dp"
+                    android:button="@drawable/custom_checkbox"
+                    android:buttonTint="@null"
+                    app:buttonTint="@null"
+                    android:paddingTop="7dp"
+                    android:fontFamily="@font/nanum_gothic_bold"
+                    android:gravity="center_vertical"
+                    android:text="실내"
+                    android:textColor="#000000"
+                    android:textSize="12sp"/>
+
+                <CheckBox
+                    android:id="@+id/cb_outdoor"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:button="@drawable/custom_checkbox"
+                    android:buttonTint="@null"
+                    app:buttonTint="@null"
+                    android:checked="false"
+                    android:paddingTop="7dp"
+                    android:fontFamily="@font/nanum_gothic_bold"
+                    android:gravity="center_vertical"
+                    android:text="실외"
+                    android:textColor="#000000"
+                    android:textSize="12sp"/>
+            </LinearLayout>
+
+        </LinearLayout>
+    </ScrollView>
+
+    <ImageView
+        android:id="@+id/iv_save_button"
+        android:layout_width="0dp"
+        android:layout_height="56dp"
+        android:layout_marginHorizontal="20dp"
+        android:layout_marginTop="10dp"
+        android:layout_marginBottom="10dp"
+        android:scaleType="fitCenter"
+        android:src="@drawable/btn_save"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/scroll_view" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>
