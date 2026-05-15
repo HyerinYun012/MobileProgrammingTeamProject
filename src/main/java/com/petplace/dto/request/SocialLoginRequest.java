@@ -13,6 +13,11 @@ public class SocialLoginRequest {
     @Schema(description = "소셜 서비스 제공자", example = "KAKAO", allowableValues = {"KAKAO", "NAVER", "GOOGLE"})
     private String provider;
 
+    // [추가] 소셜 사로부터 받은 엑세스 토큰 필드
+    @NotBlank(message = "소셜 엑세스 토큰은 필수입니다.")
+    @Schema(description = "소셜 서비스에서 발급받은 Access Token", example = "AAAA...token...BBBB")
+    private String accessToken;
+
     @NotBlank(message = "소셜 고유 식별자(providerId)는 필수입니다.")
     @Schema(description = "소셜 서비스에서 제공하는 고유 식별자 (Subject)", example = "321456789")
     private String providerId;
@@ -31,5 +36,5 @@ public class SocialLoginRequest {
     private String role;
 
     @Schema(description = "마케팅 정보 수신 동의 여부", example = "true")
-    private boolean marketingAgree; // boolean 기본값 false
+    private boolean marketingAgree;
 }
