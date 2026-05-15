@@ -27,6 +27,9 @@ public class ApiResponse<T> {
 
     @Schema(description = "응답 시간", example = "2026-05-09 17:30:00")
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss", timezone = "Asia/Seoul")
+    // 아래 두 줄을 추가하면 Jackson이 Java 8 시간을 처리할 수 있게 됩니다.
+    @com.fasterxml.jackson.databind.annotation.JsonSerialize(using = com.fasterxml.jackson.datatype.jsr310.ser.LocalDateTimeSerializer.class)
+    @com.fasterxml.jackson.databind.annotation.JsonDeserialize(using = com.fasterxml.jackson.datatype.jsr310.deser.LocalDateTimeDeserializer.class)
     private LocalDateTime timestamp;
 
     // --- 정적 팩토리 메서드 (편의용) ---
