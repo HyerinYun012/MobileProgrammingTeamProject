@@ -12,7 +12,4 @@ public interface UserRepository extends JpaRepository<User, Long> {
     Optional<User> findByNameAndPhone(String name, String phone);
 
     boolean existsByNickname(String nickname);
-
-    // [참고] 아이디 중복 체크 등에 쓰이는 메서드 (필요시)
-    boolean existsByLoginId(String loginId);
 }
