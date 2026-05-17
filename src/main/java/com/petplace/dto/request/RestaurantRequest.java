@@ -6,6 +6,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.*;
 import lombok.Data;
 import java.math.BigDecimal;
+import java.util.List;
 
 @Data
 @Schema(description = "장소 등록 및 수정 요청 객체 (사장님용)")
@@ -31,6 +32,8 @@ public class RestaurantRequest {
     private boolean allowSmall;
     private boolean allowMedium;
     private boolean allowLarge;
+    private String operatingHours;             // 영업시간 추가
+    private List<MenuRequest> menus;           // 수정/등록 시 함께 보낼 메뉴 리스트
 
     /**
      * [추가] DTO를 엔티티로 변환하는 메서드

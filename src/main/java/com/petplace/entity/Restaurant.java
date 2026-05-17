@@ -1,6 +1,6 @@
 package com.petplace.entity;
 
-import com.petplace.dto.request.RestaurantRequest; // DTO 임포트 필요
+import com.petplace.dto.request.RestaurantRequest;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
@@ -22,6 +22,9 @@ public class Restaurant {
     @Column(precision = 10, scale = 7) private BigDecimal longitude;
     @Column(length = 20) private String phone;
     @Column(length = 20) private String businessNo;
+
+    @Column(length = 200) private String operatingHours; // [추가] 영업시간 (예: "매일 10:00 ~ 22:00")
+
     private boolean isVerified=false, allowSmall=false, allowMedium=false, allowLarge=false;
     private boolean hasFence=false, hasArtificialGrass=false, hasNaturalGrass=false, hasSnack=false;
     private boolean hasParking=false, hasRestroom=false, hasIndoor=false, hasOutdoor=false;
@@ -32,12 +35,16 @@ public class Restaurant {
     @OneToMany(mappedBy = "restaurant", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<Review> reviews = new ArrayList<>();
 
+    // [추가] 메뉴 연관관계 고도화 (orphanRemoval=true 설정으로 고도화된 변경 감지 지원)
+    @OneToMany(mappedBy = "restaurant", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    private List<Menu> menus = new ArrayList<>();
+
     @CreationTimestamp private LocalDateTime createdAt;
     @UpdateTimestamp private LocalDateTime updatedAt;
 
     public Restaurant(Long id) { this.id = id; }
 
-    // [추가] 정보 수정을 위한 비즈니스 메서드 (Dirty Checking 활용)
+    // [수정] 정보 수정을 위한 비즈니스 메서드
     public void update(RestaurantRequest req) {
         this.name = req.getName();
         this.category = req.getCategory();
@@ -46,6 +53,7 @@ public class Restaurant {
         this.phone = req.getPhone();
         this.latitude = req.getLatitude();
         this.longitude = req.getLongitude();
+        this.operatingHours = req.getOperatingHours(); // [추가] 영업시간 수정 반영
 
         // 시설 정보 업데이트
         this.hasFence = req.isHasFence();
@@ -61,7 +69,14 @@ public class Restaurant {
         this.allowLarge = req.isAllowLarge();
     }
 
-    // [추가] 서비스 레이어의 getOwnerId() 호출 해결을 위한 편의 메서드
+    // [추가] 메뉴 리스트 전체를 교체할 때 사용하는 편의 메서드
+    public void updateMenus(List<Menu> newMenus) {
+        this.menus.clear();
+        if (newMenus != null) {
+            this.menus.addAll(newMenus);
+        }
+    }
+
     public Long getOwnerId() {
         return this.owner != null ? this.owner.getId() : null;
     }

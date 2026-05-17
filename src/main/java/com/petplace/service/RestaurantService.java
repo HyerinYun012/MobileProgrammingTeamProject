@@ -2,6 +2,7 @@ package com.petplace.service;
 
 import com.petplace.dto.request.RestaurantFilterRequest;
 import com.petplace.dto.request.RestaurantRequest;
+import com.petplace.entity.Menu;
 import com.petplace.entity.Restaurant;
 import com.petplace.entity.User;
 import com.petplace.exception.BusinessException;
@@ -74,12 +75,28 @@ public class RestaurantService {
         Restaurant restaurant = restaurantRepository.findById(id)
                 .orElseThrow(() -> new BusinessException("해당 장소 정보를 찾을 수 없습니다."));
 
-        // 인가 체크: 수정 요청자가 실제 장소 소유자인지 확인
-        if (!restaurant.getOwner().getId().equals(ownerId)) {
-            throw new BusinessException("해당 장소 정보를 수정할 권한이 없습니다.");
+        // 인가 체크
+        if (!restaurant.getOwnerId().equals(ownerId)) {
+            throw new BusinessException("해당 장소의 수정 권한이 없습니다.");
         }
 
+        // 1. 가게 기본 정보 및 영업시간 변경 (Dirty Checking)
         restaurant.update(req);
+
+        // 2. 메뉴 정보 일괄 갱신 (기존 메뉴 제거 후 신규 데이터 바인딩)
+        if (req.getMenus() != null) {
+            List<Menu> newMenus = req.getMenus().stream()
+                    .map(menuDto -> Menu.builder()
+                            .name(menuDto.getName())
+                            .price(menuDto.getPrice())
+                            .description(menuDto.getDescription())
+                            .restaurant(restaurant)
+                            .build())
+                    .toList();
+
+            restaurant.updateMenus(newMenus);
+        }
+
         return restaurant.getId();
     }
 }
