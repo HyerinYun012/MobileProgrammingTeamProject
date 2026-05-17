@@ -1,6 +1,6 @@
 package com.petplace.config;
 
-import org.springframework.beans.factory.annotation.Qualifier; // 💡 추가
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -20,10 +20,6 @@ public class SecurityConfig {
     private final JwtUtil jwtUtil;
     private final HandlerExceptionResolver handlerExceptionResolver;
 
-    /**
-     * 💡 @Qualifier("handlerExceptionResolver")를 명시하여 스프링 내부의 핵심 예외 처리 빈을 정확히 지정합니다.
-     * 이를 통해 다중 빈 등록으로 인한 주입 에러(NoUniqueBeanDefinitionException)를 완벽히 방지합니다.
-     */
     public SecurityConfig(JwtUtil jwtUtil,
                           @Qualifier("handlerExceptionResolver") HandlerExceptionResolver handlerExceptionResolver) {
         this.jwtUtil = jwtUtil;
@@ -33,16 +29,16 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-                .csrf(AbstractHttpConfigurer::disable) // CSRF 보호 비활성화 (API 서버이므로)
+                .csrf(AbstractHttpConfigurer::disable) // API 서버이므로 CSRF 비활성화
                 .sessionManagement(session ->
-                        session.sessionCreationPolicy(SessionCreationPolicy.STATELESS) // 세션 미사용 (JWT 사용)
+                        session.sessionCreationPolicy(SessionCreationPolicy.STATELESS) // 세션 미사용 (JWT 필수 체계)
                 )
                 .authorizeHttpRequests(auth -> auth
-                        // 1. 누구나 접근 가능한 경로 (Permit All)
-                        .requestMatchers("/", "/favicon.ico", "/error").permitAll() // 메인, 아이콘, 에러 페이지 허용
-                        .requestMatchers("/api/auth/**", "/api/search/**").permitAll() // 인증 및 검색 관련 API 허용
-                        .requestMatchers(HttpMethod.GET, "/api/restaurants/**").permitAll() // 맛집 조회는 누구나 가능
+                        // 1. 최소한의 시스템 허용 경로 (로그인 및 사장님/고객 회원가입 창구만 오픈)
+                        .requestMatchers("/", "/favicon.ico", "/error").permitAll()
+                        .requestMatchers("/api/auth/**").permitAll() // 로그인, 회원가입, 중복체크 API만 비인증 접근 가능
 
+                        // 2. 프론트엔드/백엔드 협업용 API 문서 명세서 인프라 허용
                         .requestMatchers(
                                 "/v3/api-docs/**",
                                 "/swagger-ui/**",
@@ -51,16 +47,16 @@ public class SecurityConfig {
                                 "/webjars/**"
                         ).permitAll()
 
-                        // 3. 권한별 접근 제한 (Role Based)
-                        .requestMatchers("/api/admin/**").hasRole("ADMIN") // 관리자 전용
-                        .requestMatchers(HttpMethod.POST, "/api/restaurants/**").hasAnyRole("OWNER", "ADMIN") // 등록
-                        .requestMatchers(HttpMethod.PUT, "/api/restaurants/**").hasAnyRole("OWNER", "ADMIN")  // 수정
-                        .requestMatchers(HttpMethod.DELETE, "/api/restaurants/**").hasAnyRole("OWNER", "ADMIN") // 삭제
+                        // 권한별 접근 제한 (Role Based)
+                        .requestMatchers("/api/admin/**").hasRole("ADMIN") // 관리자 전용 기능역역
+                        .requestMatchers(HttpMethod.POST, "/api/restaurants/**").hasAnyRole("OWNER", "ADMIN") // 가게 등록
+                        .requestMatchers(HttpMethod.PUT, "/api/restaurants/**").hasAnyRole("OWNER", "ADMIN")  // 가게 수정
+                        .requestMatchers(HttpMethod.DELETE, "/api/restaurants/**").hasAnyRole("OWNER", "ADMIN") // 가게 삭제
 
-                        // 4. 그 외 모든 요청은 인증 필요 (커뮤니티 포함)
+                        // 4. 나머지 모든 API 요청(맛집 단순 GET 조회, 검색, 커뮤니티, 리뷰 전체 포함)은 무조건 인증된 회원만 진입 허용
                         .anyRequest().authenticated()
                 )
-                // 리팩토링된 JwtFilter 생성자에 맞춰 명확히 지정된 handlerExceptionResolver를 전달합니다.
+                // 필터 체인 앞단에 JWT 검증 필터를 배치하여 토큰이 없거나 올바르지 않으면 컨트롤러 도달 전에 쳐냅니다.
                 .addFilterBefore(new JwtFilter(jwtUtil, handlerExceptionResolver), UsernamePasswordAuthenticationFilter.class);
 
         return http.build();

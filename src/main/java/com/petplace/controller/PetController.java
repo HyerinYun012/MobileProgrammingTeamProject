@@ -15,7 +15,6 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
 import java.util.List;
 
 @Tag(name = "반려동물(Pet) API", description = "반려동물 등록, 수정, 조회 및 프로필 이미지 관리 API")
@@ -41,7 +40,7 @@ public class PetController {
             @Valid @RequestPart("request") PetRequest req,
             @Parameter(description = "반려동물 프로필 사진 (선택)")
             @RequestPart(value = "image", required = false) MultipartFile image
-    ) throws IOException {
+    ) {
         return ResponseEntity.ok(ApiResponse.success(petService.addPet(userId, req, image)));
     }
 
@@ -53,7 +52,7 @@ public class PetController {
             @Valid @RequestPart("request") PetRequest req,
             @Parameter(description = "새로 교체할 프로필 사진 (선택)")
             @RequestPart(value = "image", required = false) MultipartFile image
-    ) throws IOException {
+    ) {
         return ResponseEntity.ok(ApiResponse.success(petService.updatePet(userId, petId, req, image)));
     }
 }

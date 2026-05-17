@@ -21,7 +21,6 @@ public class AuthController {
     @Operation(summary = "일반 로그인", description = "일반 회원의 아이디와 비밀번호로 로그인하여 JWT 토큰을 발급받습니다.")
     @PostMapping("/login")
     public ResponseEntity<ApiResponse<String>> login(@Valid @RequestBody LoginRequest req) {
-        // [핵심] 서비스 내부에서 jwtUtil.generateToken(id, role)이 호출되어야 합니다.
         String token = authService.login(req);
         return ResponseEntity.ok(ApiResponse.success("로그인 성공", token));
     }

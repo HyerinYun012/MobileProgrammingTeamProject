@@ -33,14 +33,12 @@ public class CommunityController {
     @Operation(summary = "커뮤니티 전체 게시글 최신순 조회", description = "자유게시판의 모든 게시글 목록을 최신 등록순으로 조회합니다. (로그인한 회원만 접근 가능)")
     @GetMapping("/posts")
     public ResponseEntity<ApiResponse<List<Post>>> getAllPosts() {
-        // SecurityConfig가 인증을 강제하므로, 이 안으로 들어왔다는 것 자체가 이미 로그인 상태임을 보장합니다.
         List<Post> posts = communityService.getAllPostsDesc();
         return ResponseEntity.ok(ApiResponse.success("게시글 목록이 성공적으로 조회되었습니다.", posts));
     }
 
     /**
-     * 💡 [신규 추가] 커뮤니티 게시글 단건 상세 조회 (게시글 본문 + 댓글 트리 통합 통합본)
-     * 이 엔드포인트가 연결되면서 PostDetailResponse 클래스의 미사용 경고가 완벽히 사라집니다.
+     * 💡 커뮤니티 게시글 단건 상세 조회 (게시글 본문 + 댓글 트리 통합 통합본)
      */
     @Operation(summary = "커뮤니티 게시글 상세 조회", description = "특정 게시글의 상세 정보와 함께 로그인한 회원의 댓글 본인 여부(isMine)가 매핑된 댓글/대댓글 트리를 일괄 조회합니다.")
     @GetMapping("/posts/{postId}")

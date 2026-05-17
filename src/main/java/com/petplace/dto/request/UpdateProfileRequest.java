@@ -6,6 +6,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
+import org.springframework.web.multipart.MultipartFile; // 💡 추가
 
 @Data
 @Schema(description = "회원 프로필 수정 요청 객체")
@@ -26,6 +27,6 @@ public class UpdateProfileRequest {
     @Schema(description = "변경할 휴대폰 번호", example = "01099998888")
     private String phone;
 
-    @Schema(description = "변경할 프로필 이미지 URL", example = "https://petplace-bucket.s3.amazon.com/profiles/user123.jpg")
-    private String profileUrl; // 선택 사항이므로 NotBlank 제외
+    @Schema(description = "새로 교체할 실제 물리 프로필 이미지 파일 (선택 사항)")
+    private MultipartFile profileImage;
 }

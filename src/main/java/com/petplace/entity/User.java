@@ -6,10 +6,9 @@ import lombok.*;
 @Entity
 @Table(name = "users")
 @Getter
-@Setter
-@NoArgsConstructor // JPA 프록시 조회를 위한 기본 생성자 유지
-@AllArgsConstructor // 💡 Lombok @SuperBuilder 사용을 위한 필수 구조 보존
-// 🌟 부모 클래스(BaseTimeEntity)의 시간 필드를 빌더에서 정상 상속받기 위해 @SuperBuilder로 리팩토링합니다.
+// ❌ [리팩토링] 무분별한 데이터 오염을 방지하기 위해 클래스 레벨의 @Setter를 완전히 제거합니다.
+@NoArgsConstructor(access = AccessLevel.PROTECTED) // 🛡️ JPA 스펙 준수 및 외부에서 무분별한 빈 객체 생성 제한
+@AllArgsConstructor(access = AccessLevel.PRIVATE) // 💡 외부에서 전 필드 생성자를 직접 호출하는 행위 차단
 @lombok.experimental.SuperBuilder
 public class User extends BaseTimeEntity {
 
@@ -29,7 +28,7 @@ public class User extends BaseTimeEntity {
     @Column(length = 20)
     private String phone;
 
-    @Builder.Default // 빌더 사용 시 Role.CUSTOMER가 무시되지 않도록 설정
+    @Builder.Default
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private Role role = Role.CUSTOMER;
@@ -37,15 +36,15 @@ public class User extends BaseTimeEntity {
     @Column(length = 500)
     private String profileUrl;
 
-    @Builder.Default // 빌더 사용 시 false가 기본값으로 유지되도록 설정
+    @Builder.Default
     @Column(nullable = false)
     private boolean marketingAgree = false;
 
-    @Builder.Default // 빌더 사용 시 false가 기본값으로 유지되도록 설정
+    @Builder.Default
     @Column(nullable = false)
     private boolean isVerified = false; // 사장님 승인 여부
 
-    // ID만 받는 생성자 (기존 객체지향 헬퍼 코드 유지)
+    // ID만 받는 생성자 (기존 영속성 컨텍스트 조회 및 맵핑 편의용 헬퍼 코드 유지)
     public User(Long id) {
         this.id = id;
     }
@@ -63,13 +62,21 @@ public class User extends BaseTimeEntity {
         }
     }
 
-    // 비즈니스 편의 메서드 (Dirty Checking 활용)
-    public void updateProfile(String nickname, String profileUrl) {
+    /**
+     * [도메인 비즈니스 메서드] 마이페이지 프로필 통합 수정
+     */
+    public void updateProfileInfo(String nickname, String email, String phone, String profileUrl) {
         this.nickname = nickname;
-        this.profileUrl = profileUrl;
-        // 프로필 정보가 수정되어 영속성 컨텍스트가 Flush될 때 부모의 updatedAt이 자동으로 함께 갱신됩니다.
+        this.email = email;
+        this.phone = phone;
+        if (profileUrl != null) {
+            this.profileUrl = profileUrl;
+        }
     }
 
+    /**
+     * [도메인 비즈니스 메서드] 사장님 승인 처리
+     */
     public void verify() {
         this.isVerified = true;
     }

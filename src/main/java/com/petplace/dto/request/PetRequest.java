@@ -6,6 +6,7 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.PastOrPresent;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
+import org.springframework.web.multipart.MultipartFile; // 💡 추가
 import java.time.LocalDate;
 
 @Data
@@ -21,11 +22,11 @@ public class PetRequest {
     @Schema(description = "견종/묘종", example = "포메라니안")
     private String breed;
 
-    @Schema(description = "반려동물 사진 URL", example = "https://petplace-bucket.s3.amazon.com/pets/choco.jpg")
-    private String imageUrl; // 선택 사항
-
     @NotNull(message = "생년월일을 선택해주세요.")
     @PastOrPresent(message = "생년월일은 미래 날짜일 수 없습니다.")
     @Schema(description = "반려동물 생년월일 (YYYY-MM-DD)", example = "2022-05-10")
     private LocalDate birth;
+
+    @Schema(description = "반려동물 업로드용 프로필 이미지 파일 (선택 사항)")
+    private MultipartFile imageFile;
 }
