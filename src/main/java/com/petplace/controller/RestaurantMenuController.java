@@ -14,7 +14,6 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException; // 💡 IOException 임포트 추가
 import java.util.List;
 
 @Tag(name = "1. Restaurant Menu API", description = "가게 메뉴 등록, 편집 및 조회 관리 API")
@@ -50,7 +49,7 @@ public class RestaurantMenuController {
             @Parameter(description = "메뉴 가격 (원 단위)", example = "4500") @RequestParam int price,
             @Parameter(description = "메뉴에 대한 상세 설명", example = "댕댕이 전용 유기농 수제 쿠키입니다.") @RequestParam String description,
             @Parameter(description = "메뉴 사진 파일 (선택)")
-            @RequestPart(value = "image", required = false) MultipartFile image) throws IOException { // 💡 throws IOException 추가
+            @RequestPart(value = "image", required = false) MultipartFile image) { // 💡 throws IOException 추가
 
         String imageUrl = uploadIfPresent(image);
 
@@ -70,7 +69,7 @@ public class RestaurantMenuController {
             @Parameter(description = "변경할 메뉴 가격") @RequestParam int price,
             @Parameter(description = "변경할 메뉴 설명") @RequestParam String description,
             @Parameter(description = "새로운 메뉴 사진 파일 (선택)")
-            @RequestPart(value = "image", required = false) MultipartFile image) throws IOException { // 💡 throws IOException 추가
+            @RequestPart(value = "image", required = false) MultipartFile image) { // 💡 throws IOException 추가
 
         String imageUrl = uploadIfPresent(image);
 
@@ -94,7 +93,7 @@ public class RestaurantMenuController {
     /**
      * 파일이 존재할 경우에만 S3에 업로드하고 주소를 반환합니다.
      */
-    private String uploadIfPresent(MultipartFile file) throws IOException { // 💡 throws IOException 추가
+    private String uploadIfPresent(MultipartFile file) { // 💡 throws IOException 추가
         if (file != null && !file.isEmpty()) {
             return fileService.uploadFile(file);
         }

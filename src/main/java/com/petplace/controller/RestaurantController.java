@@ -19,7 +19,6 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
 import java.util.List;
 
 @Tag(name = "장소(Restaurant/Cafe) API", description = "반려견 동반 가능 장소 검색, 필터링 및 업체 등록 관리 API")
@@ -96,7 +95,7 @@ public class RestaurantController {
             @AuthenticationPrincipal Long ownerId,
             @Valid @RequestPart("request") RestaurantRequest req,
             @RequestPart(value = "images", required = false) List<MultipartFile> images
-    ) throws IOException {
+    ) {
 
         Long registeredId = restaurantService.register(ownerId, req, images);
         return ResponseEntity.ok(ApiResponse.success("장소 등록이 완료되었습니다.", registeredId));
@@ -121,7 +120,7 @@ public class RestaurantController {
             @Parameter(description = "장소 ID") @PathVariable Long id,
             @Valid @RequestPart("request") RestaurantRequest req,
             @RequestPart(value = "images", required = false) List<MultipartFile> images
-    ) throws IOException {
+    ) {
 
         Long updatedId = restaurantService.update(id, ownerId, req, images);
         return ResponseEntity.ok(ApiResponse.success("장소 정보가 수정되었습니다.", updatedId));

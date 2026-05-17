@@ -23,7 +23,6 @@ import java.util.List;
 public class JwtFilter extends OncePerRequestFilter {
 
     private final JwtUtil jwtUtil;
-    // 스프링의 예외 위임 해결사 주입
     private final HandlerExceptionResolver resolver;
 
     @Override
@@ -42,34 +41,43 @@ public class JwtFilter extends OncePerRequestFilter {
         String token = header.substring(7);
 
         try {
-            Claims claims = jwtUtil.extractAllClaims(token);
+            // 💡 [메서드 추출 완성] 복잡한 토큰 파싱 및 토큰 생성 로직을 하단 전용 메서드로 위임합니다.
+            UsernamePasswordAuthenticationToken auth = createAuthentication(token);
 
-            long userId = Long.parseLong(claims.getSubject());
-            String role = claims.get("role", String.class);
-
-            if (role != null) {
-                String authority = role.startsWith("ROLE_") ? role : "ROLE_" + role;
-
-                UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(
-                        userId,
-                        null,
-                        List.of(new SimpleGrantedAuthority(authority))
-                );
-
+            if (auth != null) {
                 SecurityContextHolder.getContext().setAuthentication(auth);
             }
 
             chain.doFilter(req, res);
 
         } catch (ExpiredJwtException e) {
-            // 💡 e.getMessage() 대신 예외 객체 e를 통째로 넘겨 스택 트레이스 확보 (warn 레벨)
             log.warn("JWT Token expired", e);
-            // 톰캣 필터 시점에서 터진 예외를 ControllerAdvice로 안전하게 토스
             resolver.resolveException(req, res, null, e);
         } catch (JwtException | IllegalArgumentException e) {
-            // 💡 위변조 및 잘못된 토큰 유입 시 상세 경로를 로그에 완벽히 기록 (error 레벨)
             log.error("Invalid JWT Token", e);
             resolver.resolveException(req, res, null, e);
         }
+    }
+
+    /**
+     *  [추출된 메서드] JWT 토큰을 파싱하여 Spring Security 맞춤형 인증 토큰(auth)을 빌드합니다.
+     */
+    private UsernamePasswordAuthenticationToken createAuthentication(String token) {
+        Claims claims = jwtUtil.extractAllClaims(token);
+
+        long userId = Long.parseLong(claims.getSubject());
+        String role = claims.get("role", String.class);
+
+        if (role == null) {
+            return null;
+        }
+
+        String authority = role.startsWith("ROLE_") ? role : "ROLE_" + role;
+
+        return new UsernamePasswordAuthenticationToken(
+                userId,
+                "",
+                List.of(new SimpleGrantedAuthority(authority))
+        );
     }
 }

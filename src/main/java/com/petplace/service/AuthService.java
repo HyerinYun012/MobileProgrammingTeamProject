@@ -12,16 +12,13 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
-@Transactional(readOnly = true) // 읽기 전용을 기본으로 설정 (성능 최적화)
+@Transactional(readOnly = true)
 public class AuthService {
     private final UserRepository userRepo;
     private final LocalAuthRepository localAuthRepo;
     private final BCryptPasswordEncoder encoder;
     private final JwtUtil jwtUtil;
 
-    /**
-     * 로그인: 아이디/비번 검증 후 JWT 반환
-     */
     public String login(LoginRequest req) {
         LocalAuth la = localAuthRepo.findByLoginId(req.getLoginId())
                 .orElseThrow(() -> new BusinessException("아이디 또는 비밀번호가 일치하지 않습니다."));
@@ -30,15 +27,12 @@ public class AuthService {
             throw new BusinessException("아이디 또는 비밀번호가 일치하지 않습니다.");
         }
 
-        // [핵심] JwtUtil을 통해 유저 ID와 Role(OWNER/CUSTOMER)을 토큰에 담아 반환
         return jwtUtil.generateToken(la.getUser().getId(), la.getUser().getRole().name());
     }
 
-    /**
-     * 일반 고객 회원가입
-     */
-    @Transactional // 쓰기 작업이므로 기본 readOnly 설정을 덮어씀
+    @Transactional
     public void signupCustomer(CustomerSignupRequest req) {
+        // 💡 내부 validate 가 전적으로 보안 검증 통제권을 행사합니다.
         validate(req.getLoginId(), req.getNickname(), req.getPassword(), req.getPasswordConfirm());
 
         User u = new User();
@@ -51,15 +45,13 @@ public class AuthService {
         saveLocal(u, req.getLoginId(), req.getPassword());
     }
 
-    /**
-     * 사장님 회원가입
-     */
     @Transactional
     public void signupOwner(OwnerSignupRequest req) {
+        // 💡 내부 validate 가 전적으로 보안 검증 통제권을 행사합니다.
         validate(req.getLoginId(), req.getNickname(), req.getPassword(), req.getPasswordConfirm());
 
         User u = new User();
-        u.setName(req.getName()); // [보완] 사장님 성함도 저장되도록 추가
+        u.setName(req.getName());
         u.setNickname(req.getNickname());
         u.setPhone(req.getPhone());
         u.setMarketingAgree(req.isMarketingAgree());
@@ -69,9 +61,6 @@ public class AuthService {
         saveLocal(u, req.getLoginId(), req.getPassword());
     }
 
-    /**
-     * 아이디 찾기 (마스킹 처리)
-     */
     public String findLoginId(String name, String phone) {
         User u = userRepo.findByNameAndPhone(name, phone)
                 .orElseThrow(() -> new BusinessException("일치하는 사용자 정보를 찾을 수 없습니다."));
@@ -80,13 +69,10 @@ public class AuthService {
                 .orElseThrow(() -> new BusinessException("일반 로그인으로 가입된 계정이 아닙니다."));
 
         String id = la.getLoginId();
-        if (id.length() < 4) return id; // 짧은 아이디 예외 처리
+        if (id.length() < 4) return id;
         return id.substring(0, 2) + "***" + id.substring(id.length() - 2);
     }
 
-    /**
-     * 비밀번호 재설정
-     */
     @Transactional
     public void resetPassword(String loginId, String phone, String newPw) {
         LocalAuth la = localAuthRepo.findByLoginId(loginId)
@@ -97,7 +83,6 @@ public class AuthService {
         }
 
         la.setPassword(encoder.encode(newPw));
-        // @Transactional에 의해 메서드 종료 시 Dirty Checking으로 자동 업데이트됨
     }
 
     public boolean isLoginIdExists(String loginId) { return localAuthRepo.existsByLoginId(loginId); }
@@ -107,17 +92,18 @@ public class AuthService {
      * 회원가입 공통 유효성 검사
      */
     private void validate(String loginId, String nickname, String pw, String pwConfirm) {
-        if (!pw.equals(pwConfirm))
-            throw new BusinessException("비밀번호 확인이 일치하지 않습니다.");
-        if (localAuthRepo.existsByLoginId(loginId))
+        // 1. null 방어 및 평문 비밀번호 일치 판단을 안전한 서비스 계층 내부로 은닉합니다.
+        if (pw == null || !pw.equals(pwConfirm)) {
+            throw new BusinessException("비밀번호 확인이 일치하지 않습니다."); // 💡 비즈니스 예외로 통합 제어
+        }
+        if (localAuthRepo.existsByLoginId(loginId)) {
             throw new BusinessException("이미 사용 중인 아이디입니다.");
-        if (userRepo.existsByNickname(nickname))
+        }
+        if (userRepo.existsByNickname(nickname)) {
             throw new BusinessException("이미 사용 중인 닉네임입니다.");
+        }
     }
 
-    /**
-     * 인증 정보 분리 저장 (LocalAuth)
-     */
     private void saveLocal(User user, String loginId, String password) {
         LocalAuth la = new LocalAuth();
         la.setUser(user);

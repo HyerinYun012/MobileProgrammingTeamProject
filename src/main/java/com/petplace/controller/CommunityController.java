@@ -16,7 +16,6 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
 import java.util.List;
 
 @Tag(name = "2. Community API", description = "사용자 커뮤니티 게시글, 댓글 관리 및 신고 API")
@@ -63,7 +62,7 @@ public class CommunityController {
             @Parameter(description = "게시글 제목", example = "우리집 댕댕이 자랑합니다") @RequestParam String title,
             @Parameter(description = "게시글 본문 내용", example = "너무 귀엽지 않나요?") @RequestParam String content,
             @Parameter(description = "첨부 이미지 파일 (선택)")
-            @RequestPart(value = "image", required = false) MultipartFile image) throws IOException {
+            @RequestPart(value = "image", required = false) MultipartFile image) {
 
         String imageUrl = uploadIfPresent(image);
 
@@ -82,7 +81,7 @@ public class CommunityController {
             @Parameter(description = "변경할 게시글 제목") @RequestParam String title,
             @Parameter(description = "변경할 게시글 본문 내용") @RequestParam String content,
             @Parameter(description = "새로운 첨부 이미지 파일 (선택)")
-            @RequestPart(value = "image", required = false) MultipartFile image) throws IOException {
+            @RequestPart(value = "image", required = false) MultipartFile image) {
 
         String newImageUrl = uploadIfPresent(image);
 
@@ -190,7 +189,7 @@ public class CommunityController {
     /**
      * 파일이 존재할 경우에만 유효성(MIME 타입/확장자)을 검증한 뒤 S3에 업로드하고 주소를 반환합니다.
      */
-    private String uploadIfPresent(MultipartFile file) throws IOException {
+    private String uploadIfPresent(MultipartFile file) {
         if (file == null || file.isEmpty()) {
             return null;
         }

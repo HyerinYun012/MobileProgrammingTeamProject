@@ -11,7 +11,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
 import java.util.List;
 import java.util.Objects;
 
@@ -35,7 +34,7 @@ public class PetService {
      * 반려동물 신규 등록 (S3 이미지 파일 업로드 포함)
      */
     @Transactional
-    public Pet addPet(Long userId, PetRequest req, MultipartFile image) throws IOException {
+    public Pet addPet(Long userId, PetRequest req, MultipartFile image) {
         User user = userRepo.findById(userId)
                 .orElseThrow(() -> new BusinessException("사용자를 찾을 수 없습니다."));
 
@@ -61,7 +60,7 @@ public class PetService {
      * 반려동물 정보 및 프로필 이미지 수정 (소유권 검증 + S3 옛날 파일 제거)
      */
     @Transactional
-    public Pet updatePet(Long userId, Long petId, PetRequest req, MultipartFile image) throws IOException {
+    public Pet updatePet(Long userId, Long petId, PetRequest req, MultipartFile image) {
         Pet pet = petRepo.findById(petId)
                 .orElseThrow(() -> new BusinessException("반려동물 정보를 찾을 수 없습니다."));
 

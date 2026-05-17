@@ -14,7 +14,6 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException; // 💡 IOException 임포트 추가
 import java.util.List;
 
 @Tag(name = "3. Notice API", description = "가게 사장님의 매장별 소식 및 공지사항 관리 API (CRUD)")
@@ -51,7 +50,7 @@ public class NoticeController {
             @Parameter(description = "공지 목록에 노출될 썸네일 대표 사진 파일 (선택)")
             @RequestPart(value = "thumbnail", required = false) MultipartFile thumbnail,
             @Parameter(description = "공지 본문 내 삽입될 설명 이미지 파일 (선택)")
-            @RequestPart(value = "descriptionImage", required = false) MultipartFile descriptionImage) throws IOException { // 💡 throws IOException 추가
+            @RequestPart(value = "descriptionImage", required = false) MultipartFile descriptionImage) { // 💡 throws IOException 추가
 
         String thumbnailUrl = uploadIfPresent(thumbnail);
         String descriptionImageUrl = uploadIfPresent(descriptionImage);
@@ -73,7 +72,7 @@ public class NoticeController {
             @Parameter(description = "수정할 썸네일 이미지 파일 (선택)")
             @RequestPart(value = "thumbnail", required = false) MultipartFile thumbnail,
             @Parameter(description = "수정할 설명용 이미지 파일 (선택)")
-            @RequestPart(value = "descriptionImage", required = false) MultipartFile descriptionImage) throws IOException { // 💡 throws IOException 추가
+            @RequestPart(value = "descriptionImage", required = false) MultipartFile descriptionImage) { // 💡 throws IOException 추가
 
         String thumbnailUrl = uploadIfPresent(thumbnail);
         String descriptionImageUrl = uploadIfPresent(descriptionImage);
@@ -98,7 +97,7 @@ public class NoticeController {
     /**
      * 파일이 존재할 경우에만 S3에 업로드하고 주소를 반환합니다.
      */
-    private String uploadIfPresent(MultipartFile file) throws IOException { // 💡 throws IOException 추가
+    private String uploadIfPresent(MultipartFile file) { // 💡 throws IOException 추가
         if (file != null && !file.isEmpty()) {
             return fileService.uploadFile(file);
         }

@@ -149,7 +149,6 @@ public class AdminService {
             fileService.deleteFile(post.getImageUrl());
         }
 
-        // 🌟 [수정 완료] 불필요하게 '수정 후 즉시 삭제'하던 모순적이고 비효율적인 코드를 걷어내고,
         // 해당 게시글과 엮인 관리자 신고 처리 상태를 '처리완료'로 깔끔하게 종결(더티 체킹)합니다.
         List<CommunityReport> reports = communityReportRepository.findAllByPostId(postId);
         reports.forEach(CommunityReport::completeReport); //

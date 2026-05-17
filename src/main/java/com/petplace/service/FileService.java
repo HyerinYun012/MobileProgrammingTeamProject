@@ -19,8 +19,10 @@ public class FileService {
     @Value("${spring.cloud.aws.s3.bucket}")
     private String bucket;
 
-    // 💡 throws IOException을 명시하여 예외 처리를 GlobalExceptionHandler로 위임합니다.
-    public String uploadFile(MultipartFile file) throws IOException {
+    /**
+     * S3 파일 업로드 (내부 예외 전환 적용)
+     */
+    public String uploadFile(MultipartFile file) {
         if (file == null || file.isEmpty()) return null;
 
         String originalName = file.getOriginalFilename();
@@ -32,14 +34,24 @@ public class FileService {
 
         String savedName = UUID.randomUUID() + extension;
 
-        // 💡 try-catch 방어막을 제거하고 직진합니다. 에러가 나면 전역 핸들러가 알아서 가로챕니다.
-        var s3Resource = s3Template.upload(bucket, savedName, file.getInputStream());
-        String uploadedUrl = s3Resource.getURL().toString();
+        try {
+            // 💡 실제 파일 스트림 처리 및 S3 업로드 중 발생하는 IOException을 여기서 직접 낚아챕니다.
+            var s3Resource = s3Template.upload(bucket, savedName, file.getInputStream());
+            String uploadedUrl = s3Resource.getURL().toString();
 
-        log.info("S3 파일 업로드 완료: {}", uploadedUrl);
-        return uploadedUrl;
+            log.info("S3 파일 업로드 완료: {}", uploadedUrl);
+            return uploadedUrl;
+
+        } catch (IOException e) {
+            // 💡 Checked Exception을 Unchecked 예외(RuntimeException)로 포장하여 새로 던집니다.
+            // 원본 에러(e)를 생성자에 함께 넘겨주어야 나중에 에러 추적이 가능합니다.
+            throw new RuntimeException("S3 Storage 이미지 파일 업로드 실패", e);
+        }
     }
 
+    /**
+     * S3 파일 삭제 (기존 정책 유지)
+     */
     public void deleteFile(String imageUrl) {
         if (imageUrl == null || imageUrl.isEmpty()) return;
 
@@ -48,7 +60,6 @@ public class FileService {
             s3Template.deleteObject(bucket, fileName);
             log.info("S3 파일 삭제 완료: {}", fileName);
         } catch (Exception e) {
-            // 삭제 실패는 런타임에 치명적이지 않으므로 로그만 남기는 기존 정책 유지
             log.error("S3 파일 삭제 오류: ", e);
         }
     }

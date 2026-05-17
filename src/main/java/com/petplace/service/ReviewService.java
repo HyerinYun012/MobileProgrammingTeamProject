@@ -9,9 +9,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException; // 💡 IOException 임포트 추가
 import java.util.List;
-import java.util.Objects; // 💡 Objects 임포트 추가
+import java.util.Objects;
 
 @Service
 @RequiredArgsConstructor
@@ -30,7 +29,7 @@ public class ReviewService {
      * 💡 [수정] throws IOException을 추가하여 예외 처리를 전역 핸들러로 위임합니다.
      */
     @Transactional
-    public Review write(Long restaurantId, Long userId, ReviewRequest req, MultipartFile image) throws IOException {
+    public Review write(Long restaurantId, Long userId, ReviewRequest req, MultipartFile image) {
         String imageUrl = null;
 
         // 💡 [수정] 내부에 있던 구질구질한 try-catch를 완전히 걷어내고 한 줄로 심플하게 처리합니다.

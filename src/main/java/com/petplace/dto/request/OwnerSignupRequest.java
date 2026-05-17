@@ -1,7 +1,6 @@
 package com.petplace.dto.request;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
@@ -26,14 +25,6 @@ public class OwnerSignupRequest {
     @NotBlank(message = "비밀번호 확인은 필수 입력 항목입니다.")
     private String passwordConfirm;
 
-    // [추가] 비밀번호 일치 여부 검증
-    @AssertTrue(message = "비밀번호가 일치하지 않습니다.")
-    public boolean isPasswordMatching() {
-        if (this.password == null || this.passwordConfirm == null) return false;
-        return this.password.equals(this.passwordConfirm);
-    }
-
-    // [추가] 유저 엔티티와 AuthService의 로직을 위해 성함 필드 추가
     @NotBlank(message = "성함은 필수 입력 항목입니다.")
     @Schema(description = "사장님 본명", example = "김주인")
     private String name;

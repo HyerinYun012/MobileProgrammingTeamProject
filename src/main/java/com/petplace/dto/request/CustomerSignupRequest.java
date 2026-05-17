@@ -1,7 +1,6 @@
 package com.petplace.dto.request;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
@@ -29,13 +28,6 @@ public class CustomerSignupRequest {
 
     @NotBlank(message = "비밀번호 확인은 필수 입력 항목입니다.")
     private String passwordConfirm;
-
-    // [추가] 비밀번호 일치 여부 검증
-    @AssertTrue(message = "비밀번호가 일치하지 않습니다.")
-    public boolean isPasswordMatching() {
-        if (this.password == null || this.passwordConfirm == null) return false;
-        return this.password.equals(this.passwordConfirm);
-    }
 
     @NotBlank(message = "닉네임은 필수 입력 항목입니다.")
     @Size(min = 2, max = 10, message = "닉네임은 2자에서 10자 사이여야 합니다.")
