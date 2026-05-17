@@ -9,7 +9,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException; // 💡 IOException 임포트 추가
 import java.util.List;
+import java.util.Objects; // 💡 Objects 임포트 추가
 
 @Service
 @RequiredArgsConstructor
@@ -23,16 +25,17 @@ public class ReviewService {
         return reviewRepo.findByRestaurant_IdOrderByCreatedAtDesc(restaurantId);
     }
 
+    /**
+     * 리뷰 작성
+     * 💡 [수정] throws IOException을 추가하여 예외 처리를 전역 핸들러로 위임합니다.
+     */
     @Transactional
-    public Review write(Long restaurantId, Long userId, ReviewRequest req, MultipartFile image) {
+    public Review write(Long restaurantId, Long userId, ReviewRequest req, MultipartFile image) throws IOException {
         String imageUrl = null;
 
+        // 💡 [수정] 내부에 있던 구질구질한 try-catch를 완전히 걷어내고 한 줄로 심플하게 처리합니다.
         if (image != null && !image.isEmpty()) {
-            try {
-                imageUrl = fileService.uploadFile(image);
-            } catch (Exception e) {
-                throw new BusinessException("이미지 업로드 중 오류가 발생했습니다.");
-            }
+            imageUrl = fileService.uploadFile(image);
         }
 
         // Review 엔티티에 @Builder가 있어야 에러가 안 납니다.
@@ -47,12 +50,16 @@ public class ReviewService {
         return reviewRepo.save(rv);
     }
 
+    /**
+     * 리뷰 삭제
+     */
     @Transactional
     public void delete(Long reviewId, Long userId) {
         Review review = reviewRepo.findById(reviewId)
                 .orElseThrow(() -> new BusinessException("해당 리뷰를 찾을 수 없습니다."));
 
-        if (!review.getUser().getId().equals(userId)) {
+        // 💡 [수정] Objects.equals를 사용하여 혹시 모를 NPE(NullPointerException) 방지 및 인텔리제이 경고 해결
+        if (!Objects.equals(review.getUser().getId(), userId)) {
             throw new BusinessException("본인이 작성한 리뷰만 삭제할 수 있습니다.");
         }
 
@@ -63,12 +70,16 @@ public class ReviewService {
         reviewRepo.delete(review);
     }
 
+    /**
+     * 리뷰 신고
+     */
     @Transactional
     public void report(Long reviewId, Long ownerId, String reason) {
         Review review = reviewRepo.findById(reviewId)
                 .orElseThrow(() -> new BusinessException("신고 대상 리뷰를 찾을 수 없습니다."));
 
-        if (!review.getRestaurant().getOwner().getId().equals(ownerId)) {
+        // 💡 [수정] 여기도 사장님 ID 비교 시 Objects.equals를 적용하여 정석대로 매핑합니다.
+        if (!Objects.equals(review.getRestaurant().getOwner().getId(), ownerId)) {
             throw new BusinessException("본인 가게의 리뷰만 신고할 수 있습니다.");
         }
 

@@ -14,6 +14,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException; // 💡 IOException 임포트 추가
 import java.util.List;
 import java.util.Map;
 
@@ -32,31 +33,34 @@ public class ReviewController {
         return ResponseEntity.ok(ApiResponse.success(service.getReviews(restaurantId)));
     }
 
+    /**
+     * 리뷰 작성
+     */
     @Operation(summary = "리뷰 작성")
     @PostMapping(value = "/restaurant/{restaurantId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<ApiResponse<?>> write(
-            @AuthenticationPrincipal Long userId, // [수정] 인증된 유저 ID 주입
+            @AuthenticationPrincipal Long userId,
             @Parameter(description = "장소(식당) ID") @PathVariable Long restaurantId,
             @Valid @RequestPart("request") ReviewRequest req,
-            @RequestPart(value = "image", required = false) MultipartFile image
-    ) {
+            @RequestPart(value = "image", required = false) MultipartFile image) throws IOException { // 💡 throws IOException 추가
+
         return ResponseEntity.ok(ApiResponse.success("리뷰가 등록되었습니다.", service.write(restaurantId, userId, req, image)));
     }
 
     @Operation(summary = "리뷰 삭제")
     @DeleteMapping("/{reviewId}")
     public ResponseEntity<ApiResponse<Void>> delete(
-            @AuthenticationPrincipal Long userId, // [추가] 삭제 권한 확인을 위해 주입
+            @AuthenticationPrincipal Long userId,
             @Parameter(description = "리뷰 ID") @PathVariable Long reviewId
     ) {
-        service.delete(reviewId, userId); // 서비스에 userId 전달
+        service.delete(reviewId, userId);
         return ResponseEntity.ok(ApiResponse.success("리뷰가 삭제되었습니다.", null));
     }
 
     @Operation(summary = "리뷰 신고")
     @PostMapping("/{reviewId}/report")
     public ResponseEntity<ApiResponse<Void>> report(
-            @AuthenticationPrincipal Long ownerId, // [수정] 인증된 사장님 ID 주입
+            @AuthenticationPrincipal Long ownerId,
             @Parameter(description = "리뷰 ID") @PathVariable Long reviewId,
             @RequestBody Map<String, String> req
     ) {

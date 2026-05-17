@@ -2,18 +2,22 @@ package com.petplace.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
-import org.hibernate.annotations.CreationTimestamp;
-import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "review_reports",
-        uniqueConstraints = @UniqueConstraint(columnNames = {"review_id","owner_id"}))
-@Getter @Setter
-@Builder // 이 어노테이션이 있어야 ReviewService에서 builder() 사용 가능
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
-@AllArgsConstructor
-public class ReviewReport {
-    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+@Table(
+        name = "review_reports",
+        uniqueConstraints = @UniqueConstraint(columnNames = {"review_id", "owner_id"})
+)
+@Getter
+@Setter
+@NoArgsConstructor(access = AccessLevel.PROTECTED) // JPA 스펙 준수 및 무분별한 외부 빈 객체 생성 제한
+@AllArgsConstructor // 💡 Lombok @SuperBuilder 사용을 위한 필수 구조 보존
+// 🌟 부모 클래스(BaseTimeEntity)의 시간 필드를 빌더에서 정상 상속받기 위해 @SuperBuilder로 리팩토링합니다.
+@lombok.experimental.SuperBuilder
+public class ReviewReport extends BaseTimeEntity {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -31,9 +35,9 @@ public class ReviewReport {
     @Builder.Default
     private Status status = Status.PENDING;
 
-    @CreationTimestamp
-    private LocalDateTime createdAt;
+    public void completeReport() {
+        this.status = Status.COMPLETED;
+    }
 
-    // [중요] 한글을 영문 상수로 변경
     public enum Status { PENDING, COMPLETED }
 }

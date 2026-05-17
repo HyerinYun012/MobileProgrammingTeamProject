@@ -1,7 +1,6 @@
 package com.petplace.config;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Qualifier; // 💡 추가
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -12,17 +11,23 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.servlet.HandlerExceptionResolver;
 
 @Configuration
 @EnableWebSecurity
-@RequiredArgsConstructor
 public class SecurityConfig {
 
     private final JwtUtil jwtUtil;
+    private final HandlerExceptionResolver handlerExceptionResolver;
 
-    @Bean
-    public ObjectMapper objectMapper() {
-        return new ObjectMapper();
+    /**
+     * 💡 @Qualifier("handlerExceptionResolver")를 명시하여 스프링 내부의 핵심 예외 처리 빈을 정확히 지정합니다.
+     * 이를 통해 다중 빈 등록으로 인한 주입 에러(NoUniqueBeanDefinitionException)를 완벽히 방지합니다.
+     */
+    public SecurityConfig(JwtUtil jwtUtil,
+                          @Qualifier("handlerExceptionResolver") HandlerExceptionResolver handlerExceptionResolver) {
+        this.jwtUtil = jwtUtil;
+        this.handlerExceptionResolver = handlerExceptionResolver;
     }
 
     @Bean
@@ -52,11 +57,11 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.PUT, "/api/restaurants/**").hasAnyRole("OWNER", "ADMIN")  // 수정
                         .requestMatchers(HttpMethod.DELETE, "/api/restaurants/**").hasAnyRole("OWNER", "ADMIN") // 삭제
 
-                        // 4. 그 외 모든 요청은 인증 필요
+                        // 4. 그 외 모든 요청은 인증 필요 (커뮤니티 포함)
                         .anyRequest().authenticated()
                 )
-                // JWT 필터 추가
-                .addFilterBefore(new JwtFilter(jwtUtil, objectMapper()), UsernamePasswordAuthenticationFilter.class);
+                // 리팩토링된 JwtFilter 생성자에 맞춰 명확히 지정된 handlerExceptionResolver를 전달합니다.
+                .addFilterBefore(new JwtFilter(jwtUtil, handlerExceptionResolver), UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }

@@ -29,12 +29,14 @@ public interface RestaurantRepository extends JpaRepository<Restaurant, Long>, R
      * @param lng 기준 경도
      * @param radius 검색 반경 (km)
      */
-    @Query(value = "SELECT *, " +
-            "(6371 * acos(cos(radians(:lat)) * cos(radians(latitude)) * " +
-            "cos(radians(longitude) - radians(:lng)) + " +
-            "sin(radians(:lat)) * sin(radians(latitude)))) AS distance " +
-            "FROM restaurants " +
-            "HAVING distance < :radius " +
-            "ORDER BY distance", nativeQuery = true)
+    @Query(value = "SELECT * FROM (" +
+            "  SELECT *, " +
+            "  (6371 * acos(cos(radians(:lat)) * cos(radians(latitude)) * " +
+            "  cos(radians(longitude) - radians(:lng)) + " +
+            "  sin(radians(:lat)) * sin(radians(latitude)))) AS distance " +
+            "  FROM restaurants" +
+            ") r " +
+            "WHERE r.distance < :radius " +
+            "ORDER BY r.distance", nativeQuery = true)
     List<Restaurant> findNearby(@Param("lat") double lat, @Param("lng") double lng, @Param("radius") double radius);
 }

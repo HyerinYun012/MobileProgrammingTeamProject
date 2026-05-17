@@ -2,15 +2,14 @@ package com.petplace.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
-import org.hibernate.annotations.CreationTimestamp;
-import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "search_logs")
 @Getter
 @Setter
-@NoArgsConstructor // JPA를 위한 기본 생성자
-public class SearchLog {
+@NoArgsConstructor // JPA를 위한 기본 생성자 유지
+// 🌟 중복 필드 제거와 공통 전역 Auditing 연동을 위해 BaseTimeEntity를 상속받습니다.
+public class SearchLog extends BaseTimeEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -19,10 +18,7 @@ public class SearchLog {
     @Column(nullable = false, length = 100)
     private String keyword;
 
-    @CreationTimestamp
-    private LocalDateTime searchedAt;
-
-    // [추가] 편리한 객체 생성을 위한 생성자
+    // 편리한 객체 생성을 위한 생성자 유지
     public SearchLog(String keyword) {
         this.keyword = keyword;
     }

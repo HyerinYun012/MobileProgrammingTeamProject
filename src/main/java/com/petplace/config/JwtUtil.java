@@ -2,6 +2,7 @@ package com.petplace.config;
 
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
+import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -11,15 +12,40 @@ import java.util.Date;
 
 @Component
 public class JwtUtil {
+
     @Value("${jwt.secret}")
     private String secret;
 
     @Value("${jwt.expiration}")
     private long expiration;
 
-    // 공통 키 생성 메서드
+    // 서버 구동 시점에 한 번만 만들어 안전하게 재사용할 키 객체
+    private SecretKey signingKey;
+
+    /**
+     * [핵심 방어선] 의존성 주입이 완료된 후, 자동으로 실행되는 초기화 메서드
+     */
+    @PostConstruct
+    public void init() {
+        byte[] keyBytes = secret.getBytes(StandardCharsets.UTF_8);
+
+        // 만약 yml 파일의 키 길이가 256비트(32바이트) 미만이라면 서버 구동 단계에서 조기 경보를 울립니다.
+        if (keyBytes.length < 32) {
+            throw new IllegalArgumentException(
+                    "❌ [보안 오류] JWT 서명 비밀키(jwt.secret)의 길이는 최소 32바이트(영문/숫자 기준 32자) 이상이어야 합니다! " +
+                            "현재 길이: " + keyBytes.length + "바이트"
+            );
+        }
+
+        // 안전함이 검증된 키를 필드에 할당하여 싱글톤 형태로 관리합니다.
+        this.signingKey = Keys.hmacShaKeyFor(keyBytes);
+    }
+
+    /**
+     * 초기화된 안전한 키를 반환합니다.
+     */
     private SecretKey getSigningKey() {
-        return Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
+        return this.signingKey;
     }
 
     /**
@@ -36,40 +62,14 @@ public class JwtUtil {
     }
 
     /**
-     * [핵심 수정] 모든 클레임 추출 (단일 파싱)
-     * JwtFilter에서 이 메서드를 호출하여 한 번만 파싱한 뒤 데이터를 재사용합니다.
+     * 모든 클레임 추출 (단일 파싱)
+     * 💡 중복된 throws 선언을 정리하여 상위 예외인 JwtException만 깔끔하게 남겼습니다.
      */
-    public Claims extractAllClaims(String token) throws ExpiredJwtException, JwtException {
+    public Claims extractAllClaims(String token) throws JwtException {
         return Jwts.parser()
                 .verifyWith(getSigningKey()) // 최신 jjwt 버전(0.12+) 기준 문법
                 .build()
                 .parseSignedClaims(token)
                 .getPayload();
-    }
-
-    /**
-     * 기존 메서드들 유지 (필요 시 개별 호출용)
-     * 이제 내부적으로 extractAllClaims를 활용하여 중복 코드를 제거했습니다.
-     */
-    public String getRole(String token) {
-        return extractAllClaims(token).get("role", String.class);
-    }
-
-    public Long getUserId(String token) {
-        return Long.parseLong(extractAllClaims(token).getSubject());
-    }
-
-    /**
-     * 유효성 검증
-     * 이제 필터에서 직접 예외를 캐치하므로, 이 메서드의 사용 빈도는 줄어들지만
-     * 단순 체크용으로 남겨둘 수 있습니다.
-     */
-    public boolean isValid(String token) {
-        try {
-            extractAllClaims(token);
-            return true;
-        } catch (JwtException | IllegalArgumentException e) {
-            return false;
-        }
     }
 }

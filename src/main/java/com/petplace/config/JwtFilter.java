@@ -1,6 +1,5 @@
 package com.petplace.config;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.JwtException;
@@ -10,23 +9,22 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.MediaType;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.filter.OncePerRequestFilter;
+import org.springframework.web.servlet.HandlerExceptionResolver;
 
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 @Slf4j
 @RequiredArgsConstructor
 public class JwtFilter extends OncePerRequestFilter {
 
     private final JwtUtil jwtUtil;
-    private final ObjectMapper objectMapper;
+    // 스프링의 예외 위임 해결사 주입
+    private final HandlerExceptionResolver resolver;
 
     @Override
     protected void doFilterInternal(
@@ -46,7 +44,6 @@ public class JwtFilter extends OncePerRequestFilter {
         try {
             Claims claims = jwtUtil.extractAllClaims(token);
 
-            // Long.parseLong의 결과는 long(기본형)이므로 null일 수 없습니다. (경고 해결)
             long userId = Long.parseLong(claims.getSubject());
             String role = claims.get("role", String.class);
 
@@ -65,26 +62,14 @@ public class JwtFilter extends OncePerRequestFilter {
             chain.doFilter(req, res);
 
         } catch (ExpiredJwtException e) {
-            log.warn("JWT Token expired: {}", e.getMessage());
-            setErrorResponse(res, "토큰이 만료되었습니다. 다시 로그인해주세요.");
+            // 💡 e.getMessage() 대신 예외 객체 e를 통째로 넘겨 스택 트레이스 확보 (warn 레벨)
+            log.warn("JWT Token expired", e);
+            // 톰캣 필터 시점에서 터진 예외를 ControllerAdvice로 안전하게 토스
+            resolver.resolveException(req, res, null, e);
         } catch (JwtException | IllegalArgumentException e) {
-            log.error("Invalid JWT Token: {}", e.getMessage());
-            setErrorResponse(res, "유효하지 않은 인증 토큰입니다.");
+            // 💡 위변조 및 잘못된 토큰 유입 시 상세 경로를 로그에 완벽히 기록 (error 레벨)
+            log.error("Invalid JWT Token", e);
+            resolver.resolveException(req, res, null, e);
         }
-    }
-
-    private void setErrorResponse(HttpServletResponse response, String message) throws IOException {
-        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-        response.setContentType(MediaType.APPLICATION_JSON_VALUE);
-        response.setCharacterEncoding("UTF-8");
-
-        Map<String, Object> errorDetails = new HashMap<>();
-        errorDetails.put("success", false);
-        errorDetails.put("message", message);
-        errorDetails.put("data", null);
-
-        // ObjectMapper를 사용하여 안전하게 JSON 직렬화
-        String json = objectMapper.writeValueAsString(errorDetails);
-        response.getWriter().write(json);
     }
 }

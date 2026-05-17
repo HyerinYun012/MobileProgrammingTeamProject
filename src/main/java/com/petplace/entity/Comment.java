@@ -2,8 +2,6 @@ package com.petplace.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
-import org.hibernate.annotations.CreationTimestamp;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -12,7 +10,8 @@ import java.util.List;
 @Getter
 @Setter
 @NoArgsConstructor
-public class Comment {
+// 🌟 중복 필드 제거 및 Auditing 적용을 위해 BaseTimeEntity를 상속받습니다.
+public class Comment extends BaseTimeEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -24,7 +23,7 @@ public class Comment {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
-    private User user; // 댓글 쓴이
+    private User user; // 댓글 글쓴이
 
     @Column(nullable = false, length = 1000)
     private String content; // 댓글 내용
@@ -39,6 +38,12 @@ public class Comment {
     @OneToMany(mappedBy = "parent", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Comment> children = new ArrayList<>(); // 자식 대댓글 목록
 
-    @CreationTimestamp
-    private LocalDateTime createdAt; // 댓글 쓴 시간
+    /**
+     * 💡 대댓글 양방향 연관관계 편의 메서드
+     * 외부에서 세터를 조작하다가 부모-자식 관계가 깨지는 현상을 미연에 방지합니다.
+     */
+    public void addChildComment(Comment child) {
+        this.children.add(child);
+        child.setParent(this);
+    }
 }

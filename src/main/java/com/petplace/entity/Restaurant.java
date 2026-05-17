@@ -3,59 +3,137 @@ package com.petplace.entity;
 import com.petplace.dto.request.RestaurantRequest;
 import jakarta.persistence.*;
 import lombok.*;
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
-@Entity @Table(name = "restaurants") @Getter @Setter @NoArgsConstructor
-public class Restaurant {
-    @Id @GeneratedValue(strategy = GenerationType.IDENTITY) private Long id;
-    @ManyToOne(fetch = FetchType.LAZY) @JoinColumn(name = "owner_id", nullable = false) private User owner;
-    @Column(nullable = false, length = 100) private String name;
-    @Enumerated(EnumType.STRING) private Category category;
-    @Enumerated(EnumType.STRING) private Region region;
-    @Column(length = 200) private String address;
-    @Column(precision = 10, scale = 7) private BigDecimal latitude;
-    @Column(precision = 10, scale = 7) private BigDecimal longitude;
-    @Column(length = 20) private String phone;
-    @Column(length = 20) private String businessNo;
+@Entity
+@Table(name = "restaurants")
+@Getter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+public class Restaurant extends BaseTimeEntity {
 
-    @Column(length = 200) private String operatingHours; // [추가] 영업시간 (예: "매일 10:00 ~ 22:00")
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
-    private boolean isVerified=false, allowSmall=false, allowMedium=false, allowLarge=false;
-    private boolean hasFence=false, hasArtificialGrass=false, hasNaturalGrass=false, hasSnack=false;
-    private boolean hasParking=false, hasRestroom=false, hasIndoor=false, hasOutdoor=false;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "owner_id", nullable = false)
+    private User owner;
 
-    @OneToMany(mappedBy = "restaurant", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private List<RestaurantImage> images = new ArrayList<>();
+    @Column(nullable = false, length = 100)
+    private String name;
 
-    @OneToMany(mappedBy = "restaurant", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private List<Review> reviews = new ArrayList<>();
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 30)
+    private Category category;
 
-    // [추가] 메뉴 연관관계 고도화 (orphanRemoval=true 설정으로 고도화된 변경 감지 지원)
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 30)
+    private Region region;
+
+    @Column(length = 200)
+    private String address;
+
+    @Column(precision = 10, scale = 7)
+    private BigDecimal latitude;
+
+    @Column(precision = 10, scale = 7)
+    private BigDecimal longitude;
+
+    @Column(length = 20)
+    private String phone;
+
+    @Column(length = 20)
+    private String businessNo;
+
+    @Column(length = 200)
+    private String operatingHours;
+
+    @SuppressWarnings("FieldMayBeFinal")
+    @Column(nullable = false)
+    private boolean isVerified = false;
+
+    private boolean allowSmall = false;
+    private boolean allowMedium = false;
+    private boolean allowLarge = false;
+    private boolean hasFence = false;
+    private boolean hasArtificialGrass = false;
+    private boolean hasNaturalGrass = false;
+    private boolean hasSnack = false;
+    private boolean hasParking = false;
+    private boolean hasRestroom = false;
+    private boolean hasIndoor = false;
+    private boolean hasOutdoor = false;
+
     @OneToMany(mappedBy = "restaurant", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
-    private List<Menu> menus = new ArrayList<>();
+    private final List<RestaurantImage> images = new ArrayList<>();
 
-    @CreationTimestamp private LocalDateTime createdAt;
-    @UpdateTimestamp private LocalDateTime updatedAt;
+    @OneToMany(mappedBy = "restaurant", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private final List<Review> reviews = new ArrayList<>();
 
-    public Restaurant(Long id) { this.id = id; }
+    @OneToMany(mappedBy = "restaurant", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    private final List<Menu> menus = new ArrayList<>();
 
-    // [수정] 정보 수정을 위한 비즈니스 메서드
+    // Test 및 인프라용 생성자
+    public Restaurant(Long id) {
+        this.id = id;
+    }
+
+    /**
+     * RestaurantRequest의 toEntity()용 도메인 비즈니스 생성자
+     */
+    public Restaurant(String name, String address, String phone, String businessNo,
+                      Category category, Region region, BigDecimal latitude, BigDecimal longitude,
+                      String operatingHours, boolean hasFence, boolean hasArtificialGrass,
+                      boolean hasNaturalGrass, boolean hasSnack, boolean hasParking,
+                      boolean hasRestroom, boolean hasIndoor, boolean hasOutdoor,
+                      boolean allowSmall, boolean allowMedium, boolean allowLarge) {
+        this.name = name;
+        this.address = address;
+        this.phone = phone;
+        this.businessNo = businessNo;
+        this.category = category;
+        this.region = region;
+        this.latitude = latitude;
+        this.longitude = longitude;
+
+        // 🌟 영업시간 선택 입력 방어: null이거나 공백 문자가 유입될 시 빈 스트링("") 처리
+        this.operatingHours = (operatingHours == null || operatingHours.isBlank()) ? "" : operatingHours;
+
+        this.hasFence = hasFence;
+        this.hasArtificialGrass = hasArtificialGrass;
+        this.hasNaturalGrass = hasNaturalGrass;
+        this.hasSnack = hasSnack;
+        this.hasParking = hasParking;
+        this.hasRestroom = hasRestroom;
+        this.hasIndoor = hasIndoor;
+        this.hasOutdoor = hasOutdoor;
+        this.allowSmall = allowSmall;
+        this.allowMedium = allowMedium;
+        this.allowLarge = allowLarge;
+    }
+
+    public void assignOwner(User owner) {
+        this.owner = owner;
+    }
+
+    /**
+     * 정보 수정을 위한 비즈니스 메서드 (Dirty Checking)
+     */
     public void update(RestaurantRequest req) {
         this.name = req.getName();
         this.category = req.getCategory();
         this.region = req.getRegion();
         this.address = req.getAddress();
         this.phone = req.getPhone();
+        this.businessNo = req.getBusinessNo();
         this.latitude = req.getLatitude();
         this.longitude = req.getLongitude();
-        this.operatingHours = req.getOperatingHours(); // [추가] 영업시간 수정 반영
 
-        // 시설 정보 업데이트
+        // 🌟 수정 요청 시에도 영업시간 데이터 유실 방어선 작동
+        this.operatingHours = (req.getOperatingHours() == null || req.getOperatingHours().isBlank()) ? "" : req.getOperatingHours();
+
         this.hasFence = req.isHasFence();
         this.hasArtificialGrass = req.isHasArtificialGrass();
         this.hasNaturalGrass = req.isHasNaturalGrass();
@@ -69,18 +147,44 @@ public class Restaurant {
         this.allowLarge = req.isAllowLarge();
     }
 
-    // [추가] 메뉴 리스트 전체를 교체할 때 사용하는 편의 메서드
-    public void updateMenus(List<Menu> newMenus) {
-        this.menus.clear();
-        if (newMenus != null) {
-            this.menus.addAll(newMenus);
+    /**
+     * 🌟 [컴파일 에러 해결 지점] 이미지 컬렉션을 완전히 교체하기 위한 도메인 메서드
+     * JPA의 orphanRemoval 체계가 안전하게 동작하도록 내부 요소를 청소(clear)한 뒤 주입합니다.
+     */
+    public void updateImages(List<RestaurantImage> newImages) {
+        this.images.clear();
+        if (newImages != null) {
+            this.images.addAll(newImages);
         }
     }
 
-    public Long getOwnerId() {
-        return this.owner != null ? this.owner.getId() : null;
+    public String getImageUrl() {
+        if (this.images.isEmpty()) {
+            return null;
+        }
+        RestaurantImage firstImage = this.images.get(0);
+        return firstImage != null ? firstImage.getImageUrl() : null;
     }
 
-    public enum Category { 일반음식점, 휴게음식점, 제과점 }
-    public enum Region { 대야동,신천동,신현동,은행동,매화동,목감동,군자동,월곶동,정왕동,거북섬동,배곤동,과림동,연성동,능곡동,장곡동 }
+    @RequiredArgsConstructor
+    @Getter
+    public enum Category {
+        RESTAURANT("일반음식점"),
+        REST_AREA("휴게음식점"),
+        BAKERY("제과점"),
+        CAFE("카페");
+
+        private final String description;
+    }
+
+    @RequiredArgsConstructor
+    @Getter
+    public enum Region {
+        DAEYA("대야동"), SINCHEON("신천동"), SINHYEON("신현동"), EUNHAENG("은행동"),
+        MAEHWA("매화동"), MOKGAM("목감동"), GUNJA("군자동"), WOLGOT("월곶동"),
+        JEONGWANG("정왕동"), GEOBUKSEOM("거북섬동"), BAEGON("배곧동"), GWARIM("과림동"),
+        YEONSEONG("연성동"), NEUNGGOK("능곡동"), JANGGOK("장곡동");
+
+        private final String krName;
+    }
 }
