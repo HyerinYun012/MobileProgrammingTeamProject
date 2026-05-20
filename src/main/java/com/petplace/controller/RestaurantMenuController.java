@@ -27,11 +27,12 @@ public class RestaurantMenuController {
     private final RestaurantMenuService restaurantMenuService;
 
     /**
-     * 💡 특정 식당의 전체 메뉴 목록 조회 (전체 공개)
-     * SecurityConfig의 .permitAll() 규칙 해제에 따라, 이제 이 조회 API도 인증된 회원만 접근 가능합니다.
+     * 💡 특정 식당의 전체 메뉴 목록 조회
+     * @RequestMapping에 이미 /api/restaurants/{restaurantId}/menus 가 선언되어 있으므로,
+     * 여기서는 별도의 경로를 추가하지 않아도 됩니다.
      */
     @Operation(summary = "식당별 메뉴 목록 조회", description = "특정 식당에 등록된 모든 메뉴 리스트를 페이징하여 조회합니다.")
-    @GetMapping("/{restaurantId}/menus") // 💡 경로에 /{restaurantId}/menus를 명시하는 것이 권장됩니다.
+    @GetMapping // 💡 경로를 비워두면 @RequestMapping의 경로 그대로 매핑됩니다.
     public ResponseEntity<ApiResponse<Page<MenuResponse>>> getMenusByRestaurant(
             @Parameter(description = "식당 고유 ID") @PathVariable Long restaurantId,
             @PageableDefault(size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable
