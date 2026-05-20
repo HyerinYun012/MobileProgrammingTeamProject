@@ -1,10 +1,12 @@
 package com.petplace.dto.response;
 
+import com.petplace.entity.OperatingHour;
 import com.petplace.entity.Restaurant;
 import lombok.Builder;
 import lombok.Getter;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 @Getter
 @Builder
@@ -17,7 +19,7 @@ public class RestaurantResponse {
     private BigDecimal latitude;
     private BigDecimal longitude;
     private String phone;
-    private String operatingHours;
+    private List<OperatingHour> operatingHours;
     private boolean isVerified;
 
     // 편의시설 및 허용 조건
