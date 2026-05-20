@@ -76,7 +76,6 @@ public class RestaurantService {
             throw new BusinessException(ErrorCode.DUPLICATE_BUSINESS_NUMBER);
         }
 
-        // 🌟 [수정] RestaurantRequest에서 요일별 영업시간 리스트(List<OperatingHour>)를 엔티티 변환 시 주입하도록 대응
         Restaurant restaurant = req.toEntity();
         restaurant.assignOwner(owner);
 
