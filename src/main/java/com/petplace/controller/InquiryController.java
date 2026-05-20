@@ -9,11 +9,13 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @Tag(name = "고객 문의(Inquiry) API", description = "1:1 문의하기 및 고객 지원 관련 API")
 @RestController
@@ -38,20 +40,18 @@ public class InquiryController {
         return ResponseEntity.ok(ApiResponse.success("문의가 성공적으로 접수되었습니다.", null));
     }
 
-    /**
-     * 💡 [신규 추가] 로그인한 유저 본인의 1:1 문의 리스트 조회
-     * 엔드포인트: GET /api/inquiries/my
-     */
     @Operation(
             summary = "내 1:1 문의 내역 조회",
-            description = "마이페이지 혹은 고객센터화면에서 현재 로그인한 사용자가 과거에 제출했던 1:1 문의 리스트와 답변 처리 상태를 최신순으로 안전하게 조회합니다."
+            description = "로그인한 사용자의 1:1 문의 리스트를 페이징 처리하여 조회합니다."
     )
     @GetMapping("/my")
-    public ResponseEntity<ApiResponse<List<InquiryResponse>>> getMyInquiries(
-            // 🛡️ 파라미터 변조(IDOR 공격)를 원천 차단하기 위해 인증 세션의 유저 고유 식별자만 신뢰합니다.
-            @Parameter(hidden = true) @AuthenticationPrincipal Long userId
+    public ResponseEntity<ApiResponse<Page<InquiryResponse>>> getMyInquiries(
+            @Parameter(hidden = true) @AuthenticationPrincipal Long userId,
+            // 💡 페이징 파라미터 추가
+            @PageableDefault(size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable
     ) {
-        List<InquiryResponse> responses = inquiryService.getMyInquiries(userId);
+        // 💡 서비스 호출 시 pageable을 전달합니다.
+        Page<InquiryResponse> responses = inquiryService.getMyInquiries(userId, pageable);
         return ResponseEntity.ok(ApiResponse.success("내 문의 내역 조회가 완료되었습니다.", responses));
     }
 }

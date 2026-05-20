@@ -1,14 +1,21 @@
 package com.petplace.service;
 
 import com.petplace.dto.request.ReviewRequest;
+import com.petplace.dto.response.ReviewResponse;
 import com.petplace.entity.*;
 import com.petplace.repository.*;
 import com.petplace.exception.BusinessException;
+import com.petplace.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
@@ -19,28 +26,43 @@ public class ReviewService {
     private final ReviewRepository reviewRepo;
     private final ReviewReportRepository reportRepo;
     private final FileService fileService;
+    // 💡 프록시 객체 생성을 위해 Repository 의존성 추가
+    private final UserRepository userRepository;
+    private final RestaurantRepository restaurantRepository;
 
-    public List<Review> getReviews(Long restaurantId) {
-        return reviewRepo.findByRestaurant_IdOrderByCreatedAtDesc(restaurantId);
+    public Page<ReviewResponse> getReviews(Long restaurantId, Pageable pageable) {
+        // 💡 Repository의 페이징 메서드 호출 후 DTO로 변환
+        return reviewRepo.findByRestaurantId(restaurantId, pageable)
+                .map(ReviewResponse::from);
     }
 
     /**
      * 리뷰 작성
-     * 💡 [수정] throws IOException을 추가하여 예외 처리를 전역 핸들러로 위임합니다.
+     * 🚀 [개선] 롤백 시 S3 업로드 파일 삭제 로직 추가
      */
     @Transactional
     public Review write(Long restaurantId, Long userId, ReviewRequest req, MultipartFile image) {
         String imageUrl = null;
+        List<String> uploadedFiles = new ArrayList<>(); // 롤백 대비 추적 리스트
 
-        // 💡 [수정] 내부에 있던 구질구질한 try-catch를 완전히 걷어내고 한 줄로 심플하게 처리합니다.
         if (image != null && !image.isEmpty()) {
             imageUrl = fileService.uploadFile(image);
+            uploadedFiles.add(imageUrl);
         }
 
-        // Review 엔티티에 @Builder가 있어야 에러가 안 납니다.
+        // 트랜잭션 롤백 시 파일 삭제 동기화
+        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+            @Override
+            public void afterCompletion(int status) {
+                if (status == STATUS_ROLLED_BACK) {
+                    uploadedFiles.forEach(fileService::deleteFile);
+                }
+            }
+        });
+
         Review rv = Review.builder()
-                .user(new User(userId))
-                .restaurant(new Restaurant(restaurantId))
+                .user(userRepository.getReferenceById(userId))
+                .restaurant(restaurantRepository.getReferenceById(restaurantId))
                 .rating(req.getRating())
                 .content(req.getContent())
                 .imageUrl(imageUrl)
@@ -50,16 +72,45 @@ public class ReviewService {
     }
 
     /**
+     * 리뷰 수정
+     */
+    @Transactional
+    public void update(Long reviewId, Long userId, ReviewRequest req, MultipartFile newImage) {
+        // 1. 리뷰 조회
+        Review review = reviewRepo.findById(reviewId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.REVIEW_NOT_FOUND));
+
+        // 2. 작성자 본인인지 확인
+        if (!Objects.equals(review.getUser().getId(), userId)) {
+            throw new BusinessException(ErrorCode.NO_PERMISSION);
+        }
+
+        // 3. 이미지 수정 로직 (새 이미지가 있을 경우에만)
+        String updatedImageUrl = review.getImageUrl();
+        if (newImage != null && !newImage.isEmpty()) {
+            // 기존 이미지 삭제
+            if (updatedImageUrl != null) {
+                fileService.deleteFile(updatedImageUrl);
+            }
+            // 새 이미지 업로드
+            updatedImageUrl = fileService.uploadFile(newImage);
+        }
+
+        review.updateReview(req.getRating(), req.getContent(), updatedImageUrl);
+    }
+
+    /**
      * 리뷰 삭제
      */
     @Transactional
     public void delete(Long reviewId, Long userId) {
+        // 💡 ErrorCode 적용
         Review review = reviewRepo.findById(reviewId)
-                .orElseThrow(() -> new BusinessException("해당 리뷰를 찾을 수 없습니다."));
+                .orElseThrow(() -> new BusinessException(ErrorCode.REVIEW_NOT_FOUND));
 
-        // 💡 [수정] Objects.equals를 사용하여 혹시 모를 NPE(NullPointerException) 방지 및 인텔리제이 경고 해결
+        // 💡 ErrorCode 적용: 권한 검증
         if (!Objects.equals(review.getUser().getId(), userId)) {
-            throw new BusinessException("본인이 작성한 리뷰만 삭제할 수 있습니다.");
+            throw new BusinessException(ErrorCode.NO_PERMISSION);
         }
 
         if (review.getImageUrl() != null) {
@@ -74,22 +125,23 @@ public class ReviewService {
      */
     @Transactional
     public void report(Long reviewId, Long ownerId, String reason) {
+        // 💡 ErrorCode 적용
         Review review = reviewRepo.findById(reviewId)
-                .orElseThrow(() -> new BusinessException("신고 대상 리뷰를 찾을 수 없습니다."));
+                .orElseThrow(() -> new BusinessException(ErrorCode.REVIEW_NOT_FOUND));
 
-        // 💡 [수정] 여기도 사장님 ID 비교 시 Objects.equals를 적용하여 정석대로 매핑합니다.
+        // 💡 ErrorCode 적용: 사장님 권한 검증
         if (!Objects.equals(review.getRestaurant().getOwner().getId(), ownerId)) {
-            throw new BusinessException("본인 가게의 리뷰만 신고할 수 있습니다.");
+            throw new BusinessException(ErrorCode.NO_PERMISSION);
         }
 
+        // 💡 ErrorCode 적용: 중복 신고 방지
         if (reportRepo.existsByReviewIdAndOwnerId(reviewId, ownerId)) {
-            throw new BusinessException("이미 신고한 리뷰입니다.");
+            throw new BusinessException(ErrorCode.ALREADY_REPORTED);
         }
 
-        // ReviewReport 엔티티의 Status를 영문(PENDING)으로 바꿨으므로 이제 에러가 나지 않습니다.
         ReviewReport report = ReviewReport.builder()
                 .review(review)
-                .owner(new User(ownerId))
+                .owner(userRepository.getReferenceById(ownerId))
                 .reason(reason)
                 .status(ReviewReport.Status.PENDING)
                 .build();

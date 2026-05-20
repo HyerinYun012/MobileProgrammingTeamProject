@@ -25,12 +25,9 @@ public class Notice extends BaseTimeEntity {
     @Column(nullable = false)
     private String content; // 설명 (본문 내용)
 
-    // 🌟 [컨벤션 수정] 스네이크 케이스를 자바 표준인 카멜 케이스로 교정합니다.
-    // 하이버네이트 자동 매핑에 의해 DB 테이블에는 원래 의도대로 'thumbnail_url'로 깔끔하게 생성됩니다.
     @Column(length = 500)
     private String thumbnailUrl; // 공지 대표 사진
 
-    // 🌟 [컨벤션 수정] description_image_url -> descriptionImageUrl
     @Column(length = 500)
     private String descriptionImageUrl; // 공지 설명 사진
 

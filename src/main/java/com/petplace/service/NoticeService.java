@@ -1,17 +1,20 @@
 package com.petplace.service;
 
+import com.petplace.dto.response.NoticeResponse;
 import com.petplace.entity.Notice;
 import com.petplace.entity.Restaurant;
 import com.petplace.exception.BusinessException;
+import com.petplace.exception.ErrorCode; // 💡 ErrorCode import 추가
 import com.petplace.repository.NoticeRepository;
 import com.petplace.repository.RestaurantRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 
-import java.util.List;
 import java.util.Objects;
 
 @Service
@@ -28,14 +31,15 @@ public class NoticeService {
      */
     @Transactional
     public void createNotice(Long restaurantId, Long ownerId, String title, String content, String thumbUrl, String descImgUrl) {
+        // 💡 ErrorCode 적용
         Restaurant restaurant = restaurantRepository.findById(restaurantId)
-                .orElseThrow(() -> new BusinessException("가게를 찾을 수 없습니다."));
+                .orElseThrow(() -> new BusinessException(ErrorCode.RESTAURANT_NOT_FOUND));
 
         if (restaurant.getOwner() == null || !Objects.equals(restaurant.getOwner().getId(), ownerId)) {
-            throw new BusinessException("공지사항 작성 권한이 없습니다.");
+            // 💡 ErrorCode 적용
+            throw new BusinessException(ErrorCode.NO_PERMISSION);
         }
 
-        // 🌟 [수정] 외부 Setter 주입 방식 대신 캡슐화된 정적 팩토리 메서드를 호출하여 완결성 있는 객체를 만듭니다.
         Notice notice = Notice.createNotice(
                 restaurant,
                 title,
@@ -52,15 +56,16 @@ public class NoticeService {
      */
     @Transactional
     public void updateNotice(Long noticeId, Long ownerId, String title, String content, String newThumbUrl, String newDescImgUrl) {
+        // 💡 ErrorCode 적용
         Notice notice = noticeRepository.findById(noticeId)
-                .orElseThrow(() -> new BusinessException("공지사항을 찾을 수 없습니다."));
+                .orElseThrow(() -> new BusinessException(ErrorCode.NOTICE_NOT_FOUND));
 
         if (notice.getRestaurant() == null || notice.getRestaurant().getOwner() == null ||
                 !Objects.equals(notice.getRestaurant().getOwner().getId(), ownerId)) {
-            throw new BusinessException("공지사항 수정 권한이 없습니다.");
+            // 💡 ErrorCode 적용
+            throw new BusinessException(ErrorCode.NO_PERMISSION);
         }
 
-        // 🌟 [수정] 뱀 모양(Snake Case) 필드를 지우고 카멜 케이스 getter로 파일 변경 감지 수행
         // 1. 썸네일 이미지가 변경된 경우
         if (notice.getThumbnailUrl() != null && !notice.getThumbnailUrl().isEmpty() &&
                 !Objects.equals(notice.getThumbnailUrl(), newThumbUrl)) {
@@ -87,7 +92,6 @@ public class NoticeService {
             });
         }
 
-        // 🌟 [수정] 나열식 Setter 구조를 제거하고 단 한 줄의 도메인 비즈니스 메서드로 수정을 위임합니다. (Dirty Checking)
         notice.updateNotice(title, content, newThumbUrl, newDescImgUrl);
     }
 
@@ -96,15 +100,16 @@ public class NoticeService {
      */
     @Transactional
     public void deleteNotice(Long noticeId, Long ownerId) {
+        // 💡 ErrorCode 적용
         Notice notice = noticeRepository.findById(noticeId)
-                .orElseThrow(() -> new BusinessException("공지사항을 찾을 수 없습니다."));
+                .orElseThrow(() -> new BusinessException(ErrorCode.NOTICE_NOT_FOUND));
 
         if (notice.getRestaurant() == null || notice.getRestaurant().getOwner() == null ||
                 !Objects.equals(notice.getRestaurant().getOwner().getId(), ownerId)) {
-            throw new BusinessException("공지사항 삭제 권한이 없습니다.");
+            // 💡 ErrorCode 적용
+            throw new BusinessException(ErrorCode.NO_PERMISSION);
         }
 
-        // 🌟 [수정] 삭제 완료(Commit) 후 물리 파일 파괴 로직 역시 수정된 카멜 케이스 메서드를 바라보도록 대응합니다.
         TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
             @Override
             public void afterCommit() {
@@ -121,12 +126,14 @@ public class NoticeService {
     }
 
     /**
-     * 특정 식당의 공지사항 목록 최신순 조회
+     * 특정 식당의 공지사항 목록 최신순 페이징 조회
      */
-    public List<Notice> getNoticesByRestaurant(Long restaurantId) {
+    public Page<NoticeResponse> getNoticesByRestaurant(Long restaurantId, Pageable pageable) {
+        // 1. 식당 존재 여부 확인
         restaurantRepository.findById(restaurantId)
-                .orElseThrow(() -> new BusinessException("가게를 찾을 수 없습니다."));
+                .orElseThrow(() -> new BusinessException(ErrorCode.RESTAURANT_NOT_FOUND));
 
-        return noticeRepository.findByRestaurant_IdOrderByCreatedAtDesc(restaurantId);
+        return noticeRepository.findByRestaurantIdOrderByCreatedAtDesc(restaurantId, pageable)
+                .map(NoticeResponse::from);
     }
 }

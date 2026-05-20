@@ -6,9 +6,7 @@ import lombok.*;
 @Entity
 @Table(name = "local_auth")
 @Getter
-@Setter
-@NoArgsConstructor
-// 🌟 중복 필드 제거와 계정 타임스탬프 추적 일관성을 위해 BaseTimeEntity를 상속받습니다.
+@NoArgsConstructor(access = AccessLevel.PROTECTED) // 🛡️ 무분별한 빈 객체 생성 차단 및 JPA 스펙 준수
 public class LocalAuth extends BaseTimeEntity {
 
     @Id
@@ -24,4 +22,22 @@ public class LocalAuth extends BaseTimeEntity {
 
     @Column(nullable = false, length = 255)
     private String password;
+
+    /**
+     * 💡 [정적 팩토리 메서드] 로컬 계정 생성 창구 일원화
+     */
+    public static LocalAuth createLocalAuth(User user, String loginId, String encodedPassword) {
+        LocalAuth localAuth = new LocalAuth();
+        localAuth.user = user;
+        localAuth.loginId = loginId;
+        localAuth.password = encodedPassword; // 🌟 외부에서 반드시 암호화(encode) 후 넘기도록 가이드
+        return localAuth;
+    }
+
+    /**
+     * 🛡️ [도메인 비즈니스 메서드] 평문 오염을 방지하는 명확한 암호 변경 창구
+     */
+    public void changePassword(String encodedPassword) {
+        this.password = encodedPassword;
+    }
 }

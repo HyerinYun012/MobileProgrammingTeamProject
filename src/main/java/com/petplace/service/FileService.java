@@ -1,5 +1,7 @@
 package com.petplace.service;
 
+import com.petplace.exception.BusinessException;
+import com.petplace.exception.ErrorCode;
 import io.awspring.cloud.s3.S3Template;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -20,7 +22,7 @@ public class FileService {
     private String bucket;
 
     /**
-     * S3 파일 업로드 (내부 예외 전환 적용)
+     * S3 파일 업로드 (ErrorCode 적용)
      */
     public String uploadFile(MultipartFile file) {
         if (file == null || file.isEmpty()) return null;
@@ -35,7 +37,6 @@ public class FileService {
         String savedName = UUID.randomUUID() + extension;
 
         try {
-            // 💡 실제 파일 스트림 처리 및 S3 업로드 중 발생하는 IOException을 여기서 직접 낚아챕니다.
             var s3Resource = s3Template.upload(bucket, savedName, file.getInputStream());
             String uploadedUrl = s3Resource.getURL().toString();
 
@@ -43,14 +44,15 @@ public class FileService {
             return uploadedUrl;
 
         } catch (IOException e) {
-            // 💡 Checked Exception을 Unchecked 예외(RuntimeException)로 포장하여 새로 던집니다.
-            // 원본 에러(e)를 생성자에 함께 넘겨주어야 나중에 에러 추적이 가능합니다.
-            throw new RuntimeException("S3 Storage 이미지 파일 업로드 실패", e);
+            // 💡 실제 원인(e)은 서버 로그에 기록하여 디버깅이 가능하도록 함
+            log.error("S3 파일 업로드 실패: ", e);
+            // 💡 클라이언트에게는 정의된 에러 코드를 담은 비즈니스 예외를 던짐
+            throw new BusinessException(ErrorCode.FILE_UPLOAD_FAILED);
         }
     }
 
     /**
-     * S3 파일 삭제 (기존 정책 유지)
+     * S3 파일 삭제 (ErrorCode 및 로깅 강화)
      */
     public void deleteFile(String imageUrl) {
         if (imageUrl == null || imageUrl.isEmpty()) return;

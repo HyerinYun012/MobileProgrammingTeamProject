@@ -1,6 +1,7 @@
 package com.petplace.dto.request;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
@@ -30,12 +31,18 @@ public class CustomerSignupRequest {
     private String passwordConfirm;
 
     @NotBlank(message = "닉네임은 필수 입력 항목입니다.")
-    @Size(min = 2, max = 10, message = "닉네임은 2자에서 10자 사이여야 합니다.")
-    @Schema(description = "서비스 내에서 사용할 닉네임", example = "초코아빠")
+    @Size(min = 2, max = 15, message = "닉네임은 2자에서 15자 사이여야 합니다.")
+    @Schema(description = "서비스 활동 닉네임", example = "초코언니")
     private String nickname;
 
     @NotBlank(message = "휴대폰 번호는 필수 입력 항목입니다.")
-    @Pattern(regexp = "^01(?:0|1|[6-9])(?:\\d{3}|\\d{4})\\d{4}$", message = "올바른 휴대폰 번호 형식이 아닙니다.")
-    @Schema(description = "휴대폰 번호 (하이픈 제외)", example = "01012345678")
+    @Pattern(regexp = "^01(?:0|1|[6-9])(?:\\d{3}|\\d{4})\\d{4}$", message = "올바른 휴대폰 번호 형식이어야 합니다.")
+    @Schema(description = "휴대폰 번호 (- 없이 입력)", example = "01012345678")
     private String phone;
+
+    // 🎯 [추가] 이메일 필드 및 검증 명세 도입
+    @NotBlank(message = "이메일은 필수 입력 항목입니다.")
+    @Email(message = "올바른 이메일 형식이어야 합니다.")
+    @Schema(description = "사용자 이메일 주소", example = "customer@example.com")
+    private String email;
 }

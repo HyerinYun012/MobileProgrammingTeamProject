@@ -2,6 +2,7 @@ package com.petplace.controller;
 
 import com.petplace.dto.request.PetRequest;
 import com.petplace.dto.response.ApiResponse;
+import com.petplace.dto.response.PetResponse;
 import com.petplace.entity.Pet;
 import com.petplace.service.PetService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -9,13 +10,15 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-
-import java.util.List;
 
 @Tag(name = "반려동물(Pet) API", description = "반려동물 등록, 수정, 조회 및 프로필 이미지 관리 API")
 @RestController
@@ -25,12 +28,15 @@ public class PetController {
 
     private final PetService petService;
 
-    @Operation(summary = "반려동물 목록 조회", description = "로그인한 사용자의 모든 반려동물 리스트를 조회합니다.")
+    @Operation(summary = "반려동물 목록 조회", description = "로그인한 사용자의 반려동물 리스트를 페이징하여 조회합니다.")
     @GetMapping
-    public ResponseEntity<ApiResponse<List<?>>> getPets(
-            @AuthenticationPrincipal Long userId
+    public ResponseEntity<ApiResponse<Page<PetResponse>>> getPets(
+            @AuthenticationPrincipal Long userId,
+            @PageableDefault(size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable
     ) {
-        return ResponseEntity.ok(ApiResponse.success(petService.getPets(userId)));
+        // 서비스에서 Page<PetResponse>를 반환하도록 수정해야 합니다.
+        Page<PetResponse> response = petService.getPets(userId, pageable);
+        return ResponseEntity.ok(ApiResponse.success("반려동물 목록 조회가 완료되었습니다.", response));
     }
 
     @Operation(summary = "반려동물 추가", description = "새로운 반려동물을 등록합니다. 프로필 사진 이미지를 첨부할 수 있습니다.")

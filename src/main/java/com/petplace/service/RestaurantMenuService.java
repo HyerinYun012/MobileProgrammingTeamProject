@@ -1,23 +1,28 @@
 package com.petplace.service;
 
-import com.petplace.dto.request.MenuRequest; // 💡 추가
+import com.petplace.dto.request.MenuRequest;
+import com.petplace.dto.response.MenuResponse;
 import com.petplace.entity.Menu;
 import com.petplace.entity.Restaurant;
 import com.petplace.exception.BusinessException;
+import com.petplace.exception.ErrorCode; // 💡 import 추가
 import com.petplace.repository.MenuRepository;
 import com.petplace.repository.RestaurantRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
-import org.springframework.web.multipart.MultipartFile; // 💡 추가
+import org.springframework.web.multipart.MultipartFile;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-@Transactional(readOnly = true) // 기본 읽기 전용 성능 최적화
+@Transactional(readOnly = true)
 public class RestaurantMenuService {
 
     private final RestaurantRepository restaurantRepository;
@@ -26,29 +31,44 @@ public class RestaurantMenuService {
 
     /**
      * 메뉴 등록 (사장님 전용)
+     * 🚀 [개선] 롤백 시 S3 업로드 파일 삭제 로직 추가
      */
     @Transactional
     public Long registerMenu(Long restaurantId, Long ownerId, MenuRequest req, MultipartFile imageFile) {
         Restaurant restaurant = restaurantRepository.findById(restaurantId)
-                .orElseThrow(() -> new BusinessException("가게를 찾을 수 없습니다."));
+                .orElseThrow(() -> new BusinessException(ErrorCode.RESTAURANT_NOT_FOUND));
 
         if (restaurant.getOwner() == null || !restaurant.getOwner().getId().equals(ownerId)) {
-            throw new BusinessException("메뉴 등록 권한이 없습니다.");
+            throw new BusinessException(ErrorCode.NO_PERMISSION);
         }
 
-        // 💡 물리 파일 아웃소싱 체계 연동 (FileService가 Checked Exception을 내부 래핑하여 throws 문맥 제거됨)
-        String uploadedImageUrl = fileService.uploadFile(imageFile);
+        String imageUrl = null;
+        List<String> uploadedFiles = new ArrayList<>(); // 롤백 대비 추적 리스트
+
+        if (imageFile != null && !imageFile.isEmpty()) {
+            imageUrl = fileService.uploadFile(imageFile);
+            uploadedFiles.add(imageUrl);
+        }
+
+        // 트랜잭션 롤백 시 파일 삭제 동기화
+        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+            @Override
+            public void afterCompletion(int status) {
+                if (status == STATUS_ROLLED_BACK) {
+                    uploadedFiles.forEach(fileService::deleteFile);
+                }
+            }
+        });
 
         Menu menu = Menu.builder()
                 .restaurant(restaurant)
                 .name(req.getName())
                 .price(req.getPrice())
                 .description(req.getDescription())
-                .imageUrl(uploadedImageUrl) // S3에 업로드되어 발급된 URL 할당
+                .imageUrl(imageUrl)
                 .build();
 
-        Menu savedMenu = menuRepository.save(menu);
-        return savedMenu.getId();
+        return menuRepository.save(menu).getId();
     }
 
     /**
@@ -56,19 +76,19 @@ public class RestaurantMenuService {
      */
     @Transactional
     public void updateMenu(Long menuId, Long ownerId, MenuRequest req, MultipartFile newSpecFile) {
+        // 💡 ErrorCode 적용
         Menu menu = menuRepository.findById(menuId)
-                .orElseThrow(() -> new BusinessException("메뉴를 찾을 수 없습니다."));
+                .orElseThrow(() -> new BusinessException(ErrorCode.MENU_NOT_FOUND));
 
         if (menu.getRestaurant().getOwner() == null || !menu.getRestaurant().getOwner().getId().equals(ownerId)) {
-            throw new BusinessException("메뉴 수정 권한이 없습니다.");
+            // 💡 ErrorCode 적용
+            throw new BusinessException(ErrorCode.NO_PERMISSION);
         }
 
-        // 1. 새로 들어온 파일이 있다면 S3 업로드 먼저 선행
         String nextImageUrl = menu.getImageUrl();
         if (newSpecFile != null && !newSpecFile.isEmpty()) {
             nextImageUrl = fileService.uploadFile(newSpecFile);
 
-            // 2. 업로드가 정상 수행되었고 기존 이미지가 존재했다면 커밋 완료 시점(afterCommit)에 제거 예약
             if (menu.getImageUrl() != null) {
                 String oldImageUrl = menu.getImageUrl();
                 TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
@@ -80,7 +100,6 @@ public class RestaurantMenuService {
             }
         }
 
-        // 3. 엔티티 도메인 비즈니스 메서드 호출하여 원자적(Atomic) 데이터 교체
         menu.updateMenuInfo(req.getName(), req.getPrice(), req.getDescription(), nextImageUrl);
     }
 
@@ -89,14 +108,15 @@ public class RestaurantMenuService {
      */
     @Transactional
     public void deleteMenu(Long menuId, Long ownerId) {
+        // 💡 ErrorCode 적용
         Menu menu = menuRepository.findById(menuId)
-                .orElseThrow(() -> new BusinessException("메뉴를 찾을 수 없습니다."));
+                .orElseThrow(() -> new BusinessException(ErrorCode.MENU_NOT_FOUND));
 
         if (menu.getRestaurant().getOwner() == null || !menu.getRestaurant().getOwner().getId().equals(ownerId)) {
-            throw new BusinessException("메뉴 삭제 권한이 없습니다.");
+            // 💡 ErrorCode 적용
+            throw new BusinessException(ErrorCode.NO_PERMISSION);
         }
 
-        // DB 레코드가 완전히 정상 삭제(Commit)된 후에 S3 버킷 파일 제거
         if (menu.getImageUrl() != null && !menu.getImageUrl().isEmpty()) {
             String targetImageUrl = menu.getImageUrl();
             TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
@@ -110,13 +130,13 @@ public class RestaurantMenuService {
         menuRepository.delete(menu);
     }
 
-    /**
-     * 특정 식당의 전체 메뉴 목록 조회 (전체 공개)
-     */
-    public List<Menu> getMenusByRestaurant(Long restaurantId) {
+    public Page<MenuResponse> getMenusByRestaurant(Long restaurantId, Pageable pageable) {
+        // 💡 식당 존재 여부 확인
         restaurantRepository.findById(restaurantId)
-                .orElseThrow(() -> new BusinessException("가게를 찾을 수 없습니다."));
+                .orElseThrow(() -> new BusinessException(ErrorCode.RESTAURANT_NOT_FOUND));
 
-        return menuRepository.findByRestaurantId(restaurantId);
+        // 💡 Repository에서 Page<Menu>를 받아 Page<MenuResponse>로 변환
+        return menuRepository.findByRestaurantId(restaurantId, pageable)
+                .map(MenuResponse::from);
     }
 }

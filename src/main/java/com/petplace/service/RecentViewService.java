@@ -2,12 +2,16 @@ package com.petplace.service;
 
 import com.petplace.dto.response.RecentViewResponse;
 import com.petplace.entity.Restaurant;
+import com.petplace.exception.BusinessException;
+import com.petplace.exception.ErrorCode; // 💡 ErrorCode import
 import com.petplace.repository.RecentViewRepository;
+import com.petplace.repository.RestaurantRepository; // 💡 검증을 위해 추가
+import com.petplace.repository.UserRepository; // 💡 검증을 위해 추가
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -15,15 +19,17 @@ import java.util.List;
 public class RecentViewService {
 
     private final RecentViewRepository recentViewRepo;
+    private final UserRepository userRepo; // 💡 검증용 레포지토리
+    private final RestaurantRepository restaurantRepo; // 💡 검증용 레포지토리
     private static final int RECENT_VIEW_LIMIT = 30;
 
-    /**
-     * 최근 본 장소 조회 (List<RecentViewResponse>로 정밀 가공)
-     */
-    public List<RecentViewResponse> getRecentViews(Long userId) {
-        // ⚠️ [주의] 만약 RecentViewRepository의 쿼리 메서드 이름도 viewedAt을 바라보고 있다면
-        // findTop10ByUserIdOrderByCreatedAtDesc 형태로 Repository단 명명 규칙도 함께 고쳐주셔야 합니다.
-        return recentViewRepo.findTop10ByUserIdOrderByCreatedAtDesc(userId).stream()
+    public Page<RecentViewResponse> getRecentViews(Long userId, Pageable pageable) {
+        if (!userRepo.existsById(userId)) {
+            throw new BusinessException(ErrorCode.USER_NOT_FOUND);
+        }
+
+        // 💡 Repository 호출 후 .map()을 사용하여 DTO 변환
+        return recentViewRepo.findByUserId(userId, pageable)
                 .map(recentView -> {
                     Restaurant restaurant = recentView.getRestaurant();
                     return new RecentViewResponse(
@@ -31,19 +37,24 @@ public class RecentViewService {
                             restaurant.getName(),
                             restaurant.getCategory() != null ? restaurant.getCategory().name() : null,
                             restaurant.getImageUrl(),
-                            // 🌟 [수정] 소멸된 recentView.getViewedAt() 대신
-                            // 부모 클래스로부터 상속받은 전역 표준 Auditing 필드인 getCreatedAt()을 호출합니다.
                             recentView.getCreatedAt()
                     );
-                })
-                .toList();
+                });
     }
 
     /**
-     * 최근 본 장소 추가
+     * 최근 본 장소 추가 (사용자 및 식당 존재 여부 검증 추가)
      */
     @Transactional
     public void addRecentView(Long userId, Long restaurantId) {
+        if (!userRepo.existsById(userId)) {
+            throw new BusinessException(ErrorCode.USER_NOT_FOUND);
+        }
+
+        if (!restaurantRepo.existsById(restaurantId)) {
+            throw new BusinessException(ErrorCode.RESTAURANT_NOT_FOUND);
+        }
+
         recentViewRepo.upsert(userId, restaurantId);
         recentViewRepo.deleteOldRecords(userId, RECENT_VIEW_LIMIT);
     }

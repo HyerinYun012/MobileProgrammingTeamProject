@@ -1,11 +1,14 @@
 package com.petplace.dto.request;
 
+import com.petplace.entity.OperatingHour;
 import com.petplace.entity.Restaurant;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.*;
 import lombok.Data;
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Data
 @Schema(description = "장소 등록 및 수정 요청 정보 (Multipart 폼 데이터 내 JSON 파트)")
@@ -76,11 +79,18 @@ public class RestaurantRequest {
     @Schema(description = "대형견(25kg 초과) 입장 가능 여부", example = "false")
     private boolean allowLarge;
 
-    @Schema(description = "정규 영업 시간 안내 정보 문구 (선택 사항)", example = "매일 11:00 - 21:00")
-    private String operatingHours;
-
     @Schema(description = "매장 시그니처 메뉴 등록 정보 목록 리스트")
     private List<MenuRequest> menus;
+
+    @Schema(description = "요일별 영업시간 설정 리스트")
+    private List<OperatingHourRequest> operatingHours; // 🌟 별도 클래스 사용
+
+    public List<OperatingHour> toOperatingHourEntities() {
+        if (this.operatingHours == null) return new ArrayList<>();
+        return this.operatingHours.stream()
+                .map(OperatingHourRequest::toEntity) // 🌟 분리된 클래스의 메서드 호출
+                .collect(Collectors.toList());
+    }
 
     /**
      * 🌟 [리팩토링 완료] 임의의 Setter 호출 대신 고도화된 전용 비즈니스 생성자를 체택하여
@@ -96,7 +106,7 @@ public class RestaurantRequest {
                 this.region,
                 this.latitude,
                 this.longitude,
-                this.operatingHours,
+                this.toOperatingHourEntities(),
                 this.hasFence,
                 this.hasArtificialGrass,
                 this.hasNaturalGrass,

@@ -6,9 +6,7 @@ import lombok.*;
 @Entity
 @Table(name = "inquiries")
 @Getter
-@Setter
-@NoArgsConstructor
-// 🌟 생성 시간 및 전역 Auditing 시스템 연동을 위해 BaseTimeEntity를 상속받습니다.
+@NoArgsConstructor(access = AccessLevel.PROTECTED) // 🛡️ 안전장치 확보
 public class Inquiry extends BaseTimeEntity {
 
     @Id
@@ -38,24 +36,27 @@ public class Inquiry extends BaseTimeEntity {
     private Status status;
 
     /**
-     * 💡 [유지 및 고도화] 정적 팩토리 메서드 규칙
-     * 객체 생성 시점의 도메인 규칙(초기 상태 PENDING 강제 등)을 캡슐화합니다.
+     * 💡 [정적 팩토리 메서드 고도화]
+     * 내부 세터 호출을 제거하고 direct 필드 대입으로 수정하여 완전성을 확보합니다.
      */
     public static Inquiry createInquiry(User user, Category category, String content, String email, String imageUrl) {
         Inquiry inquiry = new Inquiry();
-        inquiry.setUser(user);
-        inquiry.setCategory(category);
-        inquiry.setContent(content);
-        inquiry.setEmail(email);
-        inquiry.setImageUrl(imageUrl);
-        inquiry.setStatus(Status.PENDING); // 생성 시 초기 상태 지정
+        inquiry.user = user;
+        inquiry.category = category;
+        inquiry.content = content;
+        inquiry.email = email;
+        inquiry.imageUrl = imageUrl;
+        inquiry.status = Status.PENDING; // 초기 비즈니스 상태 강제 보장
         return inquiry;
     }
 
+    /**
+     * 🛡️ [도메인 비즈니스 메서드] 명확한 상태 변경 메서드 유지
+     */
     public void completeInquiry() {
         this.status = Status.COMPLETED;
     }
 
-    public enum Category { GENERAL, BUSINESS, REVIEW } // 일반문의, 업장문의, 리뷰문의
-    public enum Status { PENDING, COMPLETED } // 대기, 처리완료
+    public enum Category { GENERAL, BUSINESS, ERROR }
+    public enum Status { PENDING, COMPLETED }
 }

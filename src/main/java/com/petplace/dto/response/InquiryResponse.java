@@ -12,14 +12,12 @@ public record InquiryResponse(
         @Schema(description = "작성자 닉네임", example = "홍길동")
         String userName,
 
-        // 🌟 [교정] Swagger 예시값을 엔티티 Enum 스펙(GENERAL, BUSINESS, REVIEW)에 맞춤
-        @Schema(description = "문의 카테고리 (GENERAL, BUSINESS, REVIEW)", example = "GENERAL")
+        @Schema(description = "문의 카테고리 (GENERAL, BUSINESS, ERROR)", example = "GENERAL")
         String category,
 
         @Schema(description = "문의 내용", example = "결제 취소는 어떻게 하나요?")
         String content,
 
-        // 🌟 [교정] Swagger 예시값을 엔티티 Enum 스펙(PENDING, COMPLETED)에 맞춤
         @Schema(description = "처리 상태 (PENDING, COMPLETED)", example = "PENDING")
         String status,
 
@@ -34,9 +32,9 @@ public record InquiryResponse(
         return new InquiryResponse(
                 inquiry.getId(),
                 inquiry.getUser() != null ? inquiry.getUser().getNickname() : "알 수 없음",
-                inquiry.getCategory() != null ? inquiry.getCategory().name() : null, // 🛡️ 엔티티 영문명(GENERAL 등) 그대로 매핑
+                inquiry.getCategory() != null ? inquiry.getCategory().name() : null,
                 inquiry.getContent(),
-                inquiry.getStatus() != null ? inquiry.getStatus().name() : null,   // 🛡️ 엔티티 영문명(PENDING 등) 그대로 매핑
+                inquiry.getStatus() != null ? inquiry.getStatus().name() : null,
                 inquiry.getCreatedAt()
         );
     }

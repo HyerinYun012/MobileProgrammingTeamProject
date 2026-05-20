@@ -1,6 +1,7 @@
 package com.petplace.dto.request;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
@@ -35,19 +36,13 @@ public class OwnerSignupRequest {
     private String nickname;
 
     @NotBlank(message = "휴대폰 번호는 필수 입력 항목입니다.")
-    @Pattern(regexp = "^01(?:0|1|[6-9])(?:\\d{3}|\\d{4})\\d{4}$", message = "올바른 휴대폰 번호 형식이 아닙니다.")
-    @Schema(description = "휴대폰 번호", example = "01098765432")
+    @Pattern(regexp = "^01(?:0|1|[6-9])(?:\\d{3}|\\d{4})\\d{4}$", message = "올바른 휴대폰 번호 형식이어야 합니다.")
+    @Schema(description = "사장님 개인 연락처 (- 없이 입력)", example = "01087654321")
     private String phone;
 
-    @NotBlank(message = "사업자 등록 번호는 필수 입력 항목입니다.")
-    @Pattern(regexp = "^\\d{3}-\\d{2}-\\d{5}$", message = "사업자 번호 형식(000-00-00000)을 확인해주세요.")
-    @Schema(description = "사업자 등록 번호", example = "123-45-67890")
-    private String businessNo;
-
-    @NotBlank(message = "사업장 주소는 필수 입력 항목입니다.")
-    @Schema(description = "사업장 소재지 주소", example = "서울특별시 강남구 테헤란로 123, 4층")
-    private String businessAddress;
-
-    @Schema(description = "마케팅 정보 수신 동의 여부", example = "true")
-    private boolean marketingAgree;
+    // 🎯 [추가] 이메일 필드 및 검증 명세 도입
+    @NotBlank(message = "이메일은 필수 입력 항목입니다.")
+    @Email(message = "올바른 이메일 형식이어야 합니다.")
+    @Schema(description = "사장님 이메일 주소 (정산 및 알림용)", example = "owner@example.com")
+    private String email;
 }

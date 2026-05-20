@@ -1,17 +1,20 @@
 package com.petplace.service;
 
 import com.petplace.dto.request.PetRequest;
+import com.petplace.dto.response.PetResponse;
 import com.petplace.entity.Pet;
 import com.petplace.entity.User;
 import com.petplace.exception.BusinessException;
+import com.petplace.exception.ErrorCode; // 💡 ErrorCode import 추가
 import com.petplace.repository.PetRepository;
 import com.petplace.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.util.List;
 import java.util.Objects;
 
 @Service
@@ -24,10 +27,11 @@ public class PetService {
     private final FileService fileService; // S3 연동
 
     /**
-     * 반려동물 목록 조회
+     * 반려동물 목록 조회 (페이징 적용 및 DTO 변환)
      */
-    public List<?> getPets(Long userId) {
-        return petRepo.findAllByUserId(userId);
+    public Page<PetResponse> getPets(Long userId, Pageable pageable) {
+        return petRepo.findAllByUserId(userId, pageable)
+                .map(PetResponse::from);
     }
 
     /**
@@ -35,16 +39,15 @@ public class PetService {
      */
     @Transactional
     public Pet addPet(Long userId, PetRequest req, MultipartFile image) {
+        // 💡 ErrorCode 적용: 사용자 존재 확인
         User user = userRepo.findById(userId)
-                .orElseThrow(() -> new BusinessException("사용자를 찾을 수 없습니다."));
+                .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
 
         String imageUrl = null;
         if (image != null && !image.isEmpty()) {
             imageUrl = fileService.uploadFile(image);
         }
 
-        // 🌟 [수정] 닫혀버린 Setter와 생성자 대신, 엔티티에 구현한 정적 팩토리 메서드를 호출합니다.
-        // 이로써 불완전한 상태의 객체가 생성되는 것을 원천 차단합니다.
         Pet pet = Pet.createPet(
                 user,
                 req.getName(),
@@ -61,12 +64,13 @@ public class PetService {
      */
     @Transactional
     public Pet updatePet(Long userId, Long petId, PetRequest req, MultipartFile image) {
+        // 💡 ErrorCode 적용: 반려동물 존재 확인
         Pet pet = petRepo.findById(petId)
-                .orElseThrow(() -> new BusinessException("반려동물 정보를 찾을 수 없습니다."));
+                .orElseThrow(() -> new BusinessException(ErrorCode.PET_NOT_FOUND));
 
-        // Objects.equals 안전 장치로 경고 및 예외 원천 차단
+        // 💡 ErrorCode 적용: 권한 검증
         if (!Objects.equals(pet.getUser().getId(), userId)) {
-            throw new BusinessException("해당 반려동물 정보에 대한 수정 권한이 없습니다.");
+            throw new BusinessException(ErrorCode.NO_PERMISSION);
         }
 
         String currentImageUrl = pet.getImageUrl();
@@ -79,8 +83,12 @@ public class PetService {
             currentImageUrl = fileService.uploadFile(image); // 새 파일 저장 후 주소 갱신
         }
 
-        // 💡 기존에 잘 작성해 두신 비즈니스 메서드가 Setter가 없는 엔티티를 완벽하게 제어합니다. (Dirty Checking)
-        pet.updateInfo(req, currentImageUrl);
+        pet.updateInfo(
+                req.getName(),
+                req.getBirth(),
+                req.getBreed(),
+                currentImageUrl
+        );
 
         return pet;
     }

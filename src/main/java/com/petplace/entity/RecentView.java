@@ -4,14 +4,11 @@ import jakarta.persistence.*;
 import lombok.*;
 
 @Entity
-@Table(
-        name = "recent_views",
-        uniqueConstraints = @UniqueConstraint(columnNames = {"user_id", "restaurant_id"})
-)
+@Table(name = "recent_views", uniqueConstraints = @UniqueConstraint(columnNames = {"user_id", "restaurant_id"}))
 @Getter
-@Setter
-@NoArgsConstructor
-// 🌟 중복 필드 제거와 공통 전역 Auditing 연동을 위해 BaseTimeEntity를 상속받습니다.
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@Builder(access = AccessLevel.PRIVATE) // 💡 외부에서 무분별한 빌더 호출 방지
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class RecentView extends BaseTimeEntity {
 
     @Id
@@ -25,4 +22,11 @@ public class RecentView extends BaseTimeEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "restaurant_id", nullable = false)
     private Restaurant restaurant;
+
+    public static RecentView createRecentView(User user, Restaurant restaurant) {
+        return RecentView.builder()
+                .user(user)
+                .restaurant(restaurant)
+                .build();
+    }
 }

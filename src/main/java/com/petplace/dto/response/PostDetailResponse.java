@@ -2,16 +2,21 @@ package com.petplace.dto.response;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import java.time.LocalDateTime;
 import java.util.List;
 
 @Getter
+@Builder
 @AllArgsConstructor
 public class PostDetailResponse {
 
     @Schema(description = "게시글 ID", example = "1")
     private Long id;
+
+    @Schema(description = "작성자 ID", example = "1") // 👈 추가된 필드
+    private Long userId;
 
     @Schema(description = "게시글 제목", example = "우리집 강아지 자랑합니다")
     private String title;

@@ -6,10 +6,8 @@ import lombok.*;
 @Entity
 @Table(name = "reviews")
 @Getter
-@Setter
-@NoArgsConstructor // JPA 프록시 조회를 위한 기본 생성자 유지
-@AllArgsConstructor // 💡 Lombok @SuperBuilder 사용을 위한 모든 필드 생성자 보존
-// 🌟 부모 클래스(BaseTimeEntity)의 시간 필드를 빌더에서 정상 상속받기 위해 @SuperBuilder로 리팩토링합니다.
+@NoArgsConstructor
+@AllArgsConstructor
 @lombok.experimental.SuperBuilder
 public class Review extends BaseTimeEntity {
 
@@ -33,4 +31,10 @@ public class Review extends BaseTimeEntity {
 
     @Column(length = 500)
     private String imageUrl;
+
+    public void updateReview(int rating, String content, String imageUrl) {
+        this.rating = rating;
+        this.content = content;
+        this.imageUrl = imageUrl;
+    }
 }

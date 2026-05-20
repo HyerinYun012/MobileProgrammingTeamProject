@@ -6,10 +6,12 @@ import java.util.Optional;
 
 public interface UserRepository extends JpaRepository<User, Long> {
 
-    // [추가] 전화번호로 사용자 찾기 (소셜 로그인 계정 통합 시 필요)
     Optional<User> findByPhone(String phone);
 
     Optional<User> findByNameAndPhone(String name, String phone);
 
     boolean existsByNickname(String nickname);
+
+    // 🎯 [정상 해결] 가입하려는 이메일이 이미 존재하는지 검증하기 위한 쿼리 메서드 선언
+    boolean existsByEmail(String email);
 }

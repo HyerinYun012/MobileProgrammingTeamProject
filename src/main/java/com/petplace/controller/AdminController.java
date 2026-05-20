@@ -3,18 +3,20 @@ package com.petplace.controller;
 import com.petplace.dto.response.ApiResponse;
 import com.petplace.dto.response.InquiryResponse;
 import com.petplace.dto.response.ReviewReportResponse;
-import com.petplace.dto.response.CommunityReportResponse; // 💡 [신규 추가] 커뮤니티 신고 응답 DTO 임포트
-import com.petplace.entity.CommunityReport; // 💡 [신규 추가] Status Enum 활용을 위한 임포트
+import com.petplace.dto.response.CommunityReportResponse;
+import com.petplace.entity.CommunityReport;
 import com.petplace.service.AdminService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @Tag(name = "관리자(Admin) API", description = "신고 관리, 문의 답변, 사장님 승인 등 관리자 전용 기능")
 @RestController
@@ -25,36 +27,40 @@ public class AdminController {
     private final AdminService adminService;
 
     /**
-     * 리뷰 신고 내역 목록 조회
+     * 리뷰 신고 내역 목록 조회 (페이징 적용)
      */
-    @Operation(summary = "리뷰 신고 내역 전체 조회", description = "관리자가 처리해야 할 모든 리뷰 신고 내역 리스트를 최신 접수순으로 조회합니다.")
+    @Operation(summary = "리뷰 신고 내역 전체 조회", description = "관리자가 처리해야 할 모든 리뷰 신고 내역을 페이징하여 조회합니다.")
     @GetMapping("/reports/reviews")
-    public ResponseEntity<ApiResponse<List<ReviewReportResponse>>> getAllReviewReports() {
-        List<ReviewReportResponse> response = adminService.getAllReviewReports();
+    public ResponseEntity<ApiResponse<Page<ReviewReportResponse>>> getAllReviewReports(
+            @PageableDefault(size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
+
+        Page<ReviewReportResponse> response = adminService.getAllReviewReports(pageable);
         return ResponseEntity.ok(ApiResponse.success("리뷰 신고 내역 목록이 성공적으로 조회되었습니다.", response));
     }
 
     /**
-     * 관리자용 1:1 문의 내역 전체 조회
+     * 관리자용 1:1 문의 내역 전체 조회 (페이징 적용)
      */
-    @Operation(summary = "1:1 문의 내역 전체 조회", description = "관리자 대시보드에서 처리해야 할 모든 1:1 문의 내역 목록을 최신순으로 조회합니다.")
+    @Operation(summary = "1:1 문의 내역 전체 조회", description = "관리자 대시보드에서 처리해야 할 모든 1:1 문의 내역을 페이징하여 조회합니다.")
     @GetMapping("/inquiries")
-    public ResponseEntity<ApiResponse<List<InquiryResponse>>> getAllInquiries() {
-        List<InquiryResponse> response = adminService.getAllInquiries();
+    public ResponseEntity<ApiResponse<Page<InquiryResponse>>> getAllInquiries(
+            @PageableDefault(size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
+
+        Page<InquiryResponse> response = adminService.getAllInquiries(pageable);
         return ResponseEntity.ok(ApiResponse.success("1:1 문의 내역 목록이 성공적으로 조회되었습니다.", response));
     }
 
     /**
-     * 💡 [신규 추가] 커뮤니티 신고 내역 조건별 목록 조회
-     * 이 엔드포인트가 연결되면서 AdminService의 getCommunityReportsByStatus() 미사용 경고가 완전히 해결됩니다.
+     * 커뮤니티 신고 내역 조건별 목록 조회 (페이징 적용)
      */
-    @Operation(summary = "커뮤니티 신고 내역 목록 조회", description = "접수된 커뮤니티(게시글/댓글) 신고 내역을 상태 조건(PENDING, COMPLETED)에 따라 최신순으로 조회합니다.")
+    @Operation(summary = "커뮤니티 신고 내역 목록 조회", description = "접수된 커뮤니티 신고 내역을 상태별로 페이징 조회합니다.")
     @GetMapping("/reports/community")
-    public ResponseEntity<ApiResponse<List<CommunityReportResponse>>> getCommunityReports(
-            @Parameter(description = "신고 처리 상태 (PENDING, COMPLETED)", example = "PENDING")
-            @RequestParam CommunityReport.Status status) {
+    public ResponseEntity<ApiResponse<Page<CommunityReportResponse>>> getCommunityReports(
+            @Parameter(description = "신고 처리 상태 (PENDING, COMPLETED)")
+            @RequestParam CommunityReport.Status status,
+            @PageableDefault(size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
 
-        List<CommunityReportResponse> response = adminService.getCommunityReportsByStatus(status);
+        Page<CommunityReportResponse> response = adminService.getCommunityReportsByStatus(status, pageable);
         return ResponseEntity.ok(ApiResponse.success("커뮤니티 신고 내역 목록이 성공적으로 조회되었습니다.", response));
     }
 
@@ -98,7 +104,7 @@ public class AdminController {
         return ResponseEntity.ok(ApiResponse.success("리뷰 신고 내역이 정상 종결되었습니다.", null));
     }
 
-    @Operation(summary = "신고된 커뮤니티 게시글 강제 삭제", description = "관리자 권한으로 부적절한 게시글을 강제 삭제(S3 파일 포함)하고 관련 신고들을 종결합니다.")
+    @Operation(summary = "신고된 커뮤니티 게시글 강제 삭제", description = "관리자 권한으로 부적절한 게시글을 강제 삭제하고 관련 신고들을 종결합니다.")
     @DeleteMapping("/community/posts/{postId}")
     public ResponseEntity<ApiResponse<Void>> deleteReportedPost(
             @AuthenticationPrincipal Long adminId,
@@ -108,7 +114,7 @@ public class AdminController {
         return ResponseEntity.ok(ApiResponse.success("신고된 게시글이 성공적으로 강제 삭제되었습니다.", null));
     }
 
-    @Operation(summary = "신고된 커뮤니티 댓글 강제 삭제", description = "관리자 권한으로 부적절한 댓글을 강제 삭제(대댓글 자동 연쇄 삭제)하고 관련 신고들을 종결합니다.")
+    @Operation(summary = "신고된 커뮤니티 댓글 강제 삭제", description = "관리자 권한으로 부적절한 댓글을 강제 삭제하고 관련 신고들을 종결합니다.")
     @DeleteMapping("/community/comments/{commentId}")
     public ResponseEntity<ApiResponse<Void>> deleteReportedComment(
             @AuthenticationPrincipal Long adminId,
@@ -118,7 +124,7 @@ public class AdminController {
         return ResponseEntity.ok(ApiResponse.success("신고된 댓글이 성공적으로 강제 삭제되었습니다.", null));
     }
 
-    @Operation(summary = "커뮤니티 신고 반려/단순 완료", description = "게시글이나 댓글을 삭제하지 않고, 접수된 커뮤니티 신고 내역만 '처리완료' 상태로 변경합니다.")
+    @Operation(summary = "커뮤니티 신고 반려/단순 완료", description = "신고 내역만 '처리완료' 상태로 변경합니다.")
     @PatchMapping("/community/reports/{reportId}/complete")
     public ResponseEntity<ApiResponse<Void>> completeCommunityReport(
             @AuthenticationPrincipal Long adminId,

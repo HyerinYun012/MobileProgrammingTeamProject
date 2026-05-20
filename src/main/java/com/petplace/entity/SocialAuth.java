@@ -9,9 +9,7 @@ import lombok.*;
         uniqueConstraints = @UniqueConstraint(columnNames = {"provider", "provider_id"})
 )
 @Getter
-@Setter
-@NoArgsConstructor // JPA 프록시 객체 조회를 위한 기본 생성자 유지
-// 🌟 중복 필드 제거와 계정 타임스탬프 추적 일관성을 위해 BaseTimeEntity를 상속받습니다.
+@NoArgsConstructor(access = AccessLevel.PROTECTED) // 🛡️ JPA 프록시용 공간은 남기되, 외부에서 new SocialAuth()하는 행위 차단
 public class SocialAuth extends BaseTimeEntity {
 
     @Id
@@ -30,4 +28,17 @@ public class SocialAuth extends BaseTimeEntity {
     private String providerId;
 
     public enum Provider { KAKAO, NAVER }
+
+    /**
+     * 💡 [정적 팩토리 메서드] 소셜 계정 연동 창구 일원화
+     * 소셜 정보는 최초 연동(회원가입) 시점에 유저, 플랫폼, 고유 ID 쌍이 완벽하게 고정되어야 합니다.
+     * 수정(Update) 비즈니스는 존재하지 않으며, 연동 해제 시에는 엔티티를 완전 삭제(Delete) 처리합니다.
+     */
+    public static SocialAuth createSocialAuth(User user, Provider provider, String providerId) {
+        SocialAuth socialAuth = new SocialAuth();
+        socialAuth.user = user;
+        socialAuth.provider = provider;
+        socialAuth.providerId = providerId;
+        return socialAuth;
+    }
 }

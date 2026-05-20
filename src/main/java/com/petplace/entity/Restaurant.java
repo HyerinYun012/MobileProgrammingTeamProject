@@ -1,6 +1,5 @@
 package com.petplace.entity;
 
-import com.petplace.dto.request.RestaurantRequest;
 import jakarta.persistence.*;
 import lombok.*;
 import java.math.BigDecimal;
@@ -47,8 +46,14 @@ public class Restaurant extends BaseTimeEntity {
     @Column(length = 20)
     private String businessNo;
 
-    @Column(length = 200)
-    private String operatingHours;
+    // 🌟 [변경] 단일 String 필드 제거 후 값 타입 컬렉션 적용
+    @ElementCollection(fetch = FetchType.LAZY)
+    @CollectionTable(
+            name = "restaurant_operating_hours",
+            joinColumns = @JoinColumn(name = "restaurant_id")
+    )
+    @OrderColumn(name = "day_order") // DB 조회 시 저장된 요일 순서 보장
+    private final List<OperatingHour> operatingHours = new ArrayList<>();
 
     @SuppressWarnings("FieldMayBeFinal")
     @Column(nullable = false)
@@ -85,7 +90,8 @@ public class Restaurant extends BaseTimeEntity {
      */
     public Restaurant(String name, String address, String phone, String businessNo,
                       Category category, Region region, BigDecimal latitude, BigDecimal longitude,
-                      String operatingHours, boolean hasFence, boolean hasArtificialGrass,
+                      List<OperatingHour> operatingHours, // 🌟 파라미터 변경
+                      boolean hasFence, boolean hasArtificialGrass,
                       boolean hasNaturalGrass, boolean hasSnack, boolean hasParking,
                       boolean hasRestroom, boolean hasIndoor, boolean hasOutdoor,
                       boolean allowSmall, boolean allowMedium, boolean allowLarge) {
@@ -98,8 +104,10 @@ public class Restaurant extends BaseTimeEntity {
         this.latitude = latitude;
         this.longitude = longitude;
 
-        // 🌟 영업시간 선택 입력 방어: null이거나 공백 문자가 유입될 시 빈 스트링("") 처리
-        this.operatingHours = (operatingHours == null || operatingHours.isBlank()) ? "" : operatingHours;
+        // 🌟 [변경] 영업시간 컬렉션 방어적 카피 (null 방지)
+        if (operatingHours != null) {
+            this.operatingHours.addAll(operatingHours);
+        }
 
         this.hasFence = hasFence;
         this.hasArtificialGrass = hasArtificialGrass;
@@ -121,40 +129,51 @@ public class Restaurant extends BaseTimeEntity {
     /**
      * 정보 수정을 위한 비즈니스 메서드 (Dirty Checking)
      */
-    public void update(RestaurantRequest req) {
-        this.name = req.getName();
-        this.category = req.getCategory();
-        this.region = req.getRegion();
-        this.address = req.getAddress();
-        this.phone = req.getPhone();
-        this.businessNo = req.getBusinessNo();
-        this.latitude = req.getLatitude();
-        this.longitude = req.getLongitude();
+    public void update(String name, String address, String phone,
+                       List<OperatingHour> newOperatingHours, // 🌟 파라미터 변경
+                       boolean hasIndoor, boolean hasOutdoor, boolean hasRestroom,
+                       boolean allowSmall, boolean allowMedium, boolean allowLarge) {
+        this.name = name;
+        this.address = address;
+        this.phone = phone;
 
-        // 🌟 수정 요청 시에도 영업시간 데이터 유실 방어선 작동
-        this.operatingHours = (req.getOperatingHours() == null || req.getOperatingHours().isBlank()) ? "" : req.getOperatingHours();
+        // 🌟 [변경] 비즈니스 메서드를 통한 안전한 영업시간 컬렉션 교체
+        updateOperatingHours(newOperatingHours);
 
-        this.hasFence = req.isHasFence();
-        this.hasArtificialGrass = req.isHasArtificialGrass();
-        this.hasNaturalGrass = req.isHasNaturalGrass();
-        this.hasSnack = req.isHasSnack();
-        this.hasParking = req.isHasParking();
-        this.hasRestroom = req.isHasRestroom();
-        this.hasIndoor = req.isHasIndoor();
-        this.hasOutdoor = req.isHasOutdoor();
-        this.allowSmall = req.isAllowSmall();
-        this.allowMedium = req.isAllowMedium();
-        this.allowLarge = req.isAllowLarge();
+        this.hasIndoor = hasIndoor;
+        this.hasOutdoor = hasOutdoor;
+        this.hasRestroom = hasRestroom;
+        this.allowSmall = allowSmall;
+        this.allowMedium = allowMedium;
+        this.allowLarge = allowLarge;
     }
 
     /**
-     * 🌟 [컴파일 에러 해결 지점] 이미지 컬렉션을 완전히 교체하기 위한 도메인 메서드
-     * JPA의 orphanRemoval 체계가 안전하게 동작하도록 내부 요소를 청소(clear)한 뒤 주입합니다.
+     * 🌟 [추가] 영업시간 컬렉션 안전 초기화 내부 비즈니스 메서드
+     */
+    public void updateOperatingHours(List<OperatingHour> newOperatingHours) {
+        this.operatingHours.clear();
+        if (newOperatingHours != null) {
+            this.operatingHours.addAll(newOperatingHours);
+        }
+    }
+
+    /**
+     * [연관관계 편의 메서드] 자식 이미지 등록
+     */
+    public void addImage(RestaurantImage image) {
+        this.images.add(image);
+    }
+
+    /**
+     * [도메인 메서드] 이미지 컬렉션 교체 (안전한 초기화)
      */
     public void updateImages(List<RestaurantImage> newImages) {
         this.images.clear();
         if (newImages != null) {
-            this.images.addAll(newImages);
+            for (RestaurantImage image : newImages) {
+                this.addImage(image);
+            }
         }
     }
 

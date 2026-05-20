@@ -10,12 +10,14 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.MediaType; // 💡 추가
+import org.springframework.data.domain.Page; // 💡 Page 타입 추가
+import org.springframework.data.domain.Pageable; // 💡 Pageable 타입 추가
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault; // 💡 기본 페이징 설정용
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @Tag(name = "마이페이지(MyPage) API", description = "사용자 프로필, 북마크, 최근 본 장소 관리 API")
 @RestController
@@ -36,28 +38,24 @@ public class MyPageController {
         return ResponseEntity.ok(ApiResponse.success("프로필 정보가 성공적으로 조회되었습니다.", response));
     }
 
-    /**
-     * 프로필 수정
-     * ⭕ [교정] 물리 파일 업로드 바인딩 오류(415 에러)를 유발하는 @RequestBody 패턴 영구 철거
-     * ⭕ [교정] @ModelAttribute 통합 매핑 및 multipart/form-data 컨텐츠 타입 적용
-     */
     @Operation(summary = "프로필 수정", description = "하나의 Form-Data 양식 안에 변경할 닉네임, 연락처와 실제 물리 프로필 이미지 파일(profileImage)을 실어 전송합니다.")
-    @PutMapping(value = "/profile", consumes = MediaType.MULTIPART_FORM_DATA_VALUE) // 💡 미디어 타입 규격 명시
+    @PutMapping(value = "/profile", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<ApiResponse<Void>> updateProfile(
             @AuthenticationPrincipal Long userId,
-            @Valid @ModelAttribute UpdateProfileRequest req // 💡 순수 JSON용 @RequestBody 대신 @ModelAttribute 기용
+            @Valid @ModelAttribute UpdateProfileRequest req
     ) {
-        // 개편된 DTO 사양에 맞춰 내부에 안전하게 안착한 req.getProfileImage()를 서비스 레이어로 함께 던집니다.
         service.updateProfile(userId, req, req.getProfileImage());
         return ResponseEntity.ok(ApiResponse.success("프로필 정보가 수정되었습니다.", null));
     }
 
-    @Operation(summary = "북마크 목록 조회", description = "로그인한 사용자가 북마크한 장소(식당) 목록을 조회합니다.")
+    @Operation(summary = "북마크 목록 조회", description = "로그인한 사용자가 북마크한 장소 목록을 페이징하여 조회합니다.")
     @GetMapping("/bookmarks")
-    public ResponseEntity<ApiResponse<List<BookmarkResponse>>> bookmarks(
-            @AuthenticationPrincipal Long userId
+    public ResponseEntity<ApiResponse<Page<BookmarkResponse>>> bookmarks(
+            @AuthenticationPrincipal Long userId,
+            @PageableDefault(size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable
     ) {
-        List<BookmarkResponse> response = bookmarkService.getBookmarks(userId);
+        // 수정된 BookmarkService 반영
+        Page<BookmarkResponse> response = bookmarkService.getBookmarks(userId, pageable);
         return ResponseEntity.ok(ApiResponse.success("북마크 목록이 성공적으로 조회되었습니다.", response));
     }
 
@@ -71,12 +69,13 @@ public class MyPageController {
         return ResponseEntity.ok(ApiResponse.success(isBookmarked));
     }
 
-    @Operation(summary = "최근 본 장소 조회", description = "로그인한 사용자가 최근 방문/조회한 장소 목록을 조회합니다.")
+    @Operation(summary = "최근 본 장소 조회", description = "로그인한 사용자가 최근 방문/조회한 장소 목록을 페이징하여 조회합니다.")
     @GetMapping("/recent")
-    public ResponseEntity<ApiResponse<List<RecentViewResponse>>> recent(
-            @AuthenticationPrincipal Long userId
+    public ResponseEntity<ApiResponse<Page<RecentViewResponse>>> recent(
+            @AuthenticationPrincipal Long userId,
+            @PageableDefault(size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable
     ) {
-        List<RecentViewResponse> response = recentViewService.getRecentViews(userId);
+        Page<RecentViewResponse> response = recentViewService.getRecentViews(userId, pageable);
         return ResponseEntity.ok(ApiResponse.success("최근 본 장소 목록이 성공적으로 조회되었습니다.", response));
     }
 
@@ -90,12 +89,14 @@ public class MyPageController {
         return ResponseEntity.ok(ApiResponse.success("최근 본 장소에 추가되었습니다.", null));
     }
 
-    @Operation(summary = "내 리뷰 목록 조회", description = "로그인한 사용자가 작성한 모든 리뷰 목록을 조회합니다.")
+    @Operation(summary = "내 리뷰 목록 조회", description = "로그인한 사용자가 작성한 모든 리뷰 목록을 페이징하여 조회합니다.")
     @GetMapping("/reviews")
-    public ResponseEntity<ApiResponse<List<MyReviewResponse>>> myReviews(
-            @AuthenticationPrincipal Long userId
+    public ResponseEntity<ApiResponse<Page<MyReviewResponse>>> myReviews(
+            @AuthenticationPrincipal Long userId,
+            @PageableDefault(size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable
     ) {
-        List<MyReviewResponse> response = service.getMyReviews(userId);
+        // 💡 주의: MyPageService의 getMyReviews 메서드도 Page<MyReviewResponse>를 반환하도록 변경해야 합니다.
+        Page<MyReviewResponse> response = service.getMyReviews(userId, pageable);
         return ResponseEntity.ok(ApiResponse.success("내가 작성한 리뷰 목록이 성공적으로 조회되었습니다.", response));
     }
 }

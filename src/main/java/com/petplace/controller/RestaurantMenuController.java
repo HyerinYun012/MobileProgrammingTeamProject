@@ -2,19 +2,21 @@ package com.petplace.controller;
 
 import com.petplace.dto.request.MenuRequest;
 import com.petplace.dto.response.ApiResponse;
-import com.petplace.entity.Menu;
+import com.petplace.dto.response.MenuResponse;
 import com.petplace.service.RestaurantMenuService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @Tag(name = "식당 메뉴(Menu) API", description = "가게별 메뉴 조회, 추가, 수정, 삭제 관리 API")
 @RestController
@@ -28,18 +30,18 @@ public class RestaurantMenuController {
      * 💡 특정 식당의 전체 메뉴 목록 조회 (전체 공개)
      * SecurityConfig의 .permitAll() 규칙 해제에 따라, 이제 이 조회 API도 인증된 회원만 접근 가능합니다.
      */
-    @Operation(summary = "식당별 메뉴 목록 조회", description = "특정 식당에 등록된 모든 메뉴 리스트를 조회합니다.")
-    @GetMapping
-    public ResponseEntity<ApiResponse<List<Menu>>> getMenusByRestaurant(
-            @Parameter(description = "식당 고유 ID") @PathVariable Long restaurantId
+    @Operation(summary = "식당별 메뉴 목록 조회", description = "특정 식당에 등록된 모든 메뉴 리스트를 페이징하여 조회합니다.")
+    @GetMapping("/{restaurantId}/menus") // 💡 경로에 /{restaurantId}/menus를 명시하는 것이 권장됩니다.
+    public ResponseEntity<ApiResponse<Page<MenuResponse>>> getMenusByRestaurant(
+            @Parameter(description = "식당 고유 ID") @PathVariable Long restaurantId,
+            @PageableDefault(size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable
     ) {
-        List<Menu> menus = restaurantMenuService.getMenusByRestaurant(restaurantId);
-        return ResponseEntity.ok(ApiResponse.success("메뉴 목록이 성공적으로 조회되었습니다.", menus));
+        Page<MenuResponse> response = restaurantMenuService.getMenusByRestaurant(restaurantId, pageable);
+        return ResponseEntity.ok(ApiResponse.success("메뉴 목록이 성공적으로 조회되었습니다.", response));
     }
 
     /**
      * 메뉴 등록 (사장님 전용)
-     * ⭕ [교정] @RequestPart 결함을 전면 폐기하고 @ModelAttribute 통합 폼 데이터 매핑 적용
      */
     @Operation(summary = "메뉴 등록", description = "하나의 Form-Data 폼 안에 메뉴 텍스트 정보와 이미지 파일(imageFile)을 모아 전송합니다. (OWNER 이상)")
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
@@ -55,7 +57,6 @@ public class RestaurantMenuController {
 
     /**
      * 메뉴 수정 (사장님 전용)
-     * ⭕ [교정] @RequestPart 결함을 전면 폐기하고 @ModelAttribute 통합 폼 데이터 매핑 적용
      */
     @Operation(summary = "메뉴 정보 수정", description = "메뉴의 정보를 수정합니다. 새로운 이미지 파일을 첨부하면 S3에서 자동 물리 교체됩니다. (OWNER 이상)")
     @PutMapping(value = "/{menuId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)

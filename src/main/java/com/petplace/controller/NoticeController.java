@@ -1,20 +1,22 @@
 package com.petplace.controller;
 
 import com.petplace.dto.response.ApiResponse;
-import com.petplace.entity.Notice;
+import com.petplace.dto.response.NoticeResponse;
 import com.petplace.service.NoticeService;
 import com.petplace.service.FileService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-
-import java.util.List;
 
 @Tag(name = "3. Notice API", description = "가게 사장님의 매장별 소식 및 공지사항 관리 API (CRUD)")
 @RestController
@@ -26,14 +28,18 @@ public class NoticeController {
     private final FileService fileService;
 
     /**
-     * 식당별 공지사항 목록 조회 (최신순)
+     * 식당별 공지사항 목록 조회 (페이징 적용)
      */
-    @Operation(summary = "식당별 공지사항 목록 조회", description = "특정 식당에 등록된 모든 공지사항을 최신 등록순으로 조회합니다. (비로그인 방문자도 접근 가능)")
+    @Operation(summary = "식당별 공지사항 목록 조회", description = "특정 식당에 등록된 모든 공지사항을 최신 등록순으로 페이징 조회합니다.")
     @GetMapping("/{restaurantId}/notices")
-    public ResponseEntity<ApiResponse<List<Notice>>> getNotices(
-            @Parameter(description = "조회할 식당 고유 ID", example = "1") @PathVariable Long restaurantId) {
+    public ResponseEntity<ApiResponse<Page<NoticeResponse>>> getNotices(
+            @Parameter(description = "조회할 식당 고유 ID", example = "1") @PathVariable Long restaurantId,
+            // 💡 페이징 파라미터 추가 (기본값 10개, 생성일 기준 내림차순)
+            @PageableDefault(size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable
+    ) {
+        // 💡 서비스 계층의 변경된 메서드에 맞춰 pageable을 전달합니다.
+        Page<NoticeResponse> notices = noticeService.getNoticesByRestaurant(restaurantId, pageable);
 
-        List<Notice> notices = noticeService.getNoticesByRestaurant(restaurantId);
         return ResponseEntity.ok(ApiResponse.success("공지사항 목록이 성공적으로 조회되었습니다.", notices));
     }
 
