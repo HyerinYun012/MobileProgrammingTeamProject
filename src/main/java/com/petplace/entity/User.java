@@ -6,9 +6,8 @@ import lombok.*;
 @Entity
 @Table(name = "users")
 @Getter
-// ❌ [리팩토링] 무분별한 데이터 오염을 방지하기 위해 클래스 레벨의 @Setter를 완전히 제거합니다.
-@NoArgsConstructor(access = AccessLevel.PROTECTED) // 🛡️ JPA 스펙 준수 및 외부에서 무분별한 빈 객체 생성 제한
-@AllArgsConstructor(access = AccessLevel.PRIVATE) // 💡 외부에서 전 필드 생성자를 직접 호출하는 행위 차단
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
 @lombok.experimental.SuperBuilder
 public class User extends BaseTimeEntity {
 

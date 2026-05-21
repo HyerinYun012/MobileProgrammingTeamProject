@@ -88,7 +88,7 @@ public class RestaurantRequest {
     public List<OperatingHour> toOperatingHourEntities() {
         if (this.operatingHours == null) return new ArrayList<>();
         return this.operatingHours.stream()
-                .map(OperatingHourRequest::toEntity) // 🌟 분리된 클래스의 메서드 호출
+                .map(OperatingHourRequest::toEntity)
                 .collect(Collectors.toList());
     }
 

@@ -47,6 +47,10 @@ public class SecurityConfig {
                                 "/webjars/**"
                         ).permitAll()
 
+                        //비로그인 유저도 식당 조회(목록, 상세, 검색 등) 가능
+                        .requestMatchers(HttpMethod.GET, "/api/restaurants/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/search", "/api/search/popular").permitAll()
+
                         // 권한별 접근 제한 (Role Based)
                         .requestMatchers("/api/admin/**").hasRole("ADMIN") // 관리자 전용 기능역역
                         .requestMatchers(HttpMethod.POST, "/api/restaurants/**").hasAnyRole("OWNER", "ADMIN") // 가게 등록
