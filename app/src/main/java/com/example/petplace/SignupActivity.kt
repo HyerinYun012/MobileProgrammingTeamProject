@@ -1,16 +1,11 @@
 package com.example.petplace
 
-import android.content.Intent
 import android.os.Bundle
-import android.util.Log
-import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import com.example.petplace.databinding.ActivitySignupBinding
-
-
 
 class SignupActivity : AppCompatActivity() {
     private val binding by lazy {
@@ -24,8 +19,13 @@ class SignupActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         binding.btnReturn.setOnClickListener {
-            finish()
+            if (supportFragmentManager.backStackEntryCount > 0) {
+                supportFragmentManager.popBackStack()
+            } else {
+                finish()
+            }
         }
+
         if (savedInstanceState == null) {
             supportFragmentManager.beginTransaction()
                 .replace(R.id.fragmentContainer, SignupRoleFragment())

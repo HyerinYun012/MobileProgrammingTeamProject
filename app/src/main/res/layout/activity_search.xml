@@ -2,7 +2,7 @@
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/main"
+    android:id="@+id/search"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
@@ -39,7 +39,7 @@
         app:layout_constraintEnd_toEndOf="@+id/editTextSearch"
         app:layout_constraintTop_toTopOf="@+id/editTextSearch" />
 
-    <Button
+    <androidx.appcompat.widget.AppCompatButton
         android:id="@+id/btnCancel"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -64,7 +64,7 @@
         app:layout_constraintTop_toBottomOf="@+id/editTextSearch"
         app:layout_constraintVertical_bias="0.00999999">
 
-        <Button
+        <androidx.appcompat.widget.AppCompatButton
             android:id="@+id/btnSortRegion"
             android:layout_width="wrap_content"
             android:layout_height="35dp"
@@ -79,7 +79,7 @@
             android:textColor="@color/orange"
             android:textSize="14sp" />
 
-        <Button
+        <androidx.appcompat.widget.AppCompatButton
             android:id="@+id/btnSortConvenience"
             android:layout_width="wrap_content"
             android:layout_height="35dp"
@@ -94,7 +94,7 @@
             android:textColor="@color/orange"
             android:textSize="14sp" />
 
-        <Button
+        <androidx.appcompat.widget.AppCompatButton
             android:id="@+id/btnSortPet"
             android:layout_width="wrap_content"
             android:layout_height="35dp"
@@ -104,6 +104,7 @@
             android:fontFamily="@font/nanum_gothic_bold"
             android:paddingStart="5dp"
             android:paddingEnd="10dp"
+
             android:text="@string/pet"
             android:textAlignment="textStart"
             android:textColor="@color/orange"

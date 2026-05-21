@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <ImageView
+        android:id="@+id/ivStar"
+        android:layout_width="30dp"
+        android:layout_height="30dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:srcCompat="@drawable/icon_star" />
+
+    <TextView
+        android:id="@+id/tvRate"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:fontFamily="@font/nanum_gothic_bold"
+        android:text="0.0 · "
+        android:textAlignment="textStart"
+        android:textColor="@color/black"
+        android:textSize="24sp"
+        app:layout_constraintBottom_toBottomOf="@+id/ivStar"
+        app:layout_constraintStart_toEndOf="@+id/ivStar"
+        app:layout_constraintTop_toTopOf="@+id/ivStar" />
+
+    <TextView
+        android:id="@+id/tvRateCount"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:fontFamily="@font/nanum_gothic_bold"
+        android:text="0개 평점"
+        android:textAlignment="textStart"
+        android:textColor="@color/gray"
+        android:textSize="24sp"
+        app:layout_constraintStart_toEndOf="@+id/tvRate"
+        app:layout_constraintTop_toTopOf="@+id/tvRate" />
+
+    <View
+        android:id="@+id/verticalLine"
+        android:layout_width="0dp"
+        android:layout_height="4dp"
+        android:layout_marginTop="8dp"
+        android:background="@color/bright_gray"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/ivStar" />
+
+    <TextView
+        android:id="@+id/tvImageReviews"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:fontFamily="@font/nanum_gothic_bold"
+        android:text="사진 리뷰"
+        android:textAlignment="textStart"
+        android:textColor="@color/black"
+        android:textSize="24sp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/verticalLine" />
+
+    <HorizontalScrollView
+        android:id="@+id/hsvImageReviews"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:scrollbars="none"
+        app:layout_constraintTop_toBottomOf="@+id/tvImageReviews">
+
+        <LinearLayout
+            android:id="@+id/llImageReviews"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:paddingVertical="8dp" />
+    </HorizontalScrollView>
+
+    <TextView
+        android:id="@+id/tvAllReviews"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        android:fontFamily="@font/nanum_gothic_bold"
+        android:text="전체 리뷰"
+        android:textAlignment="textStart"
+        android:textColor="@color/black"
+        android:textSize="24sp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/hsvImageReviews" />
+
+    <ImageView
+        android:id="@+id/ivRecentReview"
+        android:layout_width="70dp"
+        android:layout_height="70dp"
+        android:layout_marginStart="5dp"
+        android:elevation="3dp"
+        android:scaleType="centerCrop"
+        app:layout_constraintBottom_toBottomOf="@+id/btnRecentReview"
+        app:layout_constraintStart_toStartOf="@+id/btnRecentReview"
+        app:layout_constraintTop_toTopOf="@+id/btnRecentReview" />
+
+    <androidx.appcompat.widget.AppCompatButton
+        android:id="@+id/btnRecentReview"
+        android:layout_width="0dp"
+        android:layout_height="80dp"
+        android:layout_marginTop="8dp"
+        android:background="@drawable/bg_chip_gray"
+        android:backgroundTint="@color/bright_gray"
+        android:elevation="2dp"
+        android:paddingStart="90dp"
+        android:paddingEnd="16dp"
+        android:text="아직 등록된 리뷰가 없습니다."
+        android:textAlignment="viewStart"
+        android:textColor="@color/black"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/tvAllReviews"
+        app:layout_constraintWidth_percent="0.9" />
+
+    <androidx.appcompat.widget.AppCompatButton
+        android:id="@+id/btnNaverPage"
+        android:layout_width="0dp"
+        android:layout_height="56dp"
+        android:layout_marginBottom="16dp"
+        android:background="@drawable/bg_round_green"
+        android:fontFamily="@font/nanum_gothic_extra_bold"
+        android:text="가게 페이지로 이동"
+        android:textColor="@color/white"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintWidth_percent=".7" />
+
+    <ImageView
+        android:id="@+id/imageViewNaverIcon"
+        android:layout_width="30dp"
+        android:layout_height="30dp"
+        android:layout_marginStart="16dp"
+        android:elevation="4dp"
+        app:layout_constraintBottom_toBottomOf="@+id/btnNaverPage"
+        app:layout_constraintStart_toStartOf="@+id/btnNaverPage"
+        app:layout_constraintTop_toTopOf="@+id/btnNaverPage"
+        app:srcCompat="@drawable/ic_naver" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

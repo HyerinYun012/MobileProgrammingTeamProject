@@ -246,7 +246,7 @@
             android:textSize="14sp" />
     </com.google.android.flexbox.FlexboxLayout>
 
-    <Button
+    <androidx.appcompat.widget.AppCompatButton
         android:id="@+id/btnApply"
         android:layout_width="match_parent"
         android:layout_height="50dp"

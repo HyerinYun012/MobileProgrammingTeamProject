@@ -24,7 +24,6 @@
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
-
                 <data android:host="oauth"
                     android:scheme="kakao78e39d9b14d9db8581b78d89f1205fc6" />
             </intent-filter>
@@ -40,12 +39,41 @@
         <activity
             android:name=".LoginActivity"
             android:exported="true">
+        </activity>
+        <activity
+            android:name=".MainActivity"
+            android:exported="true">
+        </activity>
+        <activity
+            android:name=".SplashActivity"
+            android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <activity
+            android:name=".ResultActivity"
+            android:exported="true">
+        </activity>
+        <activity
+            android:name=".PlaceInfoActivity"
+            android:exported="false">
+        </activity>
+        <activity
+            android:name=".FindIdActivity"
+            android:exported="true">
+        </activity>
+        <activity
+            android:name=".FindPwActivity"
+            android:exported="true">
+        </activity>
+        <activity
+            android:name=".AnnouncementActivity"
+            android:exported="false">
+        </activity>
+
     </application>
 
 </manifest>

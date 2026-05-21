@@ -2,44 +2,9 @@
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/login"
+    android:id="@+id/place_info_root"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
-
-    <View
-        android:id="@+id/verticalLine1"
-        android:layout_width="0dp"
-        android:layout_height="2dp"
-        android:background="#E0E0E0"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.5"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/linearLayout4"
-        app:layout_constraintVertical_bias="0.01999998" />
-
-    <View
-        android:id="@+id/verticalLine2"
-        android:layout_width="0dp"
-        android:layout_height="2dp"
-        android:background="#E0E0E0"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="1.0"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/verticalLine1"
-        app:layout_constraintVertical_bias="0.25" />
-
-    <View
-        android:id="@+id/verticalLine3"
-        android:layout_width="0dp"
-        android:layout_height="2dp"
-        android:background="#E0E0E0"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.0"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/verticalLine2" />
 
     <ImageButton
         android:id="@+id/btnReturn"
@@ -54,6 +19,7 @@
         app:layout_constraintHorizontal_bias="0.05"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.050000012"
         app:srcCompat="@drawable/ic_return" />
 
     <ImageView
@@ -64,30 +30,19 @@
         android:elevation="30dp"
         android:stateListAnimator="@null"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="@+id/verticalLine"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHeight_percent=".3"
+        app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintVertical_bias="0.0"
         app:srcCompat="@mipmap/icon" />
 
-    <View
-        android:id="@+id/verticalLine"
-        android:layout_width="0dp"
-        android:layout_height="1dp"
-        android:background="#E0E0E0"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.5"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.12" />
-
     <TextView
         android:id="@+id/textViewLocation"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="27dp"
+        android:layout_marginTop="15dp"
         android:fontFamily="@font/nanum_gothic_bold"
         android:text="[Location Name]"
         android:textColor="@color/black"
@@ -97,208 +52,101 @@
         app:layout_constraintHorizontal_bias="0.2"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/imageViewMain"
-        app:layout_constraintVertical_bias="0" />
-
-    <ImageView
-        android:id="@+id/imageView4"
-        android:layout_width="50dp"
-        android:layout_height="50dp"
-        android:layout_marginStart="52dp"
-        android:background="@drawable/bg_round_white"
-        android:backgroundTint="@color/bright_gray"
-        android:elevation="8dp"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/textViewFilter"
-        app:srcCompat="@drawable/icon_fence" />
-
-    <TextView
-        android:id="@+id/textView8"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:fontFamily="@font/nanum_gothic_bold"
-        android:text="울타리"
-        android:textColor="@color/black"
-        android:textSize="16sp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="@+id/imageView4"
-        app:layout_constraintStart_toStartOf="@+id/imageView4"
-        app:layout_constraintTop_toBottomOf="@+id/imageView4"
         app:layout_constraintVertical_bias="0.0" />
 
-    <ImageView
-        android:id="@+id/imageView5"
-        android:layout_width="50dp"
-        android:layout_height="50dp"
-        android:layout_marginStart="20dp"
-        android:background="@drawable/bg_round_white"
-        android:backgroundTint="@color/bright_gray"
-        android:elevation="8dp"
-        app:layout_constraintStart_toEndOf="@+id/imageView4"
-        app:layout_constraintTop_toBottomOf="@+id/textViewFilter"
-        app:srcCompat="@drawable/icon_fence" />
-
-    <TextView
-        android:id="@+id/textView25"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:fontFamily="@font/nanum_gothic_bold"
-        android:text="울타리"
-        android:textColor="@color/black"
-        android:textSize="16sp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="@+id/imageView5"
-        app:layout_constraintStart_toStartOf="@+id/imageView5"
-        app:layout_constraintTop_toBottomOf="@+id/imageView5"
-        app:layout_constraintVertical_bias="0.0" />
-
-    <TextView
-        android:id="@+id/textViewFilter"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:fontFamily="@font/nanum_gothic_extra_bold"
-        android:text="꼭 읽어 주세요!"
-        android:textColor="@color/orange"
-        android:textSize="16dp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.2"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/verticalLine1"
-        app:layout_constraintVertical_bias="0.01" />
-
-    <TextView
-        android:id="@+id/textViewAbout"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:fontFamily="@font/nanum_gothic_extra_bold"
-        android:text="여기는 이런 곳이에요!"
-        android:textColor="@color/orange"
-        android:textSize="16dp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.2"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/verticalLine2"
-        app:layout_constraintVertical_bias="0.01" />
-
-    <TextView
-        android:id="@+id/textViewMore"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:fontFamily="@font/nanum_gothic_extra_bold"
-        android:text="더 자세히 알고 싶다면?"
-        android:textColor="@color/orange"
-        android:textSize="16dp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.2"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/verticalLine3"
-        app:layout_constraintVertical_bias="0.01" />
-
-    <LinearLayout
-        android:id="@+id/linearLayout4"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.2"
-        app:layout_constraintStart_toStartOf="@+id/textViewLocation"
-        app:layout_constraintTop_toBottomOf="@+id/textViewLocation"
-        app:layout_constraintVertical_bias="0.0">
-
-        <ImageView
-            android:id="@+id/imageView2"
-            android:layout_width="24dp"
-            android:layout_height="24dp"
-            app:srcCompat="@drawable/icon_marker" />
-
-        <TextView
-            android:id="@+id/textViewAddress"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:fontFamily="@font/nanum_gothic_regular"
-            android:text="[Address]"
-            android:textColor="@color/black"
-            android:textSize="20sp" />
-
-    </LinearLayout>
-
-    <ImageView
-        android:id="@+id/imageView3"
+    <ImageButton
+        android:id="@+id/btnFavorite"
         android:layout_width="40dp"
         android:layout_height="40dp"
-        android:layout_marginTop="20dp"
+        android:layout_marginTop="5dp"
+        android:background="@drawable/icon_heart_empty"
+        android:scaleType="fitCenter"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toEndOf="@+id/textViewLocation"
-        app:layout_constraintTop_toBottomOf="@+id/imageViewMain"
-        app:srcCompat="@drawable/icon_heart_empty" />
+        app:layout_constraintTop_toBottomOf="@+id/imageViewMain" />
 
-    <Button
-        android:id="@+id/btnBestReview"
+    <LinearLayout
+        android:id="@+id/linearLayout"
         android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:background="@drawable/bg_chip_gray"
-        android:backgroundTint="@color/bright_gray"
-        android:elevation="2dp"
-        android:paddingStart="85dp"
-        android:text="강아지랑 오기 정말 좋은 곳 같아요~ 산책하다가 들려서..."
-        android:textAlignment="viewStart"
-        android:textColor="@color/black"
-        app:layout_constraintBottom_toTopOf="@+id/verticalLine3"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHeight_percent="0.1"
-        app:layout_constraintHorizontal_bias="0.5"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/verticalLine2"
-        app:layout_constraintWidth_percent="0.8" />
+        app:layout_constraintTop_toBottomOf="@+id/textViewLocation"
+        app:layout_constraintWidth_percent="0.95">
 
-    <ImageView
-        android:id="@+id/imageView6"
+        <androidx.appcompat.widget.AppCompatButton
+            android:id="@+id/btnHome"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:background="@null"
+            android:fontFamily="@font/nanum_gothic_bold"
+            android:text="홈"
+            android:textColor="@color/gray"
+            android:textSize="20sp" />
+
+        <androidx.appcompat.widget.AppCompatButton
+            android:id="@+id/btnMenu"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:background="@null"
+            android:fontFamily="@font/nanum_gothic_bold"
+            android:text="메뉴"
+            android:textColor="@color/gray"
+            android:textSize="20sp" />
+
+        <androidx.appcompat.widget.AppCompatButton
+            android:id="@+id/btnAnnouncement"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:background="@null"
+            android:fontFamily="@font/nanum_gothic_bold"
+            android:text="공지"
+            android:textColor="@color/gray"
+            android:textSize="20sp" />
+
+        <androidx.appcompat.widget.AppCompatButton
+            android:id="@+id/btnReview"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:background="@null"
+            android:fontFamily="@font/nanum_gothic_bold"
+            android:text="리뷰"
+            android:textColor="@color/gray"
+            android:textSize="20sp" />
+    </LinearLayout>
+
+    <View
+        android:id="@+id/verticalLine"
+        android:layout_width="0dp"
+        android:layout_height="1dp"
+        android:background="#E0E0E0"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/linearLayout" />
+
+    <View
+        android:id="@+id/verticalLineIndicator"
+        android:layout_width="0dp"
+        android:layout_height="2dp"
+        android:background="@color/black"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.06"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/verticalLine"
+        app:layout_constraintWidth_percent=".2" />
+
+    <androidx.fragment.app.FragmentContainerView
+        android:id="@+id/fragmentContainerView"
         android:layout_width="0dp"
         android:layout_height="0dp"
-        android:layout_marginStart="5dp"
-        android:layout_marginTop="5dp"
-        android:layout_marginBottom="5dp"
-        android:background="@drawable/bg_round_gray"
-        android:backgroundTint="@color/bright_gray"
-        android:elevation="2dp"
-        app:layout_constraintBottom_toBottomOf="@+id/btnBestReview"
-        app:layout_constraintStart_toStartOf="@+id/btnBestReview"
-        app:layout_constraintTop_toTopOf="@+id/btnBestReview"
-        app:layout_constraintWidth_percent="0.18"
-        app:srcCompat="@mipmap/icon_foreground" />
-
-    <ImageView
-        android:id="@+id/imageViewNaverIcon"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:elevation="4dp"
-        app:layout_constraintBottom_toBottomOf="@+id/btnNaverPage"
-        app:layout_constraintEnd_toEndOf="@+id/btnNaverPage"
-        app:layout_constraintHorizontal_bias="0.0"
-        app:layout_constraintStart_toStartOf="@+id/btnNaverPage"
-        app:layout_constraintTop_toTopOf="@+id/btnNaverPage"
-        app:layout_constraintWidth_percent="0.15"
-        app:srcCompat="@drawable/ic_naver" />
-
-    <Button
-        android:id="@+id/btnNaverPage"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:background="@drawable/bg_round_green"
-        android:contentDescription="@string/contentDescription_login"
-        android:fontFamily="@font/nanum_gothic_extra_bold"
-        android:text="가게 페이지로 이동"
-        android:textColor="@color/white"
-        app:cornerRadius="5dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHeight_percent="0.07"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/verticalLine3"
-        app:layout_constraintWidth_percent=".7" />
-
+        app:layout_constraintTop_toBottomOf="@+id/verticalLineIndicator" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

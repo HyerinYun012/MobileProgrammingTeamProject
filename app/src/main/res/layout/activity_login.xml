@@ -148,12 +148,12 @@
         android:id="@+id/editTextPhone"
         android:layout_width="0dp"
         android:layout_height="0dp"
+        android:autofillHints="username"
         android:background="@drawable/bg_chip_gray"
         android:ems="10"
         android:fontFamily="@font/nanum_gothic_regular"
-        android:autofillHints="username"
         android:hint="@string/hint_id"
-        android:inputType="text"
+        android:inputType="textPersonName"
         android:paddingLeft="20sp"
         android:paddingRight="20sp"
         android:textAlignment="textStart"
@@ -165,19 +165,19 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/textViewLogin"
         app:layout_constraintVertical_bias="0.060000002"
-        app:layout_constraintWidth_percent="0.7" />
+        app:layout_constraintWidth_percent="0.85" />
 
     <EditText
         android:id="@+id/editTextPw"
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:layout_marginTop="8dp"
+        android:autofillHints="password"
         android:background="@drawable/bg_chip_gray"
         android:ems="10"
         android:fontFamily="@font/nanum_gothic_regular"
-        android:autofillHints="password"
         android:hint="@string/hint_pw"
-        android:inputType="text"
+        android:inputType="textPassword"
         android:paddingLeft="20sp"
         android:paddingRight="20sp"
         android:textAlignment="textStart"
@@ -189,7 +189,7 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/editTextPhone"
         app:layout_constraintVertical_bias="0.0"
-        app:layout_constraintWidth_percent=".7" />
+        app:layout_constraintWidth_percent="0.85" />
 
     <CheckBox
         android:id="@+id/checkBoxSaveId"
@@ -213,13 +213,14 @@
         android:contentDescription="@string/contentDescription_retrieveid"
         android:forceDarkAllowed="false"
         android:text="@string/retrieve_id"
+        android:textAlignment="viewEnd"
         android:textColor="#000000"
         android:textSize="12sp"
         android:theme="@style/CardView"
         app:layout_constraintHeight_percent=".05"
         app:layout_constraintStart_toEndOf="@+id/checkBoxSaveId"
         app:layout_constraintTop_toBottomOf="@+id/editTextPw"
-        app:layout_constraintWidth_percent=".225" />
+        app:layout_constraintWidth_percent="0.3" />
 
     <Button
         android:id="@+id/btnRetrievePw"
@@ -230,6 +231,7 @@
         android:contentDescription="@string/contentDescription_retrievepw"
         android:forceDarkAllowed="false"
         android:text="@string/retrieve_pw"
+        android:textAlignment="viewEnd"
         android:textColor="#000000"
         android:textSize="12sp"
         android:theme="@style/CardView"
@@ -238,9 +240,9 @@
         app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toEndOf="@+id/btnRetrieveId"
         app:layout_constraintTop_toBottomOf="@+id/editTextPw"
-        app:layout_constraintWidth_percent=".225" />
+        app:layout_constraintWidth_percent="0.3" />
 
-    <Button
+    <androidx.appcompat.widget.AppCompatButton
         android:id="@+id/btnLogin"
         android:layout_width="0dp"
         android:layout_height="0dp"
@@ -257,9 +259,9 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/checkBoxSaveId"
         app:layout_constraintVertical_bias="0.0"
-        app:layout_constraintWidth_percent=".7" />
+        app:layout_constraintWidth_percent="0.85" />
 
-    <Button
+    <androidx.appcompat.widget.AppCompatButton
         android:id="@+id/btnSignIn"
         android:layout_width="0dp"
         android:layout_height="0dp"
@@ -278,7 +280,7 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/btnLogin"
         app:layout_constraintVertical_bias="0.0"
-        app:layout_constraintWidth_percent=".7" />
+        app:layout_constraintWidth_percent="0.85" />
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>
