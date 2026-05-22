@@ -10,4 +10,5 @@
     <color name="pastel_orange">#F89A66</color>
     <color name="green">#03A94D</color>
     <color name="dark_green">#00883D</color>
+    <color name="search_background">#ebebeb</color>
 </resources>

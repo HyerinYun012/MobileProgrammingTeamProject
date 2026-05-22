@@ -134,20 +134,20 @@
         android:id="@+id/textViewRecent"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="32dp"
         android:fontFamily="@font/nanum_gothic_bold"
         android:text="@string/easy_login"
         android:textSize="16sp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.65" />
+        app:layout_constraintTop_toBottomOf="@+id/btnSignIn"
+        app:layout_constraintVertical_bias="0.07999998" />
 
     <EditText
         android:id="@+id/editTextPhone"
         android:layout_width="0dp"
         android:layout_height="0dp"
+        android:layout_marginTop="6dp"
         android:autofillHints="username"
         android:background="@drawable/bg_chip_gray"
         android:ems="10"
@@ -158,13 +158,11 @@
         android:paddingRight="20sp"
         android:textAlignment="textStart"
         android:textSize="16sp"
-        app:layout_constraintBottom_toTopOf="@+id/textViewRecent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHeight_percent=".08"
         app:layout_constraintHorizontal_bias="0.5"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/textViewLogin"
-        app:layout_constraintVertical_bias="0.060000002"
         app:layout_constraintWidth_percent="0.85" />
 
     <EditText
@@ -182,13 +180,11 @@
         android:paddingRight="20sp"
         android:textAlignment="textStart"
         android:textSize="16sp"
-        app:layout_constraintBottom_toTopOf="@+id/textViewRecent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHeight_percent=".08"
         app:layout_constraintHorizontal_bias="0.50"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/editTextPhone"
-        app:layout_constraintVertical_bias="0.0"
         app:layout_constraintWidth_percent="0.85" />
 
     <CheckBox
@@ -204,7 +200,7 @@
         app:layout_constraintTop_toBottomOf="@+id/editTextPw"
         app:layout_constraintWidth_percent=".25" />
 
-    <Button
+    <androidx.appcompat.widget.AppCompatButton
         android:id="@+id/btnRetrieveId"
         android:layout_width="0dp"
         android:layout_height="0dp"
@@ -213,8 +209,7 @@
         android:contentDescription="@string/contentDescription_retrieveid"
         android:forceDarkAllowed="false"
         android:text="@string/retrieve_id"
-        android:textAlignment="viewEnd"
-        android:textColor="#000000"
+        android:textAlignment="center"
         android:textSize="12sp"
         android:theme="@style/CardView"
         app:layout_constraintHeight_percent=".05"
@@ -222,7 +217,7 @@
         app:layout_constraintTop_toBottomOf="@+id/editTextPw"
         app:layout_constraintWidth_percent="0.3" />
 
-    <Button
+    <androidx.appcompat.widget.AppCompatButton
         android:id="@+id/btnRetrievePw"
         android:layout_width="0dp"
         android:layout_height="0dp"
@@ -231,8 +226,7 @@
         android:contentDescription="@string/contentDescription_retrievepw"
         android:forceDarkAllowed="false"
         android:text="@string/retrieve_pw"
-        android:textAlignment="viewEnd"
-        android:textColor="#000000"
+        android:textAlignment="center"
         android:textSize="12sp"
         android:theme="@style/CardView"
         app:layout_constraintEnd_toEndOf="@+id/editTextPw"
@@ -253,12 +247,10 @@
         android:text="@string/login"
         android:textColor="@color/white"
         app:cornerRadius="5dp"
-        app:layout_constraintBottom_toTopOf="@+id/textViewRecent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHeight_percent=".08"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/checkBoxSaveId"
-        app:layout_constraintVertical_bias="0.0"
         app:layout_constraintWidth_percent="0.85" />
 
     <androidx.appcompat.widget.AppCompatButton
@@ -273,13 +265,11 @@
         android:text="@string/signup"
         android:textColor="#FF8E4F"
         app:cornerRadius="5dp"
-        app:layout_constraintBottom_toTopOf="@+id/textViewRecent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHeight_percent=".08"
         app:layout_constraintHorizontal_bias="0.5"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/btnLogin"
-        app:layout_constraintVertical_bias="0.0"
         app:layout_constraintWidth_percent="0.85" />
 
 

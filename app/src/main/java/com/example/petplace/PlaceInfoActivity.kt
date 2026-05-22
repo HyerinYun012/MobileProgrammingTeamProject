@@ -32,6 +32,7 @@ class PlaceInfoActivity : AppCompatActivity() {
         }
 
         restaurantId = restaurant!!.id
+        isBookmarked = restaurant!!.isBookmarked
         initUI(restaurant!!)
         initFragmentNavigation()
 

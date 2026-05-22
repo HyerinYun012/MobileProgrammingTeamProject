@@ -16,6 +16,7 @@ import retrofit2.Response
 
 class LoginActivity : AppCompatActivity() {
     private val apiService = RetrofitClient.apiService
+    private lateinit var binding: ActivityLoginBinding
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -31,9 +32,24 @@ class LoginActivity : AppCompatActivity() {
 
         enableEdgeToEdge()
         supportActionBar?.hide()
-        val binding = ActivityLoginBinding.inflate(layoutInflater)
+        binding = ActivityLoginBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+        // 2. 저장된 아이디 불러오기
+        val savedId = sharedPref.getString("saved_id", null)
+        if (savedId != null) {
+            binding.editTextPhone.setText(savedId)
+            binding.checkBoxSaveId.isChecked = true
+        }
+
+        binding.btnRetrieveId.setOnClickListener {
+            val intent = Intent(this, FindIdActivity::class.java)
+            startActivity(intent)
+        }
+        binding.btnRetrievePw.setOnClickListener {
+            val intent = Intent(this, FindPwActivity::class.java)
+            startActivity(intent)
+        }
         binding.btnLogin.setOnClickListener { performLogin(binding) }
         binding.btnSignIn.setOnClickListener {
             val intent = Intent(this, SignupActivity::class.java)
@@ -58,7 +74,14 @@ class LoginActivity : AppCompatActivity() {
                 if (response.isSuccessful && apiResponse?.success == true) {
                     val token = apiResponse.data
                     if (token != null) {
-                        // 토큰 획득 성공 시 프로필 조회로 최종 검증
+                        // 아이디 저장 체크 여부에 따라 처리
+                        val sharedPref = getSharedPreferences("PetPlacePref", Context.MODE_PRIVATE)
+                        if (binding.checkBoxSaveId.isChecked) {
+                            sharedPref.edit().putString("saved_id", loginId).apply()
+                        } else {
+                            sharedPref.edit().remove("saved_id").apply()
+                        }
+                        
                         fetchUserInfoAndNavigate(token)
                     }
                 } else {
@@ -111,18 +134,13 @@ class LoginActivity : AppCompatActivity() {
         }
     }
 
-    // 7-7: 명세의 getProfile()을 사용하여 토큰 유효성 최종 확인 및 정보 저장
     private fun fetchUserInfoAndNavigate(token: String) {
-        // 인터셉터에서 사용할 토큰 설정
         RetrofitClient.setToken(token)
         
         apiService.getProfile().enqueue(object : Callback<ApiResponse<UserProfileResponse>> {
             override fun onResponse(call: Call<ApiResponse<UserProfileResponse>>, response: Response<ApiResponse<UserProfileResponse>>) {
-                val apiResponse = response.body()
-                if (response.isSuccessful && apiResponse?.success == true && apiResponse.data != null) {
-                    val profile = apiResponse.data
-                    
-                    // 안전하게 정보 저장
+                val profile = response.body()?.data
+                if (response.isSuccessful && profile != null) {
                     val sharedPref = getSharedPreferences("PetPlacePref", Context.MODE_PRIVATE)
                     sharedPref.edit().apply {
                         putString("jwt_token", token)
@@ -134,7 +152,6 @@ class LoginActivity : AppCompatActivity() {
                     Toast.makeText(this@LoginActivity, "${profile.nickname}님, 환영합니다!", Toast.LENGTH_SHORT).show()
                     navigateToMain()
                 } else {
-                    // 토큰은 받았으나 프로필 조회 실패 시 (403 방지)
                     RetrofitClient.setToken(null)
                     Toast.makeText(this@LoginActivity, "사용자 인증에 실패했습니다. 다시 시도해주세요.", Toast.LENGTH_SHORT).show()
                 }
