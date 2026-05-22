@@ -21,12 +21,16 @@ class SignupInfoFragment : Fragment() {
     private var _binding: FragmentSingupInfoBinding? = null
     private val binding get() = _binding!!
     private var role: String? = null
+    private var checkedIdDuplication = false
+    private var checkedNicknameDuplication = false
     private val apiService = RetrofitClient.apiService
     private val gson = Gson()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         role = arguments?.getString("role")
+        checkedIdDuplication = false
+        checkedNicknameDuplication = false
     }
 
     override fun onCreateView(
@@ -51,9 +55,73 @@ class SignupInfoFragment : Fragment() {
 
         binding.editTextName.visibility = View.VISIBLE
 
+        binding.btnIdCheck.setOnClickListener {
+            checkIdDuplication()
+        }
+
+        binding.btnNicknameCheck.setOnClickListener {
+            checkNicknameDuplication()
+        }
+
         binding.btnSubmit.setOnClickListener {
             performSignup()
         }
+    }
+
+    private fun checkIdDuplication() {
+        val loginId = binding.editTextId.text.toString().trim()
+        if (loginId.isEmpty()) {
+            Toast.makeText(requireContext(), "아이디를 입력해주세요.", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        apiService.checkId(loginId).enqueue(object : Callback<ApiResponse<Boolean>> {
+            override fun onResponse(call: Call<ApiResponse<Boolean>>, response: Response<ApiResponse<Boolean>>) {
+                if (response.isSuccessful) {
+                    val isAvailable = response.body()?.data ?: false
+                    if (isAvailable) {
+                        checkedIdDuplication = true
+                        Toast.makeText(requireContext(), "사용 가능한 아이디입니다.", Toast.LENGTH_SHORT).show()
+                    } else {
+                        Toast.makeText(requireContext(), "이미 사용 중인 아이디입니다.", Toast.LENGTH_SHORT).show()
+                    }
+                } else {
+                    Toast.makeText(requireContext(), "중복 확인 실패: ${parseErrorMessage(response)}", Toast.LENGTH_SHORT).show()
+                }
+            }
+
+            override fun onFailure(call: Call<ApiResponse<Boolean>>, t: Throwable) {
+                Toast.makeText(requireContext(), "네트워크 오류: ${t.message}", Toast.LENGTH_SHORT).show()
+            }
+        })
+    }
+
+    private fun checkNicknameDuplication() {
+        val nickname = binding.editTextNickname.text.toString().trim()
+        if (nickname.isEmpty()) {
+            Toast.makeText(requireContext(), "닉네임을 입력해주세요.", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        apiService.checkNickname(nickname).enqueue(object : Callback<ApiResponse<Boolean>> {
+            override fun onResponse(call: Call<ApiResponse<Boolean>>, response: Response<ApiResponse<Boolean>>) {
+                if (response.isSuccessful) {
+                    val isAvailable = response.body()?.data ?: false
+                    if (isAvailable) {
+                        checkedNicknameDuplication = true
+                        Toast.makeText(requireContext(), "사용 가능한 닉네임입니다.", Toast.LENGTH_SHORT).show()
+                    } else {
+                        Toast.makeText(requireContext(), "이미 사용 중인 닉네임입니다.", Toast.LENGTH_SHORT).show()
+                    }
+                } else {
+                    Toast.makeText(requireContext(), "중복 확인 실패: ${parseErrorMessage(response)}", Toast.LENGTH_SHORT).show()
+                }
+            }
+
+            override fun onFailure(call: Call<ApiResponse<Boolean>>, t: Throwable) {
+                Toast.makeText(requireContext(), "네트워크 오류: ${t.message}", Toast.LENGTH_SHORT).show()
+            }
+        })
     }
 
     private fun performSignup() {
@@ -73,6 +141,15 @@ class SignupInfoFragment : Fragment() {
 
         if (password != passwordConfirm) {
             Toast.makeText(requireContext(), "비밀번호 확인이 일치하지 않습니다.", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        if (!checkedIdDuplication) {
+            Toast.makeText(requireContext(), "아이디 중복 확인을 해주세요.", Toast.LENGTH_SHORT).show()
+            return
+        }
+        if(!checkedNicknameDuplication) {
+            Toast.makeText(requireContext(), "닉네임 중복 확인을 해주세요.", Toast.LENGTH_SHORT).show()
             return
         }
 
