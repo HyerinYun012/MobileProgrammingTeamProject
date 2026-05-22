@@ -99,25 +99,29 @@ class LoginActivity : AppCompatActivity() {
             if (error == null && token != null) {
                 UserApiClient.instance.me { user, _ ->
                     if (user != null) {
-                        Log.d("KakaoLogin", "user : $user")
+                        //Log.d("KakaoLogin", "user : $user")
                         val req = SocialLoginRequest(
                             provider = "KAKAO",
                             accessToken = token.accessToken,
                             providerId = user.id.toString(),
-                            nickname = //user.kakaoAccount?.profile?.nickname ?: "사용자",
-                            phone = //user.kakaoAccount?.phoneNumber?.replace("+82 ", "0")?.replace("-", "") ?: "",
-                            role = //"CUSTOMER",
-                            marketingAgree = false
-                        )
-                        
+                            //nickname = "",//user.kakaoAccount?.profile?.nickname ?: "사용자",
+                            //phone = "",//user.kakaoAccount?.phoneNumber?.replace("+82 ", "0")?.replace("-", "") ?: "",
+                            //role = "",//"CUSTOMER",
+                            //marketingAgree = false
+                        )//1.로그인 시도
+                        //2. 로그인 실패시, 에러종류 확인. 회원가입이 안된거라면 회원가입으로 이동
+
                         apiService.socialLogin(req).enqueue(object : Callback<ApiResponse<String>> {
                             override fun onResponse(call: Call<ApiResponse<String>>, response: Response<ApiResponse<String>>) {
                                 val res = response.body()
                                 if (response.isSuccessful && res?.success == true && res.data != null) {
                                     fetchUserInfoAndNavigate(res.data)
                                 } else {
-                                    val errorMsg = res?.message ?: "소셜 로그인 처리 중 오류가 발생했습니다."
-                                    Toast.makeText(applicationContext, errorMsg, Toast.LENGTH_SHORT).show()
+                                    val errorMsg = RetrofitClient.parseErrorMessage(response)
+                                    Log.e("KakaoLogin", "response : $response, res : $res, accesstoken : ${token.accessToken}, error : $error, errormsg : ${errorMsg}",)
+                                    Toast.makeText(applicationContext, "카카오 로그인 처리 중 오류가 발생했습니다.", Toast.LENGTH_SHORT).show()
+                                    if (response.code() == 401)
+                                        Log.e("KakaoLogin","401 에러")
                                 }
                             }
                             override fun onFailure(call: Call<ApiResponse<String>>, t: Throwable) {

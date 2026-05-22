@@ -30,7 +30,7 @@ data class PageResponse<T>(
 data class LoginRequest(val loginId: String, val password: String)
 data class FindIdRequest(val name: String, val phone: String)
 data class ResetPasswordRequest(val loginId: String, val phone: String, val newPassword: String)
-data class SocialLoginRequest(
+data class SocialSignupRequest(
     val provider: String,
     val accessToken: String,
     val providerId: String,
@@ -38,6 +38,12 @@ data class SocialLoginRequest(
     val phone: String,
     val role: String,
     val marketingAgree: Boolean
+)
+
+data class SocialLoginRequest(
+    val provider: String,
+    val accessToken: String,
+    val providerId: String,
 )
 
 data class CustomerSignupRequest(
@@ -258,7 +264,8 @@ interface ApiService {
     @GET("api/search/popular") fun getPopularKeywords(): Call<ApiResponse<List<String>>>
 
     @POST("api/auth/login") fun login(@Body request: LoginRequest): Call<ApiResponse<String>>
-    @POST("api/auth/social") fun socialLogin(@Body request: SocialLoginRequest): Call<ApiResponse<String>>
+    @POST("api/auth/social/signup") fun socialSignup(@Body request: SocialSignupRequest): Call<ApiResponse<String>>
+    @POST("api/auth/social/login") fun socialLogin(@Body request: SocialLoginRequest): Call<ApiResponse<String>>
     @POST("api/auth/signup/customer") fun signupCustomer(@Body request: CustomerSignupRequest): Call<ApiResponse<Any>>
     @POST("api/auth/signup/owner") fun signupOwner(@Body request: OwnerSignupRequest): Call<ApiResponse<Any>>
     @POST("api/auth/find-id") fun findId(@Body request: FindIdRequest): Call<ApiResponse<String>>

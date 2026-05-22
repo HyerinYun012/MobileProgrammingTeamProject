@@ -4,16 +4,19 @@ import android.content.Context
 import android.content.Intent
 import android.util.Log
 import androidx.core.content.edit
+import com.google.gson.Gson
 import okhttp3.Authenticator
 import okhttp3.Interceptor
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
+import retrofit2.Response
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 
 object RetrofitClient {
     private const val BASE_URL = "http://3.21.169.86:8080/"
     private var authToken: String? = null
+    private val gson = Gson()
 
     // 토큰 설정 함수
     fun setToken(token: String?) {
@@ -60,6 +63,23 @@ object RetrofitClient {
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_SINGLE_TOP
         }
         context.startActivity(intent)
+    }
+
+    /**
+     * Retrofit 응답에서 에러 메시지를 추출하는 공통 함수
+     */
+    fun parseErrorMessage(response: Response<*>): String {
+        val errorBodyString = response.errorBody()?.string()
+        return response.body()?.let {
+            if (it is ApiResponse<*>) it.message else null
+        } ?: errorBodyString?.let {
+            try {
+                val errorRes = gson.fromJson(it, ApiResponse::class.java)
+                errorRes.message ?: it
+            } catch (e: Exception) {
+                it
+            }
+        } ?: "알 수 없는 오류 (상태 코드: ${response.code()})"
     }
 
     private val loggingInterceptor = HttpLoggingInterceptor().apply {

@@ -173,12 +173,14 @@ class SearchActivity : AppCompatActivity() {
                         }
                     }
                 } else {
+                    Log.e("SearchActivity", "API Error: ${response.code()}")
                     Toast.makeText(applicationContext, "검색 중 오류가 발생했습니다 (${response.code()})", Toast.LENGTH_SHORT).show()
                 }
             }
 
             override fun onFailure(call: Call<ApiResponse<PageResponse<RestaurantResponse>>>, t: Throwable) {
                 if (isFinishing || isDestroyed) return
+                Log.e("SearchActivity", "Network Error: ${t.message}")
                 Toast.makeText(applicationContext, "서버 연결에 실패했습니다.", Toast.LENGTH_SHORT).show()
             }
         })
