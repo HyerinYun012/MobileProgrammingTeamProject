@@ -27,14 +27,25 @@ public class RestaurantMenuController {
     private final RestaurantMenuService restaurantMenuService;
 
     /**
-     * 💡 특정 식당의 전체 메뉴 목록 조회
+     * 특정 식당의 전체 메뉴 목록 조회
      */
     @Operation(summary = "식당별 메뉴 목록 조회", description = "특정 식당에 등록된 모든 메뉴 리스트를 페이징하여 조회합니다.")
-    @GetMapping // 💡 경로를 비워두면 @RequestMapping의 경로 그대로 매핑됩니다.
+    @GetMapping
     public ResponseEntity<ApiResponse<Page<MenuResponse>>> getMenusByRestaurant(
             @Parameter(description = "식당 고유 ID") @PathVariable Long restaurantId,
-            @PageableDefault(size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable
+            // 💡 @ParameterObject 추가 및 기본값 세팅 (page=0, size=1, createdAt,desc)
+            @org.springdoc.core.annotations.ParameterObject
+            @PageableDefault(page = 0, size = 1, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable
     ) {
+        // 💡 "string" 방어 코드 추가
+        if (pageable.getSort().stream().anyMatch(order -> "string".equals(order.getProperty()))) {
+            pageable = org.springframework.data.domain.PageRequest.of(
+                    pageable.getPageNumber(),
+                    pageable.getPageSize(),
+                    org.springframework.data.domain.Sort.by("createdAt").descending()
+            );
+        }
+
         Page<MenuResponse> response = restaurantMenuService.getMenusByRestaurant(restaurantId, pageable);
         return ResponseEntity.ok(ApiResponse.success("메뉴 목록이 성공적으로 조회되었습니다.", response));
     }

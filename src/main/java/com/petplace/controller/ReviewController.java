@@ -1,7 +1,7 @@
 package com.petplace.controller;
 
 import com.petplace.dto.request.ReviewRequest;
-import com.petplace.dto.request.ReviewReportRequest; // 💡 신규 DTO 임포트 유지
+import com.petplace.dto.request.ReviewReportRequest;
 import com.petplace.dto.response.ApiResponse;
 import com.petplace.dto.response.ReviewResponse;
 import com.petplace.service.ReviewService;
@@ -31,8 +31,19 @@ public class ReviewController {
     @GetMapping("/restaurant/{restaurantId}")
     public ResponseEntity<ApiResponse<Page<ReviewResponse>>> getReviews(
             @PathVariable Long restaurantId,
-            @PageableDefault(size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable
+            // 💡 @ParameterObject 추가 및 기본값 세팅 (page=0, size=1, createdAt,desc)
+            @org.springdoc.core.annotations.ParameterObject
+            @PageableDefault(page = 0, size = 1, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable
     ) {
+        // 💡 "string" 방어 코드 추가
+        if (pageable.getSort().stream().anyMatch(order -> "string".equals(order.getProperty()))) {
+            pageable = org.springframework.data.domain.PageRequest.of(
+                    pageable.getPageNumber(),
+                    pageable.getPageSize(),
+                    org.springframework.data.domain.Sort.by("createdAt").descending()
+            );
+        }
+
         Page<ReviewResponse> response = service.getReviews(restaurantId, pageable);
         return ResponseEntity.ok(ApiResponse.success("리뷰 목록 조회가 완료되었습니다.", response));
     }

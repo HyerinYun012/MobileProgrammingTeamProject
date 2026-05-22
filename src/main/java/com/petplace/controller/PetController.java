@@ -32,9 +32,19 @@ public class PetController {
     @GetMapping
     public ResponseEntity<ApiResponse<Page<PetResponse>>> getPets(
             @AuthenticationPrincipal Long userId,
-            @PageableDefault(size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable
+            // 💡 @ParameterObject 추가 및 기본값 세팅 (page=0, size=1, createdAt,desc)
+            @org.springdoc.core.annotations.ParameterObject
+            @PageableDefault(page = 0, size = 1, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable
     ) {
-        // 서비스에서 Page<PetResponse>를 반환하도록 수정해야 합니다.
+        // 💡 "string" 방어 코드 추가
+        if (pageable.getSort().stream().anyMatch(order -> "string".equals(order.getProperty()))) {
+            pageable = org.springframework.data.domain.PageRequest.of(
+                    pageable.getPageNumber(),
+                    pageable.getPageSize(),
+                    org.springframework.data.domain.Sort.by("createdAt").descending()
+            );
+        }
+
         Page<PetResponse> response = petService.getPets(userId, pageable);
         return ResponseEntity.ok(ApiResponse.success("반려동물 목록 조회가 완료되었습니다.", response));
     }

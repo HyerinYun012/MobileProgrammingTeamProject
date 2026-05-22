@@ -48,8 +48,19 @@ public class RestaurantController {
             @RequestParam double lat,
             @RequestParam double lng,
             @RequestParam(defaultValue = "3.0") double radius,
-            @PageableDefault(size = 10) Pageable pageable
+            // 💡 @ParameterObject 추가 및 기본값 세팅 (page=0, size=1, createdAt,desc)
+            @org.springdoc.core.annotations.ParameterObject
+            @PageableDefault(page = 0, size = 1, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable
     ) {
+        // 💡 "string" 방어 코드 추가
+        if (pageable.getSort().stream().anyMatch(order -> "string".equals(order.getProperty()))) {
+            pageable = org.springframework.data.domain.PageRequest.of(
+                    pageable.getPageNumber(),
+                    pageable.getPageSize(),
+                    org.springframework.data.domain.Sort.by("createdAt").descending()
+            );
+        }
+
         return ResponseEntity.ok(ApiResponse.success(restaurantService.findNearby(lat, lng, radius, pageable)));
     }
 
@@ -58,21 +69,41 @@ public class RestaurantController {
     public ResponseEntity<ApiResponse<Page<RestaurantResponse>>> search(
             @RequestParam String keyword,
             @AuthenticationPrincipal Long userId,
-            @PageableDefault(size = 10, sort = "name") Pageable pageable // 💡 Pageable 파라미터 추가
+            // 💡 @ParameterObject 추가 및 기본값 세팅 (page=0, size=1, createdAt,desc)
+            @org.springdoc.core.annotations.ParameterObject
+            @PageableDefault(page = 0, size = 1, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable
     ) {
-        Page<RestaurantResponse> response = searchService.search(keyword, userId, pageable);
+        // 💡 "string" 방어 코드 추가
+        if (pageable.getSort().stream().anyMatch(order -> "string".equals(order.getProperty()))) {
+            pageable = org.springframework.data.domain.PageRequest.of(
+                    pageable.getPageNumber(),
+                    pageable.getPageSize(),
+                    org.springframework.data.domain.Sort.by("createdAt").descending()
+            );
+        }
 
+        Page<RestaurantResponse> response = searchService.search(keyword, userId, pageable);
         return ResponseEntity.ok(ApiResponse.success("검색이 완료되었습니다.", response));
     }
 
     @Operation(summary = "조건 필터링 검색", description = "다중 조건으로 장소를 페이징 검색합니다. 로그인 시 북마크 여부가 포함됩니다.")
     @GetMapping("/filter")
     public ResponseEntity<ApiResponse<Page<RestaurantResponse>>> filter(
-            @AuthenticationPrincipal Long userId, // 💡 비로그인 유저 대응을 위해 추가 (인증 없을 시 null)
+            @AuthenticationPrincipal Long userId,
             @Valid @ModelAttribute RestaurantFilterRequest condition,
-            @PageableDefault(size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable
+            // 💡 @ParameterObject 추가 및 기본값 세팅 (page=0, size=1, createdAt,desc)
+            @org.springdoc.core.annotations.ParameterObject
+            @PageableDefault(page = 0, size = 1, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable
     ) {
-        // 💡 서비스 호출 시 userId를 함께 넘겨 북마크 판별을 진행합니다.
+        // 💡 "string" 방어 코드 추가
+        if (pageable.getSort().stream().anyMatch(order -> "string".equals(order.getProperty()))) {
+            pageable = org.springframework.data.domain.PageRequest.of(
+                    pageable.getPageNumber(),
+                    pageable.getPageSize(),
+                    org.springframework.data.domain.Sort.by("createdAt").descending()
+            );
+        }
+
         return ResponseEntity.ok(ApiResponse.success(restaurantService.searchRestaurants(userId, condition, pageable)));
     }
 

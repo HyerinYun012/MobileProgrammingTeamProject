@@ -47,10 +47,19 @@ public class InquiryController {
     @GetMapping("/my")
     public ResponseEntity<ApiResponse<Page<InquiryResponse>>> getMyInquiries(
             @Parameter(hidden = true) @AuthenticationPrincipal Long userId,
-            // 💡 페이징 파라미터 추가
-            @PageableDefault(size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable
+            // 💡 @ParameterObject 추가 및 기본값 세팅 (page=0, size=1, createdAt,desc)
+            @org.springdoc.core.annotations.ParameterObject
+            @PageableDefault(page = 0, size = 1, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable
     ) {
-        // 💡 서비스 호출 시 pageable을 전달합니다.
+        // 💡 "string" 방어 코드 추가
+        if (pageable.getSort().stream().anyMatch(order -> "string".equals(order.getProperty()))) {
+            pageable = org.springframework.data.domain.PageRequest.of(
+                    pageable.getPageNumber(),
+                    pageable.getPageSize(),
+                    org.springframework.data.domain.Sort.by("createdAt").descending()
+            );
+        }
+
         Page<InquiryResponse> responses = inquiryService.getMyInquiries(userId, pageable);
         return ResponseEntity.ok(ApiResponse.success("내 문의 내역 조회가 완료되었습니다.", responses));
     }

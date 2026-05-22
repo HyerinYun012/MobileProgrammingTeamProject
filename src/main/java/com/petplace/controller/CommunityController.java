@@ -31,8 +31,19 @@ public class CommunityController {
     @Operation(summary = "커뮤니티 전체 게시글 최신순 조회")
     @GetMapping("/posts")
     public ResponseEntity<ApiResponse<Page<Post>>> getAllPosts(
-            // 기본값: 10개씩, createdAt 기준 내림차순
-            @PageableDefault(size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
+            // 💡 @ParameterObject 추가 및 기본값 세팅 (page=0, size=1, createdAt,desc)
+            @org.springdoc.core.annotations.ParameterObject
+            @PageableDefault(page = 0, size = 1, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
+
+        // 💡 "string" 방어 코드 추가
+        if (pageable.getSort().stream().anyMatch(order -> "string".equals(order.getProperty()))) {
+            pageable = org.springframework.data.domain.PageRequest.of(
+                    pageable.getPageNumber(),
+                    pageable.getPageSize(),
+                    org.springframework.data.domain.Sort.by("createdAt").descending()
+            );
+        }
+
         return ResponseEntity.ok(ApiResponse.success("조회 성공", communityService.getAllPostsDesc(pageable)));
     }
 
@@ -111,7 +122,19 @@ public class CommunityController {
     public ResponseEntity<ApiResponse<Page<CommentResponse>>> getComments(
             @PathVariable Long postId,
             @AuthenticationPrincipal Long currentUserId,
-            @PageableDefault(size = 10, sort = "createdAt", direction = Sort.Direction.ASC) Pageable pageable) {
+            // 💡 @ParameterObject 추가 및 기본값 세팅 (page=0, size=1, createdAt,desc)
+            @org.springdoc.core.annotations.ParameterObject
+            @PageableDefault(page = 0, size = 1, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
+
+        // 💡 "string" 방어 코드 추가
+        if (pageable.getSort().stream().anyMatch(order -> "string".equals(order.getProperty()))) {
+            pageable = org.springframework.data.domain.PageRequest.of(
+                    pageable.getPageNumber(),
+                    pageable.getPageSize(),
+                    org.springframework.data.domain.Sort.by("createdAt").descending()
+            );
+        }
+
         return ResponseEntity.ok(ApiResponse.success("조회 성공", communityService.getCommentsByPost(postId, currentUserId, pageable)));
     }
 

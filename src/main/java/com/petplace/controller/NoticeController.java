@@ -34,12 +34,20 @@ public class NoticeController {
     @GetMapping("/{restaurantId}/notices")
     public ResponseEntity<ApiResponse<Page<NoticeResponse>>> getNotices(
             @Parameter(description = "조회할 식당 고유 ID", example = "1") @PathVariable Long restaurantId,
-            // 💡 페이징 파라미터 추가 (기본값 10개, 생성일 기준 내림차순)
-            @PageableDefault(size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable
+            // 💡 @ParameterObject 추가 및 기본값 세팅 (page=0, size=1, createdAt,desc)
+            @org.springdoc.core.annotations.ParameterObject
+            @PageableDefault(page = 0, size = 1, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable
     ) {
-        // 💡 서비스 계층의 변경된 메서드에 맞춰 pageable을 전달합니다.
-        Page<NoticeResponse> notices = noticeService.getNoticesByRestaurant(restaurantId, pageable);
+        // 💡 "string" 방어 코드 추가
+        if (pageable.getSort().stream().anyMatch(order -> "string".equals(order.getProperty()))) {
+            pageable = org.springframework.data.domain.PageRequest.of(
+                    pageable.getPageNumber(),
+                    pageable.getPageSize(),
+                    org.springframework.data.domain.Sort.by("createdAt").descending()
+            );
+        }
 
+        Page<NoticeResponse> notices = noticeService.getNoticesByRestaurant(restaurantId, pageable);
         return ResponseEntity.ok(ApiResponse.success("공지사항 목록이 성공적으로 조회되었습니다.", notices));
     }
 

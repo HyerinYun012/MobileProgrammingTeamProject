@@ -32,7 +32,18 @@ public class AdminController {
     @Operation(summary = "리뷰 신고 내역 전체 조회", description = "관리자가 처리해야 할 모든 리뷰 신고 내역을 페이징하여 조회합니다.")
     @GetMapping("/reports/reviews")
     public ResponseEntity<ApiResponse<Page<ReviewReportResponse>>> getAllReviewReports(
-            @PageableDefault(size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
+            // 💡 @ParameterObject 추가 및 기본값 세팅 (page=0, size=1, createdAt,desc)
+            @org.springdoc.core.annotations.ParameterObject
+            @PageableDefault(page = 0, size = 1, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
+
+        // 💡 "string" 방어 코드 추가
+        if (pageable.getSort().stream().anyMatch(order -> "string".equals(order.getProperty()))) {
+            pageable = org.springframework.data.domain.PageRequest.of(
+                    pageable.getPageNumber(),
+                    pageable.getPageSize(),
+                    org.springframework.data.domain.Sort.by("createdAt").descending()
+            );
+        }
 
         Page<ReviewReportResponse> response = adminService.getAllReviewReports(pageable);
         return ResponseEntity.ok(ApiResponse.success("리뷰 신고 내역 목록이 성공적으로 조회되었습니다.", response));
@@ -44,7 +55,18 @@ public class AdminController {
     @Operation(summary = "1:1 문의 내역 전체 조회", description = "관리자 대시보드에서 처리해야 할 모든 1:1 문의 내역을 페이징하여 조회합니다.")
     @GetMapping("/inquiries")
     public ResponseEntity<ApiResponse<Page<InquiryResponse>>> getAllInquiries(
-            @PageableDefault(size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
+            // 💡 @ParameterObject 추가 및 기본값 세팅 (page=0, size=1, createdAt,desc)
+            @org.springdoc.core.annotations.ParameterObject
+            @PageableDefault(page = 0, size = 1, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
+
+        // 💡 "string" 방어 코드 추가
+        if (pageable.getSort().stream().anyMatch(order -> "string".equals(order.getProperty()))) {
+            pageable = org.springframework.data.domain.PageRequest.of(
+                    pageable.getPageNumber(),
+                    pageable.getPageSize(),
+                    org.springframework.data.domain.Sort.by("createdAt").descending()
+            );
+        }
 
         Page<InquiryResponse> response = adminService.getAllInquiries(pageable);
         return ResponseEntity.ok(ApiResponse.success("1:1 문의 내역 목록이 성공적으로 조회되었습니다.", response));
@@ -58,7 +80,18 @@ public class AdminController {
     public ResponseEntity<ApiResponse<Page<CommunityReportResponse>>> getCommunityReports(
             @Parameter(description = "신고 처리 상태 (PENDING, COMPLETED)")
             @RequestParam CommunityReport.Status status,
-            @PageableDefault(size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
+            // 💡 @ParameterObject 추가 및 기본값 세팅 (page=0, size=1, createdAt,desc)
+            @org.springdoc.core.annotations.ParameterObject
+            @PageableDefault(page = 0, size = 1, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
+
+        // 💡 "string" 방어 코드 추가
+        if (pageable.getSort().stream().anyMatch(order -> "string".equals(order.getProperty()))) {
+            pageable = org.springframework.data.domain.PageRequest.of(
+                    pageable.getPageNumber(),
+                    pageable.getPageSize(),
+                    org.springframework.data.domain.Sort.by("createdAt").descending()
+            );
+        }
 
         Page<CommunityReportResponse> response = adminService.getCommunityReportsByStatus(status, pageable);
         return ResponseEntity.ok(ApiResponse.success("커뮤니티 신고 내역 목록이 성공적으로 조회되었습니다.", response));
