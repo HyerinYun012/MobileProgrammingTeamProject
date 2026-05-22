@@ -8,9 +8,14 @@
     android:background="@null">
 
     <ScrollView
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:fillViewport="true">
+        android:id="@+id/sv"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:fillViewport="true"
+        app:layout_constraintBottom_toTopOf="@+id/btnSubmit"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -40,7 +45,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="horizontal"
-                    android:padding="10dp">
+                    android:padding="0dp">
 
                     <TextView
                         android:layout_width="wrap_content"
@@ -53,13 +58,14 @@
                     <EditText
                         android:id="@+id/editTextName"
                         android:layout_width="match_parent"
-                        android:layout_height="48dp"
+                        android:layout_height="40dp"
                         android:layout_marginStart="84dp"
                         android:autofillHints="name"
                         android:background="@null"
                         android:hint="@string/hint_name"
                         android:inputType="textPersonName"
-                        android:textSize="20sp" />
+                        android:textSize="16sp" />
+
                 </LinearLayout>
 
                 <View
@@ -72,7 +78,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="horizontal"
-                    android:padding="10dp">
+                    android:padding="0dp">
 
                     <TextView
                         android:layout_width="wrap_content"
@@ -85,13 +91,34 @@
                     <EditText
                         android:id="@+id/editTextId"
                         android:layout_width="match_parent"
-                        android:layout_height="48dp"
+                        android:layout_height="40dp"
                         android:layout_marginStart="65dp"
+                        android:layout_weight="20"
                         android:autofillHints="username"
                         android:background="@null"
                         android:hint="@string/hint_id_signup"
                         android:inputType="textPersonName"
-                        android:textSize="20sp" />
+                        android:textSize="16sp" />
+
+                    <Button
+                        android:id="@+id/btnIdCheck"
+                        android:layout_width="wrap_content"
+                        android:layout_height="match_parent"
+                        android:layout_marginTop="2dp"
+                        android:layout_marginBottom="2dp"
+                        android:layout_weight="1"
+                        android:backgroundTint="@color/orange"
+                        android:fontFamily="@font/nanum_gothic_extra_bold"
+                        android:maxLines="1"
+                        android:paddingLeft="0dp"
+                        android:paddingTop="0dp"
+                        android:paddingRight="0dp"
+                        android:paddingBottom="0dp"
+                        android:text="중복확인"
+                        android:textColor="@color/white"
+                        android:textSize="12sp"
+                        app:cornerRadius="10dp" />
+
                 </LinearLayout>
 
                 <View
@@ -104,7 +131,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="horizontal"
-                    android:padding="10dp">
+                    android:padding="0dp">
 
                     <TextView
                         android:layout_width="wrap_content"
@@ -117,13 +144,14 @@
                     <EditText
                         android:id="@+id/editTextPw"
                         android:layout_width="match_parent"
-                        android:layout_height="48dp"
+                        android:layout_height="40dp"
                         android:layout_marginStart="47dp"
                         android:autofillHints="password"
                         android:background="@null"
                         android:hint="@string/hint_pw_signup"
                         android:inputType="textPassword"
-                        android:textSize="20sp" />
+                        android:textSize="16sp" />
+
                 </LinearLayout>
 
                 <View
@@ -136,7 +164,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="horizontal"
-                    android:padding="10dp">
+                    android:padding="0dp">
 
                     <TextView
                         android:layout_width="wrap_content"
@@ -149,13 +177,13 @@
                     <EditText
                         android:id="@+id/editTextPassword4"
                         android:layout_width="match_parent"
-                        android:layout_height="48dp"
+                        android:layout_height="40dp"
                         android:layout_marginStart="5dp"
                         android:autofillHints="password"
                         android:background="@null"
                         android:hint="@string/hint_pw_check_signup"
                         android:inputType="textPassword"
-                        android:textSize="20sp" />
+                        android:textSize="16sp" />
                 </LinearLayout>
             </LinearLayout>
 
@@ -171,8 +199,7 @@
                     android:id="@+id/llNickname"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:padding="10dp">
+                    android:orientation="horizontal">
 
                     <TextView
                         android:layout_width="wrap_content"
@@ -185,11 +212,32 @@
                     <EditText
                         android:id="@+id/editTextNickname"
                         android:layout_width="match_parent"
-                        android:layout_height="48dp"
+                        android:layout_height="40dp"
                         android:layout_marginStart="60dp"
+                        android:layout_weight="20"
                         android:background="@null"
                         android:hint="@string/hint_nickname"
-                        android:textSize="20sp" />
+                        android:textSize="16sp" />
+
+                    <Button
+                        android:id="@+id/btnNicknameCheck"
+                        android:layout_width="wrap_content"
+                        android:layout_height="match_parent"
+                        android:layout_marginTop="2dp"
+                        android:layout_marginBottom="2dp"
+                        android:layout_weight="1"
+                        android:backgroundTint="@color/orange"
+                        android:fontFamily="@font/nanum_gothic_extra_bold"
+                        android:maxLines="1"
+                        android:paddingLeft="0dp"
+                        android:paddingTop="0dp"
+                        android:paddingRight="0dp"
+                        android:paddingBottom="0dp"
+                        android:text="중복확인"
+                        android:textColor="@color/white"
+                        android:textSize="12sp"
+                        app:cornerRadius="10dp" />
+
                 </LinearLayout>
 
                 <View
@@ -201,8 +249,7 @@
                     android:id="@+id/llEmail"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:padding="10dp">
+                    android:orientation="horizontal">
 
                     <TextView
                         android:layout_width="wrap_content"
@@ -215,11 +262,11 @@
                     <EditText
                         android:id="@+id/editTextEmail"
                         android:layout_width="match_parent"
-                        android:layout_height="48dp"
+                        android:layout_height="40dp"
                         android:layout_marginStart="60dp"
                         android:background="@null"
                         android:hint="example@gmail.com"
-                        android:textSize="20sp" />
+                        android:textSize="16sp" />
                 </LinearLayout>
 
                 <View
@@ -231,8 +278,7 @@
                     android:id="@+id/llPhone"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:padding="10dp">
+                    android:orientation="horizontal">
 
                     <TextView
                         android:layout_width="wrap_content"
@@ -245,13 +291,33 @@
                     <EditText
                         android:id="@+id/editTextPhone"
                         android:layout_width="match_parent"
-                        android:layout_height="48dp"
+                        android:layout_height="40dp"
                         android:layout_marginStart="40dp"
+                        android:layout_weight="20"
                         android:autofillHints="phone"
                         android:background="@null"
                         android:hint="@string/hint_phone"
                         android:inputType="phone"
-                        android:textSize="20sp" />
+                        android:textSize="16sp" />
+
+                    <Button
+                        android:id="@+id/btnPhoneCheck"
+                        android:layout_width="wrap_content"
+                        android:layout_height="match_parent"
+                        android:layout_marginTop="2dp"
+                        android:layout_marginBottom="2dp"
+                        android:layout_weight="1"
+                        android:backgroundTint="@color/orange"
+                        android:fontFamily="@font/nanum_gothic_extra_bold"
+                        android:maxLines="1"
+                        android:paddingLeft="0dp"
+                        android:paddingTop="0dp"
+                        android:paddingRight="0dp"
+                        android:paddingBottom="0dp"
+                        android:text="인증"
+                        android:textColor="@color/white"
+                        android:textSize="12sp"
+                        app:cornerRadius="10dp" />
                 </LinearLayout>
 
                 <View
@@ -263,8 +329,7 @@
                     android:id="@+id/llMarketing"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:padding="10dp">
+                    android:orientation="horizontal">
 
                     <TextView
                         android:layout_width="wrap_content"
@@ -277,7 +342,7 @@
                     <CheckBox
                         android:id="@+id/checkBoxAgree"
                         android:layout_width="0dp"
-                        android:layout_height="48dp"
+                        android:layout_height="40dp"
                         android:layout_marginStart="10dp"
                         android:layout_weight="1"
                         android:text="@string/agree"
@@ -286,7 +351,7 @@
                     <CheckBox
                         android:id="@+id/checkBoxDisagree"
                         android:layout_width="0dp"
-                        android:layout_height="48dp"
+                        android:layout_height="40dp"
                         android:layout_marginStart="10dp"
                         android:layout_weight="1"
                         android:text="@string/disagree"
@@ -316,8 +381,7 @@
                     android:id="@+id/llBusinessNumber"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:padding="10dp">
+                    android:orientation="horizontal">
 
                     <TextView
                         android:layout_width="wrap_content"
@@ -330,13 +394,13 @@
                     <EditText
                         android:id="@+id/editTextBusinessNumber"
                         android:layout_width="match_parent"
-                        android:layout_height="48dp"
+                        android:layout_height="40dp"
                         android:layout_marginStart="6dp"
                         android:autofillHints="phone"
                         android:background="@null"
                         android:hint="@string/hint_business_number"
                         android:inputType="numberSigned"
-                        android:textSize="20sp" />
+                        android:textSize="16sp" />
                 </LinearLayout>
 
                 <View
@@ -348,8 +412,7 @@
                     android:id="@+id/llBusinessAdress"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:padding="10dp">
+                    android:orientation="horizontal">
 
                     <TextView
                         android:layout_width="wrap_content"
@@ -362,13 +425,13 @@
                     <EditText
                         android:id="@+id/editTextBusinessAdress"
                         android:layout_width="match_parent"
-                        android:layout_height="48dp"
+                        android:layout_height="40dp"
                         android:layout_marginStart="50dp"
                         android:autofillHints="businessAddress"
                         android:background="@null"
                         android:hint="@string/hint_business_adress"
                         android:inputType="textPostalAddress"
-                        android:textSize="20sp" />
+                        android:textSize="16sp" />
                 </LinearLayout>
 
                 <View
@@ -380,8 +443,7 @@
                     android:id="@+id/llBusinessName"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:padding="10dp">
+                    android:orientation="horizontal">
 
                     <TextView
                         android:layout_width="wrap_content"
@@ -394,13 +456,13 @@
                     <EditText
                         android:id="@+id/editTextBusinessName"
                         android:layout_width="match_parent"
-                        android:layout_height="48dp"
+                        android:layout_height="40dp"
                         android:layout_marginStart="50dp"
                         android:autofillHints="businessAddress"
                         android:background="@null"
-                        android:hint ="상호명 입력"
+                        android:hint="상호명 입력"
                         android:inputType="textPostalAddress"
-                        android:textSize="20sp" />
+                        android:textSize="16sp" />
                 </LinearLayout>
 
                 <View
@@ -412,8 +474,7 @@
                     android:id="@+id/llServiceType"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:padding="10dp">
+                    android:orientation="horizontal">
 
                     <TextView
                         android:layout_width="wrap_content"
@@ -426,7 +487,7 @@
                     <CheckBox
                         android:id="@+id/checkBoxRestaurant"
                         android:layout_width="0dp"
-                        android:layout_height="48dp"
+                        android:layout_height="40dp"
                         android:layout_marginStart="20dp"
                         android:layout_weight="1"
                         android:text="@string/restaurant"
@@ -435,7 +496,7 @@
                     <CheckBox
                         android:id="@+id/checkBoxCafe"
                         android:layout_width="0dp"
-                        android:layout_height="48dp"
+                        android:layout_height="40dp"
                         android:layout_weight="1"
                         android:text="@string/cafe"
                         android:textSize="20sp" />
@@ -443,25 +504,41 @@
                     <CheckBox
                         android:id="@+id/checkBoxOthers"
                         android:layout_width="0dp"
-                        android:layout_height="48dp"
+                        android:layout_height="40dp"
                         android:layout_weight="1"
                         android:text="@string/other"
                         android:textSize="20sp" />
                 </LinearLayout>
             </LinearLayout>
 
-            <Button
-                android:id="@+id/btnSubmit"
-                android:layout_width="match_parent"
-                android:layout_height="60dp"
-                android:layout_marginTop="40dp"
-                android:layout_marginBottom="20dp"
-                android:backgroundTint="@color/orange"
-                android:fontFamily="@font/nanum_gothic_extra_bold"
-                android:text="@string/submit"
-                android:textColor="@color/white"
-                android:textSize="24sp"
-                app:cornerRadius="5dp" />
         </LinearLayout>
     </ScrollView>
+
+    <View
+        android:id="@+id/viewDivider"
+        android:layout_width="0dp"
+        android:layout_height="1dp"
+        android:layout_marginHorizontal="20dp"
+        android:background="#E0E0E0"
+        app:layout_constraintBottom_toTopOf="@+id/btnSubmit"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <Button
+        android:id="@+id/btnSubmit"
+        android:layout_width="match_parent"
+        android:layout_height="60dp"
+        android:layout_marginStart="10dp"
+        android:layout_marginEnd="10dp"
+        android:layout_marginBottom="10dp"
+        android:backgroundTint="@color/orange"
+        android:fontFamily="@font/nanum_gothic_extra_bold"
+        android:text="@string/submit"
+        android:textColor="@color/white"
+        android:textSize="24sp"
+        app:cornerRadius="5dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
+
 </androidx.constraintlayout.widget.ConstraintLayout>
