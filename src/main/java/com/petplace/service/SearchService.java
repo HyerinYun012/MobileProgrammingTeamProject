@@ -114,10 +114,6 @@ public class SearchService {
      * 내부 헬퍼: 최근 검색어 저장 로직
      */
     private void saveRecentSearch(Long userId, String keyword) {
-        if (!userRepository.existsById(userId)) {
-            throw new BusinessException(ErrorCode.USER_NOT_FOUND);
-        }
-
         recentSearchRepository.upsert(userId, keyword);
         log.debug("최근 검색어 저장 완료 - 유저: {}, 키워드: {}", userId, keyword);
     }

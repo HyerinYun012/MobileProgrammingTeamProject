@@ -27,9 +27,20 @@ public class SearchController {
     @GetMapping("/search")
     public ResponseEntity<ApiResponse<Page<RestaurantResponse>>> search(
             @RequestParam String keyword,
-            @AuthenticationPrincipal Long userId, // 비로그인 시 null
-            @PageableDefault(size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable
+            @AuthenticationPrincipal Object principal,
+            @org.springdoc.core.annotations.ParameterObject
+            @PageableDefault(page = 0, size = 1, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable
     ) {
+        Long userId = (principal instanceof Long) ? (Long) principal : null;
+
+        if (pageable.getSort().stream().anyMatch(order -> "string".equals(order.getProperty()))) {
+            pageable = org.springframework.data.domain.PageRequest.of(
+                    pageable.getPageNumber(),
+                    pageable.getPageSize(),
+                    org.springframework.data.domain.Sort.by("createdAt").descending()
+            );
+        }
+
         Page<RestaurantResponse> response = service.search(keyword, userId, pageable);
         return ResponseEntity.ok(ApiResponse.success("검색이 완료되었습니다.", response));
     }
