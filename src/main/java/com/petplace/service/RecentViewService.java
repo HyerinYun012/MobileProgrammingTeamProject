@@ -1,17 +1,22 @@
 package com.petplace.service;
 
 import com.petplace.dto.response.RecentViewResponse;
+import com.petplace.entity.RecentView;
 import com.petplace.entity.Restaurant;
 import com.petplace.exception.BusinessException;
-import com.petplace.exception.ErrorCode; // 💡 ErrorCode import
+import com.petplace.exception.ErrorCode;
+import com.petplace.repository.BookmarkRepository; // 💡 북마크 조회를 위해 추가
 import com.petplace.repository.RecentViewRepository;
-import com.petplace.repository.RestaurantRepository; // 💡 검증을 위해 추가
-import com.petplace.repository.UserRepository; // 💡 검증을 위해 추가
+import com.petplace.repository.RestaurantRepository;
+import com.petplace.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -19,8 +24,9 @@ import org.springframework.transaction.annotation.Transactional;
 public class RecentViewService {
 
     private final RecentViewRepository recentViewRepo;
-    private final UserRepository userRepo; // 💡 검증용 레포지토리
-    private final RestaurantRepository restaurantRepo; // 💡 검증용 레포지토리
+    private final UserRepository userRepo;
+    private final RestaurantRepository restaurantRepo;
+    private final BookmarkRepository bookmarkRepo; // 💡 의존성 주입 추가
     private static final int RECENT_VIEW_LIMIT = 30;
 
     public Page<RecentViewResponse> getRecentViews(Long userId, Pageable pageable) {
@@ -28,18 +34,28 @@ public class RecentViewService {
             throw new BusinessException(ErrorCode.USER_NOT_FOUND);
         }
 
-        // 💡 Repository 호출 후 .map()을 사용하여 DTO 변환
-        return recentViewRepo.findByUserId(userId, pageable)
-                .map(recentView -> {
-                    Restaurant restaurant = recentView.getRestaurant();
-                    return new RecentViewResponse(
-                            restaurant.getId(),
-                            restaurant.getName(),
-                            restaurant.getCategory() != null ? restaurant.getCategory().name() : null,
-                            restaurant.getImageUrl(),
-                            recentView.getCreatedAt()
-                    );
-                });
+        Page<RecentView> recentViews = recentViewRepo.findByUserId(userId, pageable);
+
+        Set<Long> bookmarkedRestaurantIds = bookmarkRepo.findAllByUserId(userId).stream()
+                .map(bookmark -> bookmark.getRestaurant().getId())
+                .collect(Collectors.toSet());
+
+        return recentViews.map(recentView -> {
+            Restaurant restaurant = recentView.getRestaurant();
+
+            RecentViewResponse response = new RecentViewResponse(
+                    restaurant.getId(),
+                    restaurant.getName(),
+                    restaurant.getCategory() != null ? restaurant.getCategory().getDescription() : null,
+                    restaurant.getImageUrl(),
+                    recentView.getCreatedAt()
+            );
+
+            boolean isBookmarked = bookmarkedRestaurantIds.contains(restaurant.getId());
+            response.setBookmarked(isBookmarked);
+
+            return response;
+        });
     }
 
     /**

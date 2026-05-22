@@ -49,13 +49,13 @@ public class SecurityConfig {
 
                         //비로그인 유저도 식당 조회(목록, 상세, 검색 등) 가능
                         .requestMatchers(HttpMethod.GET, "/api/restaurants/**").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/search", "/api/search/popular").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/search/**").permitAll()
 
                         // 권한별 접근 제한 (Role Based)
-                        .requestMatchers("/api/admin/**").hasRole("ADMIN") // 관리자 전용 기능역역
-                        .requestMatchers(HttpMethod.POST, "/api/restaurants/**").hasAnyRole("OWNER", "ADMIN") // 가게 등록
-                        .requestMatchers(HttpMethod.PUT, "/api/restaurants/**").hasAnyRole("OWNER", "ADMIN")  // 가게 수정
-                        .requestMatchers(HttpMethod.DELETE, "/api/restaurants/**").hasAnyRole("OWNER", "ADMIN") // 가게 삭제
+                        .requestMatchers("/api/admin/**").hasAuthority("ADMIN")
+                        .requestMatchers(HttpMethod.POST, "/api/restaurants/**").hasAnyAuthority("OWNER", "ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/api/restaurants/**").hasAnyAuthority("OWNER", "ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/api/restaurants/**").hasAnyAuthority("OWNER", "ADMIN")
 
                         // 4. 나머지 모든 API 요청(맛집 단순 GET 조회, 검색, 커뮤니티, 리뷰 전체 포함)은 무조건 인증된 회원만 진입 허용
                         .anyRequest().authenticated()

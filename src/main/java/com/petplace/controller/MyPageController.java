@@ -19,6 +19,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Set;
+
 @Tag(name = "마이페이지(MyPage) API", description = "사용자 프로필, 북마크, 최근 본 장소 관리 API")
 @RestController
 @RequestMapping("/api/my")
@@ -69,13 +71,24 @@ public class MyPageController {
         return ResponseEntity.ok(ApiResponse.success(isBookmarked));
     }
 
-    @Operation(summary = "최근 본 장소 조회", description = "로그인한 사용자가 최근 방문/조회한 장소 목록을 페이징하여 조회합니다.")
+    /**
+     * 최근 본 장소 목록 조회 (북마크 여부 포함 결합형 구조)
+     */
+    @Operation(summary = "최근 본 장소 목록 조회", description = "로그인한 사용자가 최근 본 장소 목록을 페이징하여 조회하며 각 장소의 북마크 여부가 포함됩니다.")
     @GetMapping("/recent")
     public ResponseEntity<ApiResponse<Page<RecentViewResponse>>> recent(
             @AuthenticationPrincipal Long userId,
             @PageableDefault(size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable
     ) {
         Page<RecentViewResponse> response = recentViewService.getRecentViews(userId, pageable);
+
+        Set<Long> bookmarkedRestaurantIds = bookmarkService.getBookmarkedRestaurantIds(userId);
+
+        response.forEach(recentView -> {
+            boolean isBookmarked = bookmarkedRestaurantIds.contains(recentView.getRestaurantId());
+            recentView.setBookmarked(isBookmarked);
+        });
+
         return ResponseEntity.ok(ApiResponse.success("최근 본 장소 목록이 성공적으로 조회되었습니다.", response));
     }
 

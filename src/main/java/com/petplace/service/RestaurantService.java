@@ -8,6 +8,7 @@ import com.petplace.entity.RestaurantImage;
 import com.petplace.entity.User;
 import com.petplace.exception.BusinessException;
 import com.petplace.exception.ErrorCode;
+import com.petplace.repository.BookmarkRepository;
 import com.petplace.repository.RestaurantRepository;
 import com.petplace.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -20,9 +21,7 @@ import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -33,6 +32,7 @@ public class RestaurantService {
 
     private final RestaurantRepository restaurantRepository;
     private final UserRepository userRepository;
+    private final BookmarkRepository bookmarkRepository;
     private final FileService fileService;
 
     /**
@@ -44,19 +44,51 @@ public class RestaurantService {
     }
 
     /**
-     * 조건 필터링 검색 (Querydsl)
+     * 가게 상세 정보 조회 (북마크 여부 결합 및 비로그인 대응)
      */
-    public Page<RestaurantResponse> searchRestaurants(RestaurantFilterRequest condition, Pageable pageable) {
-        return restaurantRepository.findByFilters(condition, pageable)
-                .map(RestaurantResponse::from);
+    public RestaurantResponse getRestaurantDetail(Long id, Long userId) {
+        Restaurant restaurant = restaurantRepository.findById(id)
+                .orElseThrow(() -> new BusinessException(ErrorCode.RESTAURANT_NOT_FOUND));
+
+        RestaurantResponse response = RestaurantResponse.from(restaurant);
+
+        // 사용자가 로그인 상태라면 테이블을 조회하여 북마크 Flag 설정
+        if (userId != null) {
+            boolean isBookmarked = bookmarkRepository.existsByUserIdAndRestaurantId(userId, id);
+            response.setBookmarked(isBookmarked); // 💡 setIsBookmarked -> setBookmarked로 변경
+        } else {
+            response.setBookmarked(false); // 💡 setIsBookmarked -> setBookmarked로 변경
+        }
+
+        return response;
     }
 
     /**
-     * 상세 정보 조회
+     * 조건 필터 검색 및 북마크 매핑 (비로그인 유저 대응 완료)
      */
-    public Restaurant getDetail(Long id) {
-        return restaurantRepository.findById(id)
-                .orElseThrow(() -> new BusinessException(ErrorCode.RESTAURANT_NOT_FOUND));
+    public Page<RestaurantResponse> searchRestaurants(Long userId, RestaurantFilterRequest condition, Pageable pageable) {
+        // 1. 리포지토리로부터 엔티티 페이징 데이터 획득
+        Page<Restaurant> restaurantPage = restaurantRepository.findByFilters(condition, pageable);
+
+        // 2. 로그인 유저인 경우 현재 페이지의 장소 IDs 기반으로 북마크 목록을 단 1회 대량 조회(성능 최적화)
+        Set<Long> bookmarkedRestaurantIds = Collections.emptySet();
+        if (userId != null && !restaurantPage.isEmpty()) {
+            List<Long> restaurantIds = restaurantPage.getContent().stream()
+                    .map(Restaurant::getId)
+                    .collect(Collectors.toList());
+
+            // 유저가 북마크한 장소 ID 셋 추출
+            bookmarkedRestaurantIds = bookmarkRepository.findRestaurantIdsByUserIdAndRestaurantIdIn(userId, restaurantIds);
+        }
+
+        // 3. 엔티티 데이터 루프돌며 DTO 매핑 진행 시 북마크 포함 여부 판단 가공
+        final Set<Long> finalBookmarkedIds = bookmarkedRestaurantIds;
+        return restaurantPage.map(restaurant -> {
+            // 💡 인수가 1개인 기존 from 메서드를 호출한 뒤, Setter로 북마크 Flag를 주입하도록 수정
+            RestaurantResponse response = RestaurantResponse.from(restaurant);
+            response.setBookmarked(finalBookmarkedIds.contains(restaurant.getId()));
+            return response;
+        });
     }
 
     /**

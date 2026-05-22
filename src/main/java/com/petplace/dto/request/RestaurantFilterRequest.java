@@ -1,16 +1,16 @@
 package com.petplace.dto.request;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-import jakarta.validation.constraints.Size;
 import lombok.Data;
+import java.util.List;
 
 @Data
 @Schema(description = "장소 검색 필터 요청 객체")
 public class RestaurantFilterRequest {
 
-    @Size(min = 2, message = "지역 검색은 최소 2글자 이상 입력해 주세요.")
-    @Schema(description = "지역 (시/군/구 단위)", example = "서울시 강남구")
-    private String region;
+    // 💡 단일 String에서 List<String>으로 변경
+    @Schema(description = "지역 목록 (다중 선택 가능, ENUM 이름 기준)", example = "[\"DAEYA\", \"SINCHEON\"]")
+    private List<String> regions;
 
     // --- 반려견 크기별 필터 ---
     @Schema(description = "소형견(10kg 미만) 동반 가능 여부", example = "true")

@@ -28,8 +28,6 @@ public class RestaurantMenuController {
 
     /**
      * 💡 특정 식당의 전체 메뉴 목록 조회
-     * @RequestMapping에 이미 /api/restaurants/{restaurantId}/menus 가 선언되어 있으므로,
-     * 여기서는 별도의 경로를 추가하지 않아도 됩니다.
      */
     @Operation(summary = "식당별 메뉴 목록 조회", description = "특정 식당에 등록된 모든 메뉴 리스트를 페이징하여 조회합니다.")
     @GetMapping // 💡 경로를 비워두면 @RequestMapping의 경로 그대로 매핑됩니다.

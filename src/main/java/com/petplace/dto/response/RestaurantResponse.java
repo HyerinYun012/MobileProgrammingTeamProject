@@ -4,17 +4,19 @@ import com.petplace.entity.OperatingHour;
 import com.petplace.entity.Restaurant;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.Setter;
 
 import java.math.BigDecimal;
 import java.util.List;
 
 @Getter
+@Setter
 @Builder
 public class RestaurantResponse {
     private Long id;
     private String name;
-    private String category;       // Enum description
-    private String region;         // Enum krName
+    private String category;
+    private String region;
     private String address;
     private BigDecimal latitude;
     private BigDecimal longitude;
@@ -37,10 +39,13 @@ public class RestaurantResponse {
 
     private String imageUrl; // 대표 이미지 1장
 
+    // 💡 북마크 여부 필드 탑재
+    private boolean isBookmarked;
+
     /**
-     * Entity를 DTO로 변환하는 정적 팩토리 메서드
+     * 💡 [추가] Entity와 북마크 여부를 둘 다 인자로 받아 DTO로 변환하는 오버로딩 메서드
      */
-    public static RestaurantResponse from(Restaurant restaurant) {
+    public static RestaurantResponse from(Restaurant restaurant, boolean isBookmarked) {
         return RestaurantResponse.builder()
                 .id(restaurant.getId())
                 .name(restaurant.getName())
@@ -63,7 +68,12 @@ public class RestaurantResponse {
                 .hasRestroom(restaurant.isHasRestroom())
                 .hasIndoor(restaurant.isHasIndoor())
                 .hasOutdoor(restaurant.isHasOutdoor())
-                .imageUrl(restaurant.getImageUrl()) // 엔티티 내 편의 메서드 활용
+                .imageUrl(restaurant.getImageUrl())
+                .isBookmarked(isBookmarked)
                 .build();
+    }
+
+    public static RestaurantResponse from(Restaurant restaurant) {
+        return from(restaurant, false);
     }
 }

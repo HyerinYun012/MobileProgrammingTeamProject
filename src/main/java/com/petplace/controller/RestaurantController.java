@@ -4,7 +4,6 @@ import com.petplace.dto.request.RestaurantFilterRequest;
 import com.petplace.dto.request.RestaurantRequest;
 import com.petplace.dto.response.ApiResponse;
 import com.petplace.dto.response.RestaurantResponse;
-import com.petplace.entity.Restaurant;
 import com.petplace.service.RestaurantService;
 import com.petplace.service.SearchService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -61,26 +60,33 @@ public class RestaurantController {
             @AuthenticationPrincipal Long userId,
             @PageableDefault(size = 10, sort = "name") Pageable pageable // 💡 Pageable 파라미터 추가
     ) {
-        Page<Restaurant> result = searchService.search(keyword, userId, pageable);
-
-        Page<RestaurantResponse> response = result.map(RestaurantResponse::from);
+        Page<RestaurantResponse> response = searchService.search(keyword, userId, pageable);
 
         return ResponseEntity.ok(ApiResponse.success("검색이 완료되었습니다.", response));
     }
 
-    @Operation(summary = "조건 필터링 검색", description = "다중 조건으로 장소를 페이징 검색합니다.")
+    @Operation(summary = "조건 필터링 검색", description = "다중 조건으로 장소를 페이징 검색합니다. 로그인 시 북마크 여부가 포함됩니다.")
     @GetMapping("/filter")
     public ResponseEntity<ApiResponse<Page<RestaurantResponse>>> filter(
+            @AuthenticationPrincipal Long userId, // 💡 비로그인 유저 대응을 위해 추가 (인증 없을 시 null)
             @Valid @ModelAttribute RestaurantFilterRequest condition,
             @PageableDefault(size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable
     ) {
-        return ResponseEntity.ok(ApiResponse.success(restaurantService.searchRestaurants(condition, pageable)));
+        // 💡 서비스 호출 시 userId를 함께 넘겨 북마크 판별을 진행합니다.
+        return ResponseEntity.ok(ApiResponse.success(restaurantService.searchRestaurants(userId, condition, pageable)));
     }
 
-    @Operation(summary = "장소 상세 정보 조회")
+    /**
+     * 장소 상세 정보 조회 (비로그인 사용자 연동 지원)
+     */
+    @Operation(summary = "장소 상세 정보 조회", description = "가게 ID를 기반으로 상세 내용을 조회하며, 로그인 시 유저의 북마크 체크 결과가 동형 반환됩니다.")
     @GetMapping("/{id}")
-    public ResponseEntity<ApiResponse<Restaurant>> detail(@PathVariable Long id) {
-        return ResponseEntity.ok(ApiResponse.success(restaurantService.getDetail(id)));
+    public ResponseEntity<ApiResponse<RestaurantResponse>> getDetail(
+            @Parameter(description = "장소 ID") @PathVariable Long id,
+            @AuthenticationPrincipal Long userId // 로그인하지 않은 경우 null로 자동 할당
+    ) {
+        RestaurantResponse response = restaurantService.getRestaurantDetail(id, userId);
+        return ResponseEntity.ok(ApiResponse.success("장소 상세 정보가 성공적으로 조회되었습니다.", response));
     }
 
     /**
@@ -92,7 +98,6 @@ public class RestaurantController {
             requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
                     content = @Content(
                             mediaType = MediaType.MULTIPART_FORM_DATA_VALUE,
-                            // 💡 [교정] 위의 명세용 인터페이스를 바인딩하여 복잡한 호환 예외를 원천 차단합니다.
                             schema = @Schema(implementation = MultipartRequestSpec.class)
                     )
             )

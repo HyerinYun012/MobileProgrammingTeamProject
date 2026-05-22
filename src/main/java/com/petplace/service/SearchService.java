@@ -1,13 +1,11 @@
 package com.petplace.service;
 
+import com.petplace.dto.response.RestaurantResponse;
 import com.petplace.entity.Restaurant;
 import com.petplace.entity.RecentSearch;
 import com.petplace.exception.BusinessException;
 import com.petplace.exception.ErrorCode;
-import com.petplace.repository.RestaurantRepository;
-import com.petplace.repository.RecentSearchRepository;
-import com.petplace.repository.SearchLogRepository;
-import com.petplace.repository.UserRepository;
+import com.petplace.repository.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -16,7 +14,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -29,29 +29,40 @@ public class SearchService {
     private final SearchLogRepository searchLogRepository;
     private final RecentSearchRepository recentSearchRepository;
     private final UserRepository userRepository;
+    private final BookmarkRepository bookmarkRepository;
     private final AsyncSearchLogService asyncSearchLogService; // 💡 비동기 서비스 주입
 
     /**
-     * 키워드 통합 검색 (로그 저장 및 최근 검색어 반영)
+     * 키워드 통합 검색 처리 (북마크 반환 기능 추가 및 Response DTO 결합 변경)
      */
     @Transactional
-    public Page<Restaurant> search(String keyword, Long userId, Pageable pageable) { // 1. Pageable 파라미터 추가
-        if (keyword == null || keyword.trim().isEmpty()) {
-            return Page.empty(); // 2. 빈 Page 반환
-        }
-
-        String trimmedKeyword = keyword.trim();
-
-        // 비동기 로그 저장
-        asyncSearchLogService.saveLogAsync(trimmedKeyword);
-
-        // 최근 검색어 저장
+    public Page<RestaurantResponse> search(String keyword, Long userId, Pageable pageable) {
+        // 1. 유저 정보 검증 및 최근 검색어 기록 저장 처리
         if (userId != null) {
-            saveRecentSearch(userId, trimmedKeyword);
+            userRepository.findById(userId)
+                    .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
+            saveRecentSearch(userId, keyword);
         }
 
-        // 3. 반환 타입이 Page<Restaurant>이므로 그대로 리턴
-        return restaurantRepository.findByNameContainingIgnoreCase(trimmedKeyword, pageable);
+        // 2. 비동기 검색어 통계 로그 적재 (수정: saveLogAsync 호출) 및 엔티티 결과 검색 (수정: findByNameContainingIgnoreCase 호출)
+        asyncSearchLogService.saveLogAsync(keyword);
+        Page<Restaurant> restaurantPage = restaurantRepository.findByNameContainingIgnoreCase(keyword, pageable);
+
+        // 3. 로그인 사용자의 경우 한 번의 쿼리로 페이지 내 가게들의 북마크 여부 집계 일괄 추출
+        Set<Long> bookmarkedRestaurantIds = Collections.emptySet();
+        if (userId != null && !restaurantPage.isEmpty()) {
+            List<Long> restaurantIds = restaurantPage.getContent().stream()
+                    .map(Restaurant::getId)
+                    .collect(Collectors.toList());
+            bookmarkedRestaurantIds = bookmarkRepository.findRestaurantIdsByUserIdAndRestaurantIdIn(userId, restaurantIds);
+        }
+
+        // 4. 변환 파이프라인 구동하여 최종 DTO 반환 규격 준수 처리 (수정: DTO 내부 구조 변경에 맞춤)
+        final Set<Long> finalBookmarkedIds = bookmarkedRestaurantIds;
+        return restaurantPage.map(restaurant -> {
+            boolean isBookmarked = finalBookmarkedIds.contains(restaurant.getId());
+            return RestaurantResponse.from(restaurant, isBookmarked);
+        });
     }
 
     /**

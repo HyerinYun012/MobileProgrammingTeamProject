@@ -2,7 +2,6 @@ package com.petplace.controller;
 
 import com.petplace.dto.response.ApiResponse;
 import com.petplace.dto.response.RestaurantResponse;
-import com.petplace.entity.Restaurant;
 import com.petplace.service.SearchService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -24,20 +23,14 @@ import java.util.List;
 public class SearchController {
     private final SearchService service;
 
-    @Operation(summary = "통합 검색 실행", description = "키워드로 식당을 검색합니다. 로그인 시 최근 검색어에 저장됩니다.")
+    @Operation(summary = "통합 검색 실행", description = "키워드로 식당을 검색합니다. 로그인 시 북마크 여부가 포함되며 비로그인 사용자도 정상 검색 가능합니다.")
     @GetMapping("/search")
     public ResponseEntity<ApiResponse<Page<RestaurantResponse>>> search(
             @RequestParam String keyword,
-            @AuthenticationPrincipal Long userId,
-            // 💡 페이징 파라미터 추가 (기본값 설정)
+            @AuthenticationPrincipal Long userId, // 비로그인 시 null
             @PageableDefault(size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable
     ) {
-        // 1. 서비스 호출 시 keyword, userId와 함께 pageable을 반드시 전달합니다.
-        Page<Restaurant> result = service.search(keyword, userId, pageable);
-
-        // 2. Page<Restaurant> -> Page<RestaurantResponse> DTO 변환
-        Page<RestaurantResponse> response = result.map(RestaurantResponse::from);
-
+        Page<RestaurantResponse> response = service.search(keyword, userId, pageable);
         return ResponseEntity.ok(ApiResponse.success("검색이 완료되었습니다.", response));
     }
 

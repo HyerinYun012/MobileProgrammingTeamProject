@@ -39,8 +39,6 @@ public class ReviewController {
 
     /**
      * 리뷰 작성
-     * ⭕ [교정] @RequestPart 결함을 전면 폐기하고 @ModelAttribute 통합 폼 데이터 매핑 적용
-     * ⭕ [교정] FileService 런타임 예외 처리에 맞추어 불필요한 Checked Exception(throws IOException) 원천 차단
      */
     @Operation(summary = "리뷰 작성", description = "하나의 Form-Data 폼 안에 리뷰 평점, 텍스트 내용, 이미지 파일(imageFile)을 모아 전송합니다.")
     @PostMapping(value = "/restaurant/{restaurantId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
@@ -62,6 +60,20 @@ public class ReviewController {
     ) {
         service.delete(reviewId, userId);
         return ResponseEntity.ok(ApiResponse.success("리뷰가 삭제되었습니다.", null));
+    }
+
+    /**
+     * 리뷰 수정
+     */
+    @Operation(summary = "리뷰 수정", description = "본인이 작성한 리뷰를 수정합니다. 평점, 내용, 이미지 파일(imageFile)을 한데 모아 Form-Data로 전송합니다.")
+    @PutMapping(value = "/{reviewId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<ApiResponse<Void>> update(
+            @AuthenticationPrincipal Long userId,
+            @Parameter(description = "리뷰 ID") @PathVariable Long reviewId,
+            @Valid @ModelAttribute ReviewRequest req
+    ) {
+        service.update(reviewId, userId, req, req.getImageFile());
+        return ResponseEntity.ok(ApiResponse.success("리뷰가 수정되었습니다.", null));
     }
 
     /**

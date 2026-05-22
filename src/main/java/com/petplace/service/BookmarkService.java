@@ -16,6 +16,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -26,12 +28,14 @@ public class BookmarkService {
     private final UserRepository userRepo;
     private final RestaurantRepository restaurantRepo;
 
-    /**
-     * 💡 [페이징 적용] 유저의 북마크 목록을 페이징 처리하여 조회
-     * @param userId 유저 ID
-     * @param pageable 페이지 번호, 사이즈, 정렬 정보 (Controller에서 @PageableDefault 등으로 전달)
-     * @return Page<BookmarkResponse> 페이징된 북마크 응답 객체
-     */
+
+    public Set<Long> getBookmarkedRestaurantIds(Long userId) {
+        if (userId == null) return Set.of();
+        return bookmarkRepo.findAllByUserId(userId).stream()
+                .map(bookmark -> bookmark.getRestaurant().getId())
+                .collect(Collectors.toSet());
+    }
+
     public Page<BookmarkResponse> getBookmarks(Long userId, Pageable pageable) {
         return bookmarkRepo.findAllByUserId(userId, pageable)
                 .map(bookmark -> {

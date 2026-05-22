@@ -73,29 +73,45 @@ public class ReviewService {
 
     /**
      * 리뷰 수정
+     * 🚀 [개선] 트랜잭션 커밋/롤백 상태에 따른 S3 파일 정합성 보장 로직 도입
      */
     @Transactional
     public void update(Long reviewId, Long userId, ReviewRequest req, MultipartFile newImage) {
-        // 1. 리뷰 조회
+        // 1. 리뷰 조회 및 권한 검증
         Review review = reviewRepo.findById(reviewId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.REVIEW_NOT_FOUND));
 
-        // 2. 작성자 본인인지 확인
         if (!Objects.equals(review.getUser().getId(), userId)) {
             throw new BusinessException(ErrorCode.NO_PERMISSION);
         }
 
-        // 3. 이미지 수정 로직 (새 이미지가 있을 경우에만)
-        String updatedImageUrl = review.getImageUrl();
+        String oldImageUrl = review.getImageUrl();
+        String updatedImageUrl = oldImageUrl;
+
+        // 2. 새 이미지가 제공된 경우 처리
         if (newImage != null && !newImage.isEmpty()) {
-            // 기존 이미지 삭제
-            if (updatedImageUrl != null) {
-                fileService.deleteFile(updatedImageUrl);
-            }
-            // 새 이미지 업로드
+            // 새 이미지 선 업로드
             updatedImageUrl = fileService.uploadFile(newImage);
+            String finalNewImageUrl = updatedImageUrl;
+
+            // 트랜잭션 생명주기에 파일 처리 동기화 조율
+            TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+                @Override
+                public void afterCompletion(int status) {
+                    if (status == STATUS_COMMITTED) {
+                        // 최종 커밋 성공 시에만 구버전 파일 안전 삭제
+                        if (oldImageUrl != null) {
+                            fileService.deleteFile(oldImageUrl);
+                        }
+                    } else if (status == STATUS_ROLLED_BACK) {
+                        // 트랜잭션 실패(롤백) 시 낙관적으로 업로드했던 신규 파일 격리 삭제
+                        fileService.deleteFile(finalNewImageUrl);
+                    }
+                }
+            });
         }
 
+        // 3. 더티 체킹을 통한 엔티티 상태 변경
         review.updateReview(req.getRating(), req.getContent(), updatedImageUrl);
     }
 
