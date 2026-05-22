@@ -79,7 +79,7 @@ class SignupInfoFragment : Fragment() {
         if (role == "owner") {
             val businessNumber = binding.editTextBusinessNumber.text.toString().trim()
             val businessAddress = binding.editTextBusinessAdress.text.toString().trim()
-            
+            val businessName = binding.editTextBusinessName.text.toString().trim()
             if (businessNumber.isEmpty() || businessAddress.isEmpty()) {
                 Toast.makeText(requireContext(), "사업자 정보를 입력해주세요.", Toast.LENGTH_SHORT).show()
                 return
@@ -99,7 +99,7 @@ class SignupInfoFragment : Fragment() {
             apiService.signupOwner(ownerRequest).enqueue(object : Callback<ApiResponse<Any>> {
                 override fun onResponse(call: Call<ApiResponse<Any>>, response: Response<ApiResponse<Any>>) {
                     if (response.isSuccessful && response.body()?.success == true) {
-                        autoLoginAndRegisterRestaurant(loginId, password, name, businessAddress, phone, businessNumber)
+                        autoLoginAndRegisterRestaurant(loginId, password, businessName, businessAddress, phone, businessNumber)
                     } else {
                         val msg = parseErrorMessage(response)
                         Toast.makeText(requireContext(), "가입 실패: $msg", Toast.LENGTH_LONG).show()
@@ -156,9 +156,9 @@ class SignupInfoFragment : Fragment() {
             phone = phone,
             businessNo = bNo,
             category = category,
-            region = if (addr.contains("시흥")) "JEONGWANG" else "BAEGON",
-            latitude = 37.34,
-            longitude = 126.73,
+            region = mapRegionToEnum(addr),
+            latitude = 0.0,
+            longitude = 0.0,
             menus = emptyList(),
             operatingHours = emptyList()
         )
@@ -181,6 +181,27 @@ class SignupInfoFragment : Fragment() {
                 navigateToLogin()
             }
         })
+    }
+
+    private fun mapRegionToEnum(addr: String): String {
+        return when {
+            addr.contains("거북섬") -> "GEOBUKSEOM"
+            addr.contains("과림") -> "GWARIM"
+            addr.contains("군자") -> "GUNJA"
+            addr.contains("능곡") -> "NEUNGGOK"
+            addr.contains("대야") -> "DAEYA"
+            addr.contains("매화") -> "MAEHWA"
+            addr.contains("목감") -> "MOKGAM"
+            addr.contains("배곧") -> "BAEGON"
+            addr.contains("신천") -> "SINCHEON"
+            addr.contains("신현") -> "SINHYEON"
+            addr.contains("연성") -> "YEONSEONG"
+            addr.contains("월곶") -> "WOLGOT"
+            addr.contains("은행") -> "EUNHAENG"
+            addr.contains("장곡") -> "JANGGOK"
+            addr.contains("정왕") -> "JEONGWANG"
+            else -> "BAEGON"
+        }
     }
 
     private val signupCallback = object : Callback<ApiResponse<Any>> {

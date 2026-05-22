@@ -10,6 +10,7 @@ import com.example.petplace.databinding.ItemSearchResultBinding
 
 class SearchResultAdapter(
     private var items: List<RestaurantResponse>,
+    private val onFavoriteClick: (RestaurantResponse, (Boolean) -> Unit) -> Unit,
     private val onItemClick: (RestaurantResponse) -> Unit
 ) : RecyclerView.Adapter<SearchResultAdapter.ViewHolder>() {
 
@@ -18,17 +19,33 @@ class SearchResultAdapter(
             binding.tvPlaceName.text = item.name
             binding.tvLocation.text = item.region
 
-            // 7-7: RestaurantResponse 명세에 맞춰 imageUrl 필드 사용
+            updateFavoriteUI(item.isBookmarked)
+
+            // Glide를 사용하여 이미지 로드 (라운딩 처리 포함)
             val imageUrl = item.imageUrl
             
             Glide.with(binding.ivPlace.context)
                 .load(imageUrl)
-                .transform(CenterCrop(), RoundedCorners(24)) // 이미지 중앙 자르기 및 모서리 둥글게 (24px)
-                .placeholder(R.mipmap.icon) // 로딩 중 이미지
-                .error(R.mipmap.icon)       // 에러 시 이미지
+                .transform(CenterCrop(), RoundedCorners(24))
+                .placeholder(R.mipmap.icon)
+                .error(R.mipmap.icon)
                 .into(binding.ivPlace)
 
+            binding.btnFavorite.setOnClickListener {
+                onFavoriteClick(item) { isNowBookmarked ->
+                    // 리스트의 데이터 상태도 업데이트 (필요 시)
+                    item.copy(isBookmarked = isNowBookmarked) // 실제 원본 리스트의 객체 상태를 바꾸고 싶다면 아래처럼 처리
+                    updateFavoriteUI(isNowBookmarked)
+                }
+            }
+
             binding.root.setOnClickListener { onItemClick(item) }
+        }
+
+        private fun updateFavoriteUI(isBookmarked: Boolean) {
+            binding.btnFavorite.setBackgroundResource(
+                if (isBookmarked) R.drawable.icon_heart else R.drawable.icon_heart_empty
+            )
         }
     }
 

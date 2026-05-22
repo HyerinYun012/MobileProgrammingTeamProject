@@ -377,6 +377,38 @@
                     android:background="@color/gray" />
 
                 <LinearLayout
+                    android:id="@+id/llBusinessName"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:padding="10dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:fontFamily="@font/nanum_gothic_bold"
+                        android:text="상호명"
+                        android:textColor="@color/black"
+                        android:textSize="20sp" />
+
+                    <EditText
+                        android:id="@+id/editTextBusinessName"
+                        android:layout_width="match_parent"
+                        android:layout_height="48dp"
+                        android:layout_marginStart="50dp"
+                        android:autofillHints="businessAddress"
+                        android:background="@null"
+                        android:hint ="상호명 입력"
+                        android:inputType="textPostalAddress"
+                        android:textSize="20sp" />
+                </LinearLayout>
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:background="@color/gray" />
+
+                <LinearLayout
                     android:id="@+id/llServiceType"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"

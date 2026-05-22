@@ -47,8 +47,7 @@ data class CustomerSignupRequest(
     val passwordConfirm: String,
     val nickname: String,
     val phone: String,
-    val email: String,
-    //val marketingAgree: Boolean = true
+    val email: String?
 )
 
 data class OwnerSignupRequest(
@@ -58,11 +57,10 @@ data class OwnerSignupRequest(
     val name: String,
     val nickname: String,
     val phone: String,
-    val email: String,
-   // val marketingAgree: Boolean = true
+    val email: String?
 )
 
-// --- 3. User & Restaurant DTOs ---
+// --- 3. User DTOs ---
 data class User(
     val id: Long,
     val nickname: String,
@@ -84,8 +82,19 @@ data class UserProfileResponse(
     val profileImageUrl: String?
 ) : Serializable
 
-data class MenuRequest(val name: String, val price: Int, val description: String?) : Serializable
-data class OperatingHourRequest(val dayOfWeek: String, val openTime: String, val closeTime: String, val regularHoliday: Boolean) : Serializable
+// --- 4. Restaurant DTOs ---
+data class MenuRequest(
+    val name: String,
+    val price: Int,
+    val description: String?
+) : Serializable
+
+data class OperatingHourRequest(
+    val dayOfWeek: String,
+    val openTime: String,
+    val closeTime: String,
+    val regularHoliday: Boolean
+) : Serializable
 
 data class RestaurantRequest(
     val name: String,
@@ -93,9 +102,9 @@ data class RestaurantRequest(
     val phone: String,
     val businessNo: String,
     val category: String,
-    val region: String,
-    val latitude: Double,
-    val longitude: Double,
+    val region: String?,
+    val latitude: Double?,
+    val longitude: Double?,
     val hasFence: Boolean = false,
     val hasArtificialGrass: Boolean = false,
     val hasNaturalGrass: Boolean = false,
@@ -136,7 +145,8 @@ data class RestaurantResponse(
     val hasIndoor: Boolean,
     val hasOutdoor: Boolean,
     val imageUrl: String?,
-    val verified: Boolean
+    val verified: Boolean,
+    val isBookmarked: Boolean = false
 ) : Serializable
 
 data class RestaurantDetailResponse(
@@ -166,14 +176,32 @@ data class RestaurantDetailResponse(
     val reviews: List<ReviewResponse>?,
     val menus: List<MenuResponse>?,
     val verified: Boolean,
-    val imageUrl: String?
+    val imageUrl: String?,
+    val isBookmarked: Boolean = false
 ) : Serializable
 
 data class MenuResponse(val id: Long, val name: String, val price: Int, val description: String?, val imageUrl: String?) : Serializable
 
 // --- 5. Review / Notice / Pet / Community ---
-data class ReviewResponse(val id: Long, val rating: Int, val content: String, val imageUrl: String?, val writerName: String?, val user: User?, val createdAt: String) : Serializable
-data class MyReviewResponse(val reviewId: Long, val restaurantId: Long, val restaurantName: String, val content: String, val rating: Int, val createdAt: String) : Serializable
+data class ReviewResponse(
+    val id: Long,
+    val rating: Int,
+    val content: String,
+    val imageUrl: String?,
+    val writerName: String?,
+    val user: User?,
+    val createdAt: String
+) : Serializable
+
+data class MyReviewResponse(
+    val reviewId: Long,
+    val restaurantId: Long,
+    val restaurantName: String,
+    val content: String,
+    val rating: Int,
+    val createdAt: String
+) : Serializable
+
 data class NoticeResponse(val id: Long, val title: String, val content: String, val createdAt: String) : Serializable
 data class Pet(val id: Long, val name: String, val breed: String, val birth: String, val imageUrl: String?, val user: User?) : Serializable
 data class PetRequest(val name: String, val breed: String, val birth: String) : Serializable
@@ -266,7 +294,7 @@ interface ApiService {
     @Multipart @POST("api/restaurants") fun registerRestaurant(@Part("request") request: RequestBody, @Part images: List<MultipartBody.Part>?): Call<ApiResponse<Long>>
     @Multipart @PUT("api/restaurants/{id}") fun updateRestaurant(@Path("id") id: Long, @Part("request") request: RequestBody, @Part images: List<MultipartBody.Part>?): Call<ApiResponse<Long>>
     @GET("api/restaurants/nearby") fun getNearbyRestaurants(@Query("lat") lat: Double, @Query("lng") lng: Double, @Query("radius") radius: Double = 3.0, @QueryMap pageable: Map<String, String>): Call<ApiResponse<PageResponse<RestaurantResponse>>>
-    @GET("api/restaurants/filter") fun filterRestaurants(@QueryMap filters: Map<String, String>, @QueryMap pageable: Map<String, String>): Call<ApiResponse<PageResponse<RestaurantResponse>>>
+    @GET("api/restaurants/filter") fun filterRestaurants(@QueryMap condition: Map<String, String>, @QueryMap pageable: Map<String, String>): Call<ApiResponse<PageResponse<RestaurantResponse>>>
 
     @GET("api/restaurants/{restaurantId}/notices") fun getNotices(@Path("restaurantId") restaurantId: Long, @QueryMap pageable: Map<String, String>): Call<ApiResponse<PageResponse<NoticeResponse>>>
     @Multipart @POST("api/restaurants/{restaurantId}/notices") fun registerNotice(@Path("restaurantId") restaurantId: Long, @Query("title") title: String, @Query("content") content: String, @Part thumbnail: MultipartBody.Part?, @Part descriptionImage: MultipartBody.Part?): Call<ApiResponse<Any>>

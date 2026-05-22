@@ -2,6 +2,7 @@ package com.example.petplace
 
 import android.content.Context
 import android.content.Intent
+import android.util.Log
 import androidx.core.content.edit
 import okhttp3.Authenticator
 import okhttp3.Interceptor
@@ -16,6 +17,7 @@ object RetrofitClient {
 
     // 토큰 설정 함수
     fun setToken(token: String?) {
+        Log.d("RetrofitClient", "Setting token: $token")
         authToken = token
     }
 
@@ -53,9 +55,9 @@ object RetrofitClient {
             clear()
         }
 
-        // 2. 로그인 화면으로 이동 (기존 화면 스택 제거)
+        // 2. 로그인 화면으로 이동
         val intent = Intent(context, LoginActivity::class.java).apply {
-            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_SINGLE_TOP
         }
         context.startActivity(intent)
     }
