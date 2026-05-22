@@ -65,7 +65,6 @@ class SearchActivity : AppCompatActivity() {
         insertSortButtonInteraction(binding.btnSortPet,"pet_selection", "selected_pets", R.string.pet)
 
         binding.btnCancel.setOnClickListener { finish() }
-        
         binding.btnSortRegion.setOnClickListener {
             RegionBottomSheet().show(supportFragmentManager, "RegionBottomSheet")
         }
@@ -75,7 +74,6 @@ class SearchActivity : AppCompatActivity() {
         binding.btnSortPet.setOnClickListener {
             PetBottomSheet().show(supportFragmentManager, "PetBottomSheet")
         }
-        
         binding.btnSearch.setOnClickListener {
             val query = binding.editTextSearch.text.toString().trim()
             performSearch(query)
@@ -97,7 +95,6 @@ class SearchActivity : AppCompatActivity() {
     }
 
     fun performSearch(query: String) {
-        // 7-7: 명세의 pageable (Object) 대응을 위한 QueryMap 구성
         val pageableMap = mapOf(
             "page" to "0",
             "size" to "10"
@@ -108,7 +105,7 @@ class SearchActivity : AppCompatActivity() {
             val filterMap = mutableMapOf<String, String>()
             if (query.isNotEmpty()) filterMap["keyword"] = query
 
-            // 7-7: 15개 지역 Enum 전체 매핑 적용
+            // 15개 지역 Enum 전체 매핑 적용
             selectedRegions?.firstOrNull()?.let {
                 filterMap["region"] = when {
                     it.contains("거북섬") -> "GEOBUKSEOM"
@@ -150,7 +147,7 @@ class SearchActivity : AppCompatActivity() {
             apiService.filterRestaurants(filterMap, pageableMap)
         } else {
             if (query.isEmpty()) {
-                Toast.makeText(this, "검색어를 입력해주세요.", Toast.LENGTH_SHORT).show()
+                Toast.makeText(applicationContext, "검색어를 입력해주세요.", Toast.LENGTH_SHORT).show()
                 return
             }
             apiService.search(query, pageableMap)

@@ -26,7 +26,7 @@ class PlaceInfoActivity : AppCompatActivity() {
         restaurant = intent.getSerializableExtra("restaurant", RestaurantResponse::class.java)
 
         if (restaurant == null) {
-            Toast.makeText(this, "장소 정보를 불러올 수 없습니다.", Toast.LENGTH_SHORT).show()
+            Toast.makeText(applicationContext, "장소 정보를 불러올 수 없습니다.", Toast.LENGTH_SHORT).show()
             finish()
             return
         }
@@ -90,11 +90,11 @@ class PlaceInfoActivity : AppCompatActivity() {
                     isBookmarked = apiResponse.data ?: false
                     updateBookmarkUI()
                     val message = if (isBookmarked) "북마크에 추가되었습니다." else "북마크가 취소되었습니다."
-                    Toast.makeText(this@PlaceInfoActivity, message, Toast.LENGTH_SHORT).show()
+                    Toast.makeText(applicationContext, message, Toast.LENGTH_SHORT).show()
                 }
             }
             override fun onFailure(call: Call<ApiResponse<Boolean>>, t: Throwable) {
-                Toast.makeText(this@PlaceInfoActivity, "연결 상태를 확인해주세요.", Toast.LENGTH_SHORT).show()
+                Toast.makeText(applicationContext, "연결 상태를 확인해주세요.", Toast.LENGTH_SHORT).show()
             }
         })
     }

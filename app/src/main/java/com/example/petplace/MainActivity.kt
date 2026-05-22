@@ -30,10 +30,10 @@ class MainActivity : AppCompatActivity() {
 
             if (token != null) {
                 // 로그인이 되어 있는 경우 -> 마이페이지로 이동 (추후 Activity 연결)
-                Toast.makeText(this, "마이페이지로 이동합니다.", Toast.LENGTH_SHORT).show()
+                Toast.makeText(applicationContext, "마이페이지로 이동합니다.", Toast.LENGTH_SHORT).show()
             } else {
                 // 로그인이 안 되어 있는 경우 -> 로그인 화면 유도
-                Toast.makeText(this, "로그인이 필요한 서비스입니다.", Toast.LENGTH_SHORT).show()
+                Toast.makeText(applicationContext, "로그인이 필요한 서비스입니다.", Toast.LENGTH_SHORT).show()
                 val intent = Intent(this, LoginActivity::class.java)
                 startActivity(intent)
             }
@@ -41,7 +41,7 @@ class MainActivity : AppCompatActivity() {
 
         // 3. 테스트 로그아웃 버튼 (클릭 시 세션 정보를 파기하고 로그인 화면으로 이동합니다)
         findViewById<ImageButton>(R.id.btnTestLogout).setOnClickListener {
-            Toast.makeText(this, "로그아웃 테스트를 진행합니다.", Toast.LENGTH_SHORT).show()
+            Toast.makeText(applicationContext, "로그아웃 테스트를 진행합니다.", Toast.LENGTH_SHORT).show()
             RetrofitClient.logout()
         }
 

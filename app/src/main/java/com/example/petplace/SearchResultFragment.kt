@@ -51,14 +51,14 @@ class SearchResultFragment : Fragment() {
                             val isNowBookmarked = apiResponse.data ?: false
                             callback(isNowBookmarked)
                             val message = if (isNowBookmarked) "북마크에 추가되었습니다." else "북마크가 취소되었습니다."
-                            Toast.makeText(requireContext(), message, Toast.LENGTH_SHORT).show()
+                            Toast.makeText(requireContext().applicationContext, message, Toast.LENGTH_SHORT).show()
                         } else {
-                            Toast.makeText(requireContext(), "요청 실패: ${apiResponse?.message}", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(requireContext().applicationContext, "요청 실패: ${apiResponse?.message}", Toast.LENGTH_SHORT).show()
                         }
                     }
 
                     override fun onFailure(call: Call<ApiResponse<Boolean>>, t: Throwable) {
-                        Toast.makeText(requireContext(), "네트워크 오류", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(requireContext().applicationContext, "네트워크 오류", Toast.LENGTH_SHORT).show()
                     }
                 })
             },

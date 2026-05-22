@@ -71,7 +71,7 @@ class SignupInfoFragment : Fragment() {
     private fun checkIdDuplication() {
         val loginId = binding.editTextId.text.toString().trim()
         if (loginId.isEmpty()) {
-            Toast.makeText(requireContext(), "아이디를 입력해주세요.", Toast.LENGTH_SHORT).show()
+            Toast.makeText(requireContext().applicationContext, "아이디를 입력해주세요.", Toast.LENGTH_SHORT).show()
             return
         }
 
@@ -81,17 +81,17 @@ class SignupInfoFragment : Fragment() {
                     val isAvailable = response.body()?.data ?: false
                     if (isAvailable) {
                         checkedIdDuplication = true
-                        Toast.makeText(requireContext(), "사용 가능한 아이디입니다.", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(requireContext().applicationContext, "사용 가능한 아이디입니다.", Toast.LENGTH_SHORT).show()
                     } else {
-                        Toast.makeText(requireContext(), "이미 사용 중인 아이디입니다.", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(requireContext().applicationContext, "이미 사용 중인 아이디입니다.", Toast.LENGTH_SHORT).show()
                     }
                 } else {
-                    Toast.makeText(requireContext(), "중복 확인 실패: ${parseErrorMessage(response)}", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(requireContext().applicationContext, "중복 확인 실패: ${parseErrorMessage(response)}", Toast.LENGTH_SHORT).show()
                 }
             }
 
             override fun onFailure(call: Call<ApiResponse<Boolean>>, t: Throwable) {
-                Toast.makeText(requireContext(), "네트워크 오류: ${t.message}", Toast.LENGTH_SHORT).show()
+                Toast.makeText(requireContext().applicationContext, "네트워크 오류: ${t.message}", Toast.LENGTH_SHORT).show()
             }
         })
     }
@@ -99,7 +99,7 @@ class SignupInfoFragment : Fragment() {
     private fun checkNicknameDuplication() {
         val nickname = binding.editTextNickname.text.toString().trim()
         if (nickname.isEmpty()) {
-            Toast.makeText(requireContext(), "닉네임을 입력해주세요.", Toast.LENGTH_SHORT).show()
+            Toast.makeText(requireContext().applicationContext, "닉네임을 입력해주세요.", Toast.LENGTH_SHORT).show()
             return
         }
 
@@ -109,17 +109,17 @@ class SignupInfoFragment : Fragment() {
                     val isAvailable = response.body()?.data ?: false
                     if (isAvailable) {
                         checkedNicknameDuplication = true
-                        Toast.makeText(requireContext(), "사용 가능한 닉네임입니다.", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(requireContext().applicationContext, "사용 가능한 닉네임입니다.", Toast.LENGTH_SHORT).show()
                     } else {
-                        Toast.makeText(requireContext(), "이미 사용 중인 닉네임입니다.", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(requireContext().applicationContext, "이미 사용 중인 닉네임입니다.", Toast.LENGTH_SHORT).show()
                     }
                 } else {
-                    Toast.makeText(requireContext(), "중복 확인 실패: ${parseErrorMessage(response)}", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(requireContext().applicationContext, "중복 확인 실패: ${parseErrorMessage(response)}", Toast.LENGTH_SHORT).show()
                 }
             }
 
             override fun onFailure(call: Call<ApiResponse<Boolean>>, t: Throwable) {
-                Toast.makeText(requireContext(), "네트워크 오류: ${t.message}", Toast.LENGTH_SHORT).show()
+                Toast.makeText(requireContext().applicationContext, "네트워크 오류: ${t.message}", Toast.LENGTH_SHORT).show()
             }
         })
     }
@@ -135,21 +135,21 @@ class SignupInfoFragment : Fragment() {
 
         if (name.isEmpty() || loginId.isEmpty() || password.isEmpty() || 
             nickname.isEmpty() || phone.isEmpty() || email.isEmpty()) {
-            Toast.makeText(requireContext(), "필수 정보를 모두 입력해주세요.", Toast.LENGTH_SHORT).show()
+            Toast.makeText(requireContext().applicationContext, "필수 정보를 모두 입력해주세요.", Toast.LENGTH_SHORT).show()
             return
         }
 
         if (password != passwordConfirm) {
-            Toast.makeText(requireContext(), "비밀번호 확인이 일치하지 않습니다.", Toast.LENGTH_SHORT).show()
+            Toast.makeText(requireContext().applicationContext, "비밀번호 확인이 일치하지 않습니다.", Toast.LENGTH_SHORT).show()
             return
         }
 
         if (!checkedIdDuplication) {
-            Toast.makeText(requireContext(), "아이디 중복 확인을 해주세요.", Toast.LENGTH_SHORT).show()
+            Toast.makeText(requireContext().applicationContext, "아이디 중복 확인을 해주세요.", Toast.LENGTH_SHORT).show()
             return
         }
         if(!checkedNicknameDuplication) {
-            Toast.makeText(requireContext(), "닉네임 중복 확인을 해주세요.", Toast.LENGTH_SHORT).show()
+            Toast.makeText(requireContext().applicationContext, "닉네임 중복 확인을 해주세요.", Toast.LENGTH_SHORT).show()
             return
         }
 
@@ -158,7 +158,7 @@ class SignupInfoFragment : Fragment() {
             val businessAddress = binding.editTextBusinessAdress.text.toString().trim()
             val businessName = binding.editTextBusinessName.text.toString().trim()
             if (businessNumber.isEmpty() || businessAddress.isEmpty()) {
-                Toast.makeText(requireContext(), "사업자 정보를 입력해주세요.", Toast.LENGTH_SHORT).show()
+                Toast.makeText(requireContext().applicationContext, "사업자 정보를 입력해주세요.", Toast.LENGTH_SHORT).show()
                 return
             }
 
@@ -179,11 +179,11 @@ class SignupInfoFragment : Fragment() {
                         autoLoginAndRegisterRestaurant(loginId, password, businessName, businessAddress, phone, businessNumber)
                     } else {
                         val msg = parseErrorMessage(response)
-                        Toast.makeText(requireContext(), "가입 실패: $msg", Toast.LENGTH_LONG).show()
+                        Toast.makeText(requireContext().applicationContext, "가입 실패: $msg", Toast.LENGTH_LONG).show()
                     }
                 }
                 override fun onFailure(call: Call<ApiResponse<Any>>, t: Throwable) {
-                    Toast.makeText(requireContext(), "네트워크 오류: ${t.message}", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(requireContext().applicationContext, "네트워크 오류: ${t.message}", Toast.LENGTH_SHORT).show()
                 }
             })
         } else {
@@ -210,7 +210,7 @@ class SignupInfoFragment : Fragment() {
                     registerRestaurantAfterSignup(name, addr, phone, bNo)
                 } else {
                     val msg = parseErrorMessage(response)
-                    Toast.makeText(requireContext(), "자동 로그인 실패: $msg", Toast.LENGTH_LONG).show()
+                    Toast.makeText(requireContext().applicationContext, "자동 로그인 실패: $msg", Toast.LENGTH_LONG).show()
                     navigateToLogin()
                 }
             }
@@ -246,11 +246,11 @@ class SignupInfoFragment : Fragment() {
         apiService.registerRestaurant(requestBody, null).enqueue(object : Callback<ApiResponse<Long>> {
             override fun onResponse(call: Call<ApiResponse<Long>>, response: Response<ApiResponse<Long>>) {
                 if (response.isSuccessful && response.body()?.success == true) {
-                    Toast.makeText(requireContext(), "가입 및 가게 등록 완료!", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(requireContext().applicationContext, "가입 및 가게 등록 완료!", Toast.LENGTH_SHORT).show()
                     navigateToLogin()
                 } else {
                     val msg = parseErrorMessage(response)
-                    Toast.makeText(requireContext(), "가게 등록 실패: $msg", Toast.LENGTH_LONG).show()
+                    Toast.makeText(requireContext().applicationContext, "가게 등록 실패: $msg", Toast.LENGTH_LONG).show()
                     navigateToLogin()
                 }
             }
@@ -284,17 +284,17 @@ class SignupInfoFragment : Fragment() {
     private val signupCallback = object : Callback<ApiResponse<Any>> {
         override fun onResponse(call: Call<ApiResponse<Any>>, response: Response<ApiResponse<Any>>) {
             if (response.isSuccessful && response.body()?.success == true) {
-                Toast.makeText(requireContext(), "회원가입 성공!", Toast.LENGTH_SHORT).show()
+                Toast.makeText(requireContext().applicationContext, "회원가입 성공!", Toast.LENGTH_SHORT).show()
                 navigateToLogin()
             } else {
                 val msg = parseErrorMessage(response)
                 Log.e("SignupCallback", "onResponse: $msg")
-                Toast.makeText(requireContext(), "가입 실패: $msg", Toast.LENGTH_LONG).show()
+                Toast.makeText(requireContext().applicationContext, "가입 실패: $msg", Toast.LENGTH_LONG).show()
             }
         }
         override fun onFailure(call: Call<ApiResponse<Any>>, t: Throwable) {
             Log.e("SignupCallback", "onFailure: ${t.message}", t)
-            Toast.makeText(requireContext(), "네트워크 오류: ${t.message}", Toast.LENGTH_LONG).show()
+            Toast.makeText(requireContext().applicationContext, "네트워크 오류: ${t.message}", Toast.LENGTH_LONG).show()
         }
     }
 

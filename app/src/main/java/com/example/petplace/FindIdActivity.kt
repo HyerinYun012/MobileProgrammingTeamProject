@@ -26,7 +26,7 @@ class FindIdActivity : AppCompatActivity() {
             val phone = binding.etPhone.text.toString().trim()
 
             if (name.isEmpty() || phone.isEmpty()) {
-                Toast.makeText(this, "이름과 전화번호를 입력해주세요.", Toast.LENGTH_SHORT).show()
+                Toast.makeText(applicationContext, "이름과 전화번호를 입력해주세요.", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
 
@@ -41,10 +41,10 @@ class FindIdActivity : AppCompatActivity() {
                         binding.tvResultLabel.visibility = View.VISIBLE
                         binding.etResultId.visibility = View.VISIBLE
                         
-                        Toast.makeText(this@FindIdActivity, "아이디를 찾았습니다.", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(applicationContext, "아이디를 찾았습니다.", Toast.LENGTH_SHORT).show()
                     } else {
                         val errorMsg = apiResponse?.message ?: "아이디를 찾을 수 없습니다."
-                        Toast.makeText(this@FindIdActivity, errorMsg, Toast.LENGTH_SHORT).show()
+                        Toast.makeText(applicationContext, errorMsg, Toast.LENGTH_SHORT).show()
 
                         binding.tvResultLabel.visibility = View.GONE
                         binding.etResultId.visibility = View.GONE
@@ -52,7 +52,7 @@ class FindIdActivity : AppCompatActivity() {
                 }
                 override fun onFailure(call: Call<ApiResponse<String>>, t: Throwable) {
                     Log.e("FindId", "Error: ${t.message}")
-                    Toast.makeText(this@FindIdActivity, "네트워크 오류가 발생했습니다.", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(applicationContext, "네트워크 오류가 발생했습니다.", Toast.LENGTH_SHORT).show()
 
                     binding.tvResultLabel.visibility = View.GONE
                     binding.etResultId.visibility = View.GONE

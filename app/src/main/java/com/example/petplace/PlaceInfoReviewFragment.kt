@@ -99,7 +99,7 @@ class PlaceInfoReviewFragment : Fragment() {
         }
 
         binding.btnRecentReview.setOnClickListener {
-            Toast.makeText(context, "리뷰 목록 화면으로 이동합니다 (구현 예정)", Toast.LENGTH_SHORT).show()
+            Toast.makeText(requireContext().applicationContext, "리뷰 목록 화면으로 이동합니다 (구현 예정)", Toast.LENGTH_SHORT).show()
         }
 
         // 3. 사진 리뷰 목록 동적 생성
@@ -107,7 +107,7 @@ class PlaceInfoReviewFragment : Fragment() {
         val imageReviews = reviews.filter { !it.imageUrl.isNullOrEmpty() }
         
         for (review in imageReviews) {
-            val imageView = ImageView(context).apply {
+            val imageView = ImageView(requireContext().applicationContext).apply {
                 val size = dpToPx(120)
                 layoutParams = LinearLayout.LayoutParams(size, size).apply {
                     setMargins(0, 0, dpToPx(10), 0)

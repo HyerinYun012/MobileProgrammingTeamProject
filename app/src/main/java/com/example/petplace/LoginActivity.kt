@@ -64,7 +64,7 @@ class LoginActivity : AppCompatActivity() {
         val password = binding.editTextPw.text.toString().trim()
 
         if (loginId.isEmpty() || password.isEmpty()) {
-            Toast.makeText(this, "아이디와 비밀번호를 입력해주세요.", Toast.LENGTH_SHORT).show()
+            Toast.makeText(applicationContext, "아이디와 비밀번호를 입력해주세요.", Toast.LENGTH_SHORT).show()
             return
         }
 
@@ -74,7 +74,6 @@ class LoginActivity : AppCompatActivity() {
                 if (response.isSuccessful && apiResponse?.success == true) {
                     val token = apiResponse.data
                     if (token != null) {
-                        // 아이디 저장 체크 여부에 따라 처리
                         val sharedPref = getSharedPreferences("PetPlacePref", Context.MODE_PRIVATE)
                         if (binding.checkBoxSaveId.isChecked) {
                             sharedPref.edit().putString("saved_id", loginId).apply()
@@ -86,11 +85,11 @@ class LoginActivity : AppCompatActivity() {
                     }
                 } else {
                     val msg = apiResponse?.message ?: "로그인 실패 (ID/PW를 확인하세요)"
-                    Toast.makeText(this@LoginActivity, msg, Toast.LENGTH_SHORT).show()
+                    Toast.makeText(applicationContext, msg, Toast.LENGTH_SHORT).show()
                 }
             }
             override fun onFailure(call: Call<ApiResponse<String>>, t: Throwable) {
-                Toast.makeText(this@LoginActivity, "서버와 통신할 수 없습니다.", Toast.LENGTH_SHORT).show()
+                Toast.makeText(applicationContext, "서버와 통신할 수 없습니다.", Toast.LENGTH_SHORT).show()
             }
         })
     }
@@ -100,13 +99,14 @@ class LoginActivity : AppCompatActivity() {
             if (error == null && token != null) {
                 UserApiClient.instance.me { user, _ ->
                     if (user != null) {
+                        Log.d("KakaoLogin", "user : $user")
                         val req = SocialLoginRequest(
                             provider = "KAKAO",
                             accessToken = token.accessToken,
                             providerId = user.id.toString(),
-                            nickname = user.kakaoAccount?.profile?.nickname ?: "사용자",
-                            phone = user.kakaoAccount?.phoneNumber?.replace("+82 ", "0")?.replace("-", "") ?: "",
-                            role = "CUSTOMER",
+                            nickname = //user.kakaoAccount?.profile?.nickname ?: "사용자",
+                            phone = //user.kakaoAccount?.phoneNumber?.replace("+82 ", "0")?.replace("-", "") ?: "",
+                            role = //"CUSTOMER",
                             marketingAgree = false
                         )
                         
@@ -116,17 +116,21 @@ class LoginActivity : AppCompatActivity() {
                                 if (response.isSuccessful && res?.success == true && res.data != null) {
                                     fetchUserInfoAndNavigate(res.data)
                                 } else {
-                                    Toast.makeText(this@LoginActivity, "소셜 로그인 처리 중 오류가 발생했습니다.", Toast.LENGTH_SHORT).show()
+                                    val errorMsg = res?.message ?: "소셜 로그인 처리 중 오류가 발생했습니다."
+                                    Toast.makeText(applicationContext, errorMsg, Toast.LENGTH_SHORT).show()
                                 }
                             }
                             override fun onFailure(call: Call<ApiResponse<String>>, t: Throwable) {
-                                Toast.makeText(this@LoginActivity, "서버 연결 실패", Toast.LENGTH_SHORT).show()
+                                Toast.makeText(applicationContext, "서버 연결 실패", Toast.LENGTH_SHORT).show()
                             }
                         })
                     }
                 }
+            } else if (error != null) {
+                Toast.makeText(applicationContext, "카카오 로그인 실패", Toast.LENGTH_SHORT).show()
             }
         }
+
         if (UserApiClient.instance.isKakaoTalkLoginAvailable(this)) {
             UserApiClient.instance.loginWithKakaoTalk(this, callback = callback)
         } else {
@@ -149,16 +153,16 @@ class LoginActivity : AppCompatActivity() {
                         apply()
                     }
                     
-                    Toast.makeText(this@LoginActivity, "${profile.nickname}님, 환영합니다!", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(applicationContext, "${profile.nickname}님, 환영합니다!", Toast.LENGTH_SHORT).show()
                     navigateToMain()
                 } else {
                     RetrofitClient.setToken(null)
-                    Toast.makeText(this@LoginActivity, "사용자 인증에 실패했습니다. 다시 시도해주세요.", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(applicationContext, "사용자 인증에 실패했습니다. 다시 시도해주세요.", Toast.LENGTH_SHORT).show()
                 }
             }
             override fun onFailure(call: Call<ApiResponse<UserProfileResponse>>, t: Throwable) {
                 RetrofitClient.setToken(null)
-                Toast.makeText(this@LoginActivity, "사용자 정보 확인 중 네트워크 오류가 발생했습니다.", Toast.LENGTH_SHORT).show()
+                Toast.makeText(applicationContext, "사용자 정보 확인 중 네트워크 오류가 발생했습니다.", Toast.LENGTH_SHORT).show()
             }
         })
     }
