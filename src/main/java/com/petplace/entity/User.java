@@ -79,4 +79,21 @@ public class User extends BaseTimeEntity {
     public void verify() {
         this.isVerified = true;
     }
+
+    /**
+     * [정적 팩토리 메서드] 소셜 회원가입 전용 유저 생성 창구
+     * 빌더 패턴의 파편화를 막고 엔티티 생성 시점에 제약조건 및 기본값 검증을 강제합니다.
+     */
+    public static User createSocialUser(String nickname, String phone, Role role, boolean marketingAgree) {
+        // 안전장치: 권한 누락 방지 (기본값 설정)
+        Role finalRole = (role != null) ? role : Role.CUSTOMER;
+
+        return User.builder()
+                .nickname(nickname)
+                .phone(phone)
+                .role(finalRole)
+                .marketingAgree(marketingAgree)
+                .isVerified(false) // 신규 가입 시 사장님 승인 여부는 무조건 false로 고정
+                .build();
+    }
 }

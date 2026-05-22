@@ -29,6 +29,8 @@ public enum ErrorCode {
     DUPLICATE_NICKNAME(HttpStatus.CONFLICT, "이미 사용 중인 닉네임입니다."),
     DUPLICATE_EMAIL(HttpStatus.CONFLICT, "이미 가입된 이메일 주소입니다."),
     INVALID_PHONE_NUMBER(HttpStatus.BAD_REQUEST, "계정에 등록된 휴대폰 번호와 일치하지 않습니다."),
+    NEW_SOCIAL_USER_NEED_SIGNUP(HttpStatus.UNAUTHORIZED, "신규 소셜 회원입니다. 추가 회원가입 정보가 필요합니다."),
+    DUPLICATE_SOCIAL_USER(HttpStatus.CONFLICT, "이미 가입된 소셜 계정입니다."),
     UNSUPPORTED_SOCIAL_PROVIDER(HttpStatus.BAD_REQUEST, "지원하지 않는 소셜 로그인 제공자입니다."),
     SOCIAL_INFO_FETCH_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "소셜 인증 정보를 불러올 수 없습니다."),
     KAKAO_AUTH_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "카카오 인증에 실패했습니다."),

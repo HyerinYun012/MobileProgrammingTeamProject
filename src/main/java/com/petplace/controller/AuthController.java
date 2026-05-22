@@ -67,10 +67,17 @@ public class AuthController {
         return ResponseEntity.ok(ApiResponse.success("비밀번호가 안전하게 변경되었습니다.", null));
     }
 
-    @Operation(summary = "소셜 로그인/회원가입 (통합)")
-    @PostMapping("/social")
+    @Operation(summary = "소셜 로그인", description = "소셜 액세스 토큰으로 가입 여부를 확인하고, 기존 회원이면 JWT 토큰을 발급합니다.")
+    @PostMapping("/social/login")
     public ResponseEntity<ApiResponse<String>> socialLogin(@Valid @RequestBody SocialLoginRequest req) {
         String token = socialAuthService.login(req);
-        return ResponseEntity.ok(ApiResponse.success("소셜 로그인 성공", token));
+        return ResponseEntity.ok(ApiResponse.success("로그인 성공", token));
+    }
+
+    @Operation(summary = "소셜 회원가입", description = "신규 소셜 유저가 추가 정보를 입력하여 최종 회원가입을 완료합니다.")
+    @PostMapping("/social/signup")
+    public ResponseEntity<ApiResponse<String>> socialSignup(@Valid @RequestBody SocialSignupRequest req) {
+        String token = socialAuthService.signup(req);
+        return ResponseEntity.ok(ApiResponse.success("회원가입 및 로그인 성공", token));
     }
 }
