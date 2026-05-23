@@ -264,7 +264,7 @@ interface ApiService {
     @GET("api/search/popular") fun getPopularKeywords(): Call<ApiResponse<List<String>>>
 
     @POST("api/auth/login") fun login(@Body request: LoginRequest): Call<ApiResponse<String>>
-    @POST("api/auth/social/signup") fun socialSignup(@Body request: SocialSignupRequest): Call<ApiResponse<String>>
+    @POST("api/auth/social/signup") fun socialSignup(@Body request: SocialSignupRequest): Call<ApiResponse<Any>>
     @POST("api/auth/social/login") fun socialLogin(@Body request: SocialLoginRequest): Call<ApiResponse<String>>
     @POST("api/auth/signup/customer") fun signupCustomer(@Body request: CustomerSignupRequest): Call<ApiResponse<Any>>
     @POST("api/auth/signup/owner") fun signupOwner(@Body request: OwnerSignupRequest): Call<ApiResponse<Any>>

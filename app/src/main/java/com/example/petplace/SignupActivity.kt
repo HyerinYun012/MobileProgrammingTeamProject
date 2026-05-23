@@ -27,8 +27,12 @@ class SignupActivity : AppCompatActivity() {
         }
 
         if (savedInstanceState == null) {
+            val fragment = SignupRoleFragment().apply {
+                // LoginActivity에서 넘어온 정보(isSocial 등)가 있다면 전달
+                arguments = intent.extras
+            }
             supportFragmentManager.beginTransaction()
-                .replace(R.id.fragmentContainer, SignupRoleFragment())
+                .replace(R.id.fragmentContainer, fragment)
                 .commit()
         }
 

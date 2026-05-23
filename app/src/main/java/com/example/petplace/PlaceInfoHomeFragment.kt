@@ -18,14 +18,11 @@ class PlaceInfoHomeFragment : Fragment(R.layout.fragment_place_info_home) {
     }
 
     private fun initUI(res: RestaurantResponse) {
-        // 7-7-2: 서버 데이터 연결
         binding.textViewAddress.text = res.address
         binding.textViewPhone.text = res.phone
-        
-        // 요일별 영업시간 표시
+
         binding.textViewTime.text = formatOperatingHours(res.operatingHours)
-        
-        // 1. 견종 크기 통합 로직
+
         val (iconRes, sizeText) = when {
             res.allowSmall && res.allowMedium && res.allowLarge -> R.drawable.icon_large_cap to "모든 견종 가능"
             res.allowSmall && res.allowMedium -> R.drawable.icon_medium_cap to "중·소형견 가능"
@@ -43,7 +40,6 @@ class PlaceInfoHomeFragment : Fragment(R.layout.fragment_place_info_home) {
             binding.layoutDogSize.visibility = View.GONE
         }
 
-        // 2. 편의시설 가시성 제어
         binding.layoutFence.visibility = if (res.hasFence) View.VISIBLE else View.GONE
         binding.layoutIndoor.visibility = if (res.hasIndoor) View.VISIBLE else View.GONE
         binding.layoutOutdoor.visibility = if (res.hasOutdoor) View.VISIBLE else View.GONE

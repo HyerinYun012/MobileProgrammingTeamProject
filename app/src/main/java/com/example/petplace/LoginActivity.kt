@@ -26,7 +26,7 @@ class LoginActivity : AppCompatActivity() {
         val savedToken = sharedPref.getString("jwt_token", null)
         if (savedToken != null) {
             RetrofitClient.setToken(savedToken)
-            navigateToMain()
+            finish()
             return
         }
 
@@ -70,9 +70,8 @@ class LoginActivity : AppCompatActivity() {
 
         apiService.login(LoginRequest(loginId, password)).enqueue(object : Callback<ApiResponse<String>> {
             override fun onResponse(call: Call<ApiResponse<String>>, response: Response<ApiResponse<String>>) {
-                val apiResponse = response.body()
-                if (response.isSuccessful && apiResponse?.success == true) {
-                    val token = apiResponse.data
+                if (response.isSuccessful && response.body()?.success == true) {
+                    val token = response.body()?.data
                     if (token != null) {
                         val sharedPref = getSharedPreferences("PetPlacePref", Context.MODE_PRIVATE)
                         if (binding.checkBoxSaveId.isChecked) {
@@ -84,7 +83,7 @@ class LoginActivity : AppCompatActivity() {
                         fetchUserInfoAndNavigate(token)
                     }
                 } else {
-                    val msg = apiResponse?.message ?: "로그인 실패 (ID/PW를 확인하세요)"
+                    val msg = RetrofitClient.parseErrorMessage(response)
                     Toast.makeText(applicationContext, msg, Toast.LENGTH_SHORT).show()
                 }
             }
@@ -97,37 +96,44 @@ class LoginActivity : AppCompatActivity() {
     private fun startKakaoLogin() {
         val callback: (OAuthToken?, Throwable?) -> Unit = { token, error ->
             if (error == null && token != null) {
-                UserApiClient.instance.me { user, _ ->
+                UserApiClient.instance.me { user, userError ->
                     if (user != null) {
-                        //Log.d("KakaoLogin", "user : $user")
                         val req = SocialLoginRequest(
                             provider = "KAKAO",
                             accessToken = token.accessToken,
                             providerId = user.id.toString(),
-                            //nickname = "",//user.kakaoAccount?.profile?.nickname ?: "사용자",
-                            //phone = "",//user.kakaoAccount?.phoneNumber?.replace("+82 ", "0")?.replace("-", "") ?: "",
-                            //role = "",//"CUSTOMER",
-                            //marketingAgree = false
-                        )//1.로그인 시도
-                        //2. 로그인 실패시, 에러종류 확인. 회원가입이 안된거라면 회원가입으로 이동
+                        )
 
                         apiService.socialLogin(req).enqueue(object : Callback<ApiResponse<String>> {
                             override fun onResponse(call: Call<ApiResponse<String>>, response: Response<ApiResponse<String>>) {
-                                val res = response.body()
-                                if (response.isSuccessful && res?.success == true && res.data != null) {
-                                    fetchUserInfoAndNavigate(res.data)
+                                if (response.isSuccessful && response.body()?.success == true) {
+                                    val jwtToken = response.body()?.data
+                                    if (jwtToken != null) {
+                                        fetchUserInfoAndNavigate(jwtToken)
+                                    }
                                 } else {
                                     val errorMsg = RetrofitClient.parseErrorMessage(response)
-                                    Log.e("KakaoLogin", "response : $response, res : $res, accesstoken : ${token.accessToken}, error : $error, errormsg : ${errorMsg}",)
-                                    Toast.makeText(applicationContext, "카카오 로그인 처리 중 오류가 발생했습니다.", Toast.LENGTH_SHORT).show()
-                                    if (response.code() == 401)
-                                        Log.e("KakaoLogin","401 에러")
+                                    if (errorMsg.contains("신규 소셜 회원")) {
+                                        val intent = Intent(this@LoginActivity, SignupActivity::class.java).apply {
+                                            putExtra("isSocial", true)
+                                            putExtra("provider", "KAKAO")
+                                            putExtra("accessToken", token.accessToken)
+                                            putExtra("providerId", user.id.toString())
+                                            //putExtra("nickname", user.kakaoAccount?.profile?.nickname ?: "")
+                                        }
+                                        startActivity(intent)
+                                    } else {
+                                        Log.e("KakaoLogin", "Social login failed: $errorMsg")
+                                        Toast.makeText(applicationContext, errorMsg, Toast.LENGTH_SHORT).show()
+                                    }
                                 }
                             }
                             override fun onFailure(call: Call<ApiResponse<String>>, t: Throwable) {
                                 Toast.makeText(applicationContext, "서버 연결 실패", Toast.LENGTH_SHORT).show()
                             }
                         })
+                    } else if (userError != null) {
+                        Toast.makeText(applicationContext, "사용자 정보를 가져올 수 없습니다.", Toast.LENGTH_SHORT).show()
                     }
                 }
             } else if (error != null) {
@@ -158,7 +164,7 @@ class LoginActivity : AppCompatActivity() {
                     }
                     
                     Toast.makeText(applicationContext, "${profile.nickname}님, 환영합니다!", Toast.LENGTH_SHORT).show()
-                    navigateToMain()
+                    finish()
                 } else {
                     RetrofitClient.setToken(null)
                     Toast.makeText(applicationContext, "사용자 인증에 실패했습니다. 다시 시도해주세요.", Toast.LENGTH_SHORT).show()
@@ -169,12 +175,5 @@ class LoginActivity : AppCompatActivity() {
                 Toast.makeText(applicationContext, "사용자 정보 확인 중 네트워크 오류가 발생했습니다.", Toast.LENGTH_SHORT).show()
             }
         })
-    }
-
-    private fun navigateToMain() {
-        val intent = Intent(this, SearchActivity::class.java)
-        intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-        startActivity(intent)
-        finish()
     }
 }

@@ -33,13 +33,16 @@ class PlaceInfoActivity : AppCompatActivity() {
 
         restaurantId = restaurant!!.id
         isBookmarked = restaurant!!.isBookmarked
+        
         initUI(restaurant!!)
         initFragmentNavigation()
+        
+        // 서버에서 최신 상세 정보를 가져와 북마크 상태 동기화
+        fetchLatestRestaurantDetail()
 
         binding.btnReturn.setOnClickListener { finish() }
         binding.btnFavorite.setOnClickListener { toggleBookmark() }
 
-        // 초기 프래그먼트 설정 (Home)
         if (savedInstanceState == null) {
             replaceFragment(PlaceInfoHomeFragment(), 0.06f)
         }
@@ -48,9 +51,7 @@ class PlaceInfoActivity : AppCompatActivity() {
     private fun initUI(restaurant: RestaurantResponse) {
         binding.textViewLocation.text = restaurant.name
 
-        // 7-7: RestaurantResponse 명세에 맞춰 imageUrl 사용
         val imageUrl = restaurant.imageUrl
-
         Glide.with(this)
             .load(imageUrl)
             .placeholder(R.mipmap.icon)
@@ -59,6 +60,22 @@ class PlaceInfoActivity : AppCompatActivity() {
             .into(binding.imageViewMain)
 
         updateBookmarkUI()
+    }
+
+    private fun fetchLatestRestaurantDetail() {
+        apiService.getRestaurantDetail(restaurantId).enqueue(object : Callback<ApiResponse<RestaurantDetailResponse>> {
+            override fun onResponse(call: Call<ApiResponse<RestaurantDetailResponse>>, response: Response<ApiResponse<RestaurantDetailResponse>>) {
+                if (response.isSuccessful) {
+                    response.body()?.data?.let { detail ->
+                        isBookmarked = detail.isBookmarked
+                        updateBookmarkUI()
+                        // 로컬 객체 상태도 업데이트
+                        restaurant = restaurant?.copy(isBookmarked = isBookmarked)
+                    }
+                }
+            }
+            override fun onFailure(call: Call<ApiResponse<RestaurantDetailResponse>>, t: Throwable) {}
+        })
     }
 
     private fun initFragmentNavigation() {
@@ -89,6 +106,7 @@ class PlaceInfoActivity : AppCompatActivity() {
                 if (response.isSuccessful && apiResponse?.success == true) {
                     isBookmarked = apiResponse.data ?: false
                     updateBookmarkUI()
+                    restaurant = restaurant?.copy(isBookmarked = isBookmarked)
                     val message = if (isBookmarked) "북마크에 추가되었습니다." else "북마크가 취소되었습니다."
                     Toast.makeText(applicationContext, message, Toast.LENGTH_SHORT).show()
                 }
