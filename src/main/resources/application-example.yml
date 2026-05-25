@@ -1,0 +1,17 @@
+spring:
+  datasource:
+    url: jdbc:mysql://127.0.0.1:3306/petplace?useSSL=false&characterEncoding=UTF-8&serverTimezone=Asia/Seoul&allowPublicKeyRetrieval=true
+    username: root #여기에 본인DB아이디입력
+    password: id8887 #여기에 본인DB비밀번호입력
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: true
+
+jwt:
+  secret: petplace-secret-key-siheung-gabojamaung-2026 #시크릿키입력_32자이상 - 모프팀플 카카오톡 JWT 확인
+  expiration: 86400000
+
+server:
+  port: 8080
