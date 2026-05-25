@@ -1,9 +1,14 @@
 package com.gabojameong.petplace
 
 import android.os.Bundle
+import android.util.Log
 import android.view.View
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import com.gabojameong.petplace.databinding.FragmentPlaceInfoHomeBinding
+import java.time.LocalTime
+import java.time.format.DateTimeFormatter
+import java.util.Calendar
 
 class PlaceInfoHomeFragment : Fragment(R.layout.fragment_place_info_home) {
     private var _binding: FragmentPlaceInfoHomeBinding? = null
@@ -17,11 +22,21 @@ class PlaceInfoHomeFragment : Fragment(R.layout.fragment_place_info_home) {
         restaurant?.let { initUI(it) }
     }
 
+    // 부모 Activity에서 상세 데이터를 새로 가져왔을 때 호출되어 UI를 갱신합니다.
+    fun refreshData(newRes: RestaurantResponse) {
+        if (_binding != null) {
+            initUI(newRes)
+        } else {
+            arguments?.putSerializable("restaurant", newRes)
+        }
+    }
+
     private fun initUI(res: RestaurantResponse) {
         binding.textViewAddress.text = res.address
         binding.textViewPhone.text = formatPhoneNumber(res.phone)
 
-        binding.textViewTime.text = formatOperatingHours(res.operatingHours)
+        // 영업 상태 및 오늘 시간 업데이트
+        updateWorkingStatus(res.operatingHours)
 
         val (iconRes, sizeText) = when {
             res.allowSmall && res.allowMedium && res.allowLarge -> R.drawable.icon_large_cap to "모든 견종 가능"
@@ -50,6 +65,99 @@ class PlaceInfoHomeFragment : Fragment(R.layout.fragment_place_info_home) {
         binding.layoutRestroom.visibility = if (res.hasRestroom) View.VISIBLE else View.GONE
     }
 
+    private fun updateWorkingStatus(hours: List<OperatingHour>?) {
+        if (hours.isNullOrEmpty()) {
+            binding.textViewIsWorking.text = "정보 없음 · "
+            binding.textViewTime.text = "-"
+            binding.textViewIsWorking.setTextColor(ContextCompat.getColor(requireContext(), R.color.gray))
+            return
+        }
+
+        val calendar = Calendar.getInstance()
+        val dayOfWeek = when (calendar.get(Calendar.DAY_OF_WEEK)) {
+            Calendar.SUNDAY -> "SUN"
+            Calendar.MONDAY -> "MON"
+            Calendar.TUESDAY -> "TUE"
+            Calendar.WEDNESDAY -> "WED"
+            Calendar.THURSDAY -> "THU"
+            Calendar.FRIDAY -> "FRI"
+            Calendar.SATURDAY -> "SAT"
+            else -> ""
+        }
+
+        val todayHour = hours.find { it.dayOfWeek.startsWith(dayOfWeek, ignoreCase = true) }
+        
+        if (todayHour == null) {
+            binding.textViewIsWorking.text = "정보 없음 · "
+            binding.textViewTime.text = "-"
+            binding.textViewIsWorking.setTextColor(ContextCompat.getColor(requireContext(), R.color.gray))
+            return
+        }
+
+        if (todayHour.regularHoliday) {
+            binding.textViewIsWorking.text = "영업종료 · "
+            binding.textViewTime.text = "정기휴무"
+            binding.textViewIsWorking.setTextColor(ContextCompat.getColor(requireContext(), R.color.gray))
+            return
+        }
+
+        val open = parseLocalTime(todayHour.openTime)
+        val close = if (todayHour.closeTime?.startsWith("24:00") == true || (todayHour.closeTime?.startsWith("00:00") == true && todayHour.openTime != "00:00:00")) {
+            LocalTime.MAX
+        } else {
+            parseLocalTime(todayHour.closeTime)
+        }
+
+        if (open == null || close == null) {
+            binding.textViewIsWorking.text = "정보 오류 · "
+            binding.textViewTime.text = "-"
+            binding.textViewIsWorking.setTextColor(ContextCompat.getColor(requireContext(), R.color.gray))
+            return
+        }
+
+        try {
+            val now = LocalTime.now()
+
+            // 영업 중인지 판단 (익일 마감 대응)
+            val isWorking = if (close.isBefore(open)) {
+                !now.isBefore(open) || now.isBefore(close)
+            } else {
+                !now.isBefore(open) && now.isBefore(close)
+            }
+
+            // 화면 표시용 (초 제외)
+            val timeViewFormatter = DateTimeFormatter.ofPattern("HH:mm")
+            binding.textViewTime.text = "${open.format(timeViewFormatter)} - ${if (close == LocalTime.MAX) "24:00" else close.format(timeViewFormatter)}"
+
+            if (isWorking) {
+                binding.textViewIsWorking.text = "영업중 · "
+                binding.textViewIsWorking.setTextColor(ContextCompat.getColor(requireContext(), R.color.orange))
+            } else {
+                binding.textViewIsWorking.text = "영업종료 · "
+                binding.textViewIsWorking.setTextColor(ContextCompat.getColor(requireContext(), R.color.gray))
+            }
+        } catch (e: Exception) {
+            Log.e("PlaceInfoHome", "Calculation error: ${e.message}")
+            binding.textViewIsWorking.text = "정보 오류 · "
+            binding.textViewTime.text = "-"
+            binding.textViewIsWorking.setTextColor(ContextCompat.getColor(requireContext(), R.color.gray))
+        }
+    }
+
+    private fun parseLocalTime(timeStr: String?): LocalTime? {
+        if (timeStr.isNullOrBlank()) return null
+        val cleaned = timeStr.trim()
+        val patterns = listOf("HH:mm:ss", "H:mm:ss", "HH:mm", "H:mm")
+        for (pattern in patterns) {
+            try {
+                return LocalTime.parse(cleaned, DateTimeFormatter.ofPattern(pattern))
+            } catch (e: Exception) {
+                continue
+            }
+        }
+        return null
+    }
+
     private fun formatPhoneNumber(phone: String): String {
         var digits = phone.replace(Regex("\\D"), "")
         if (digits.isEmpty()) return phone
@@ -73,25 +181,6 @@ class PlaceInfoHomeFragment : Fragment(R.layout.fragment_place_info_home) {
                     digits
                 }
             }
-        }
-    }
-
-    private fun formatOperatingHours(hours: List<OperatingHour>?): String {
-        if (hours.isNullOrEmpty()) return "정보 없음"
-        
-        return hours.joinToString("\n") { hour ->
-            val day = when (hour.dayOfWeek) {
-                "MON" -> "월"
-                "TUE" -> "화"
-                "WED" -> "수"
-                "THU" -> "목"
-                "FRI" -> "금"
-                "SAT" -> "토"
-                "SUN" -> "일"
-                else -> hour.dayOfWeek
-            }
-            if (hour.regularHoliday) "$day: 정기휴무"
-            else "$day: ${hour.openTime} - ${hour.closeTime}"
         }
     }
 

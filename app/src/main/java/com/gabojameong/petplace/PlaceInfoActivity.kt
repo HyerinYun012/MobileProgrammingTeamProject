@@ -69,7 +69,7 @@ class PlaceInfoActivity : AppCompatActivity() {
                     response.body()?.data?.let { detail ->
                         isBookmarked = detail.bookmarked
                         updateBookmarkUI()
-                        // 로컬 객체 상태도 업데이트
+
                         restaurant = restaurant?.copy(bookmarked = isBookmarked)
                         setBookmarkResult()
                     }

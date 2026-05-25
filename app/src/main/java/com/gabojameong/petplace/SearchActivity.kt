@@ -66,13 +66,28 @@ class SearchActivity : AppCompatActivity() {
 
         binding.btnCancel.setOnClickListener { finish() }
         binding.btnSortRegion.setOnClickListener {
-            RegionBottomSheet().show(supportFragmentManager, "RegionBottomSheet")
+            val bottomSheet = RegionBottomSheet().apply {
+                arguments = Bundle().apply {
+                    putStringArrayList("selected_regions", selectedRegions)
+                }
+            }
+            bottomSheet.show(supportFragmentManager, "RegionBottomSheet")
         }
         binding.btnSortConvenience.setOnClickListener {
-            ConvenienceBottomSheet().show(supportFragmentManager, "ConvenienceBottomSheet")
+            val bottomSheet = ConvenienceBottomSheet().apply {
+                arguments = Bundle().apply {
+                    putStringArrayList("selected_conveniences", selectedConveniences)
+                }
+            }
+            bottomSheet.show(supportFragmentManager, "ConvenienceBottomSheet")
         }
         binding.btnSortPet.setOnClickListener {
-            PetBottomSheet().show(supportFragmentManager, "PetBottomSheet")
+            val bottomSheet = PetBottomSheet().apply {
+                arguments = Bundle().apply {
+                    putStringArrayList("selected_pets", selectedPets)
+                }
+            }
+            bottomSheet.show(supportFragmentManager, "PetBottomSheet")
         }
         binding.btnSearch.setOnClickListener {
             val query = binding.editTextSearch.text.toString().trim()

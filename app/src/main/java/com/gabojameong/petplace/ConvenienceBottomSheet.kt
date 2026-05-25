@@ -30,19 +30,30 @@ class ConvenienceBottomSheet : BottomSheetDialogFragment() {
         val btnApply = view.findViewById<Button>(R.id.btnApply)
         val recommendLayout = view.findViewById<FlexboxLayout>(R.id.recommendLayout)
         
+        // 이전 선택 내역 반영
+        val previousSelection = arguments?.getStringArrayList("selected_conveniences")
+        if (previousSelection != null) {
+            for (i in 0 until recommendLayout.childCount) {
+                val child = recommendLayout.getChildAt(i)
+                if (child is CheckBox && previousSelection.contains(child.text.toString())) {
+                    child.isChecked = true
+                }
+            }
+        }
+        
         btnApply.setOnClickListener {
-            val selectedRegions = mutableListOf<String>()
+            val selectedConveniences = mutableListOf<String>()
             
             // FlexboxLayout 내의 모든 CheckBox를 확인하여 체크된 항목 수집
             for (i in 0 until recommendLayout.childCount) {
                 val child = recommendLayout.getChildAt(i)
                 if (child is CheckBox && child.isChecked) {
-                    selectedRegions.add(child.text.toString())
+                    selectedConveniences.add(child.text.toString())
                 }
             }
 
             val result = Bundle()
-            result.putStringArrayList("selected_conveniences", ArrayList(selectedRegions))
+            result.putStringArrayList("selected_conveniences", ArrayList(selectedConveniences))
             setFragmentResult("convenience_selection", result)
 
             dismiss()

@@ -30,6 +30,17 @@ class RegionBottomSheet : BottomSheetDialogFragment() {
         val btnApply = view.findViewById<Button>(R.id.btnApply)
         val recommendLayout = view.findViewById<FlexboxLayout>(R.id.recommendLayout)
         
+        // 이전 선택 내역 반영
+        val previousSelection = arguments?.getStringArrayList("selected_regions")
+        if (previousSelection != null) {
+            for (i in 0 until recommendLayout.childCount) {
+                val child = recommendLayout.getChildAt(i)
+                if (child is CheckBox && previousSelection.contains(child.text.toString())) {
+                    child.isChecked = true
+                }
+            }
+        }
+        
         btnApply.setOnClickListener {
             val selectedRegions = mutableListOf<String>()
             

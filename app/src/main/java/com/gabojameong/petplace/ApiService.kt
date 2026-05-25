@@ -97,8 +97,8 @@ data class MenuRequest(
 
 data class OperatingHourRequest(
     val dayOfWeek: String,
-    val openTime: String,
-    val closeTime: String,
+    val openTime: String?,
+    val closeTime: String?,
     val regularHoliday: Boolean
 ) : Serializable
 

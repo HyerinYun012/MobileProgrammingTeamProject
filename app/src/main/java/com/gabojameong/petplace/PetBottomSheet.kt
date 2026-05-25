@@ -32,6 +32,20 @@ class PetBottomSheet : BottomSheetDialogFragment() {
         val recommendLayout2 = view.findViewById<FlexboxLayout>(R.id.recommendLayout2)
         val recommendLayout3 = view.findViewById<FlexboxLayout>(R.id.recommendLayout3)
 
+        // 이전 선택 내역 반영
+        val previousSelection = arguments?.getStringArrayList("selected_pets")
+        if (previousSelection != null) {
+            val layouts = listOf(recommendLayout, recommendLayout2, recommendLayout3)
+            for (layout in layouts) {
+                for (i in 0 until layout.childCount) {
+                    val child = layout.getChildAt(i)
+                    if (child is CheckBox && previousSelection.contains(child.text.toString())) {
+                        child.isChecked = true
+                    }
+                }
+            }
+        }
+
         btnApply.setOnClickListener {
             val selectedPets = mutableListOf<String>()
 
