@@ -19,7 +19,7 @@ class SearchResultAdapter(
             binding.tvPlaceName.text = item.name
             binding.tvLocation.text = item.region
 
-            updateFavoriteUI(item.isBookmarked)
+            updateFavoriteUI(item.bookmarked)
 
             // Glide를 사용하여 이미지 로드 (라운딩 처리 포함)
             val imageUrl = item.imageUrl
@@ -33,9 +33,8 @@ class SearchResultAdapter(
 
             binding.btnBookmark.setOnClickListener {
                 onFavoriteClick(item) { isNowBookmarked ->
-                    // 리스트의 데이터 상태도 업데이트 (필요 시)
-                    item.copy(isBookmarked = isNowBookmarked) // 실제 원본 리스트의 객체 상태를 바꾸고 싶다면 아래처럼 처리
-                    updateFavoriteUI(isNowBookmarked)
+                    // 리스트의 데이터 상태도 업데이트
+                    updateBookmarkStatus(item.id, isNowBookmarked)
                 }
             }
 
@@ -63,5 +62,18 @@ class SearchResultAdapter(
     fun updateData(newItems: List<RestaurantResponse>) {
         this.items = newItems
         notifyDataSetChanged()
+    }
+
+    fun updateBookmarkStatus(restaurantId: Long, isBookmarked: Boolean) {
+        val index = items.indexOfFirst { it.id == restaurantId }
+        if (index != -1) {
+            if (items[index].bookmarked != isBookmarked) {
+                val updatedItem = items[index].copy(bookmarked = isBookmarked)
+                val newList = items.toMutableList()
+                newList[index] = updatedItem
+                items = newList
+                notifyItemChanged(index)
+            }
+        }
     }
 }

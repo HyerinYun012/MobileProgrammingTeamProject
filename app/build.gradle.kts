@@ -6,6 +6,8 @@ plugins {
 
 val localProperties = Properties().apply { rootProject.file("local.properties").inputStream().use { load(it) } }
 
+
+
 android {
     namespace = "com.gabojameong.petplace"
     compileSdk = 36

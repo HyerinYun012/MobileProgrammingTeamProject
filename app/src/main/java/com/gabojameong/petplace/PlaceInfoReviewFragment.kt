@@ -50,7 +50,6 @@ class PlaceInfoReviewFragment : Fragment() {
     }
 
     private fun fetchReviews(restaurantId: Long) {
-        // 7-7: 명세의 pageable (Object) 대응을 위한 QueryMap 구성
         val pageableMap = mapOf(
             "page" to "0",
             "size" to "10"
@@ -76,53 +75,63 @@ class PlaceInfoReviewFragment : Fragment() {
             binding.tvRateCount.text = "0개 평점"
             binding.btnRecentReview.text = "아직 등록된 리뷰가 없습니다."
             binding.ivRecentReview.visibility = View.GONE
+            binding.btnRecentReview.setPadding(dpToPx(16), 0, dpToPx(16), 0)
+            
+            binding.tvImageReviews.visibility = View.GONE
+            binding.hsvImageReviews.visibility = View.GONE
             return
         }
 
-        // 1. 평점 및 개수 업데이트
         val avgRate = reviews.map { it.rating }.average()
         binding.tvRate.text = String.format("%.1f · ", avgRate)
         binding.tvRateCount.text = "${reviews.size}개 평점"
 
-        // 2. 최신 리뷰 미리보기
         val recentReview = reviews[0]
         binding.btnRecentReview.text = getString(R.string.best_review_format, recentReview.writerName, recentReview.content)
         
-        if (recentReview.imageUrl != null) {
+        if (!recentReview.imageUrl.isNullOrEmpty()) {
             binding.ivRecentReview.visibility = View.VISIBLE
+            binding.btnRecentReview.setPadding(dpToPx(90), 0, dpToPx(16), 0)
             Glide.with(this)
                 .load(recentReview.imageUrl)
                 .centerCrop()
                 .into(binding.ivRecentReview)
         } else {
             binding.ivRecentReview.visibility = View.GONE
+            binding.btnRecentReview.setPadding(dpToPx(16), 0, dpToPx(16), 0)
         }
 
         binding.btnRecentReview.setOnClickListener {
             Toast.makeText(requireContext().applicationContext, "리뷰 목록 화면으로 이동합니다 (구현 예정)", Toast.LENGTH_SHORT).show()
         }
 
-        // 3. 사진 리뷰 목록 동적 생성
         binding.llImageReviews.removeAllViews()
         val imageReviews = reviews.filter { !it.imageUrl.isNullOrEmpty() }
         
-        for (review in imageReviews) {
-            val imageView = ImageView(requireContext().applicationContext).apply {
-                val size = dpToPx(120)
-                layoutParams = LinearLayout.LayoutParams(size, size).apply {
-                    setMargins(0, 0, dpToPx(10), 0)
+        if (imageReviews.isEmpty()) {
+            binding.tvImageReviews.visibility = View.GONE
+            binding.hsvImageReviews.visibility = View.GONE
+        } else {
+            binding.tvImageReviews.visibility = View.VISIBLE
+            binding.hsvImageReviews.visibility = View.VISIBLE
+            
+            for (review in imageReviews) {
+                val imageView = ImageView(requireContext().applicationContext).apply {
+                    val size = dpToPx(120)
+                    layoutParams = LinearLayout.LayoutParams(size, size).apply {
+                        setMargins(0, 0, dpToPx(10), 0)
+                    }
+                    scaleType = ImageView.ScaleType.CENTER_CROP
+                    clipToOutline = true
                 }
-                scaleType = ImageView.ScaleType.CENTER_CROP
-                setBackgroundResource(R.drawable.bg_round_gray)
-                clipToOutline = true
+                
+                Glide.with(this)
+                    .load(review.imageUrl)
+                    .centerCrop()
+                    .into(imageView)
+                
+                binding.llImageReviews.addView(imageView)
             }
-            
-            Glide.with(this)
-                .load(review.imageUrl)
-                .centerCrop()
-                .into(imageView)
-            
-            binding.llImageReviews.addView(imageView)
         }
     }
 

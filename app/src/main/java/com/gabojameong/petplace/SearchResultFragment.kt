@@ -1,11 +1,13 @@
 package com.gabojameong.petplace
 
+import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.GridLayoutManager
 import com.gabojameong.petplace.databinding.FragmentSearchResultBinding
@@ -19,6 +21,16 @@ class SearchResultFragment : Fragment() {
     private var _binding: FragmentSearchResultBinding? = null
     private val binding get() = _binding!!
     private val apiService = RetrofitClient.apiService
+
+    private val startForResult = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+        if (result.resultCode == Activity.RESULT_OK) {
+            val restaurantId = result.data?.getLongExtra("restaurantId", -1L) ?: -1L
+            val isBookmarked = result.data?.getBooleanExtra("isBookmarked", false) ?: false
+            if (restaurantId != -1L) {
+                (binding.rvSearchResult.adapter as? SearchResultAdapter)?.updateBookmarkStatus(restaurantId, isBookmarked)
+            }
+        }
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -66,7 +78,7 @@ class SearchResultFragment : Fragment() {
                 val intent = Intent(requireContext(), PlaceInfoActivity::class.java).apply {
                     putExtra("restaurant", restaurant as Serializable)
                 }
-                startActivity(intent)
+                startForResult.launch(intent)
             }
         )
 

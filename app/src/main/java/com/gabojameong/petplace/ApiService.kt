@@ -152,7 +152,7 @@ data class RestaurantResponse(
     val hasOutdoor: Boolean,
     val imageUrl: String?,
     val verified: Boolean,
-    val isBookmarked: Boolean = false
+    val bookmarked: Boolean
 ) : Serializable
 
 data class RestaurantDetailResponse(
@@ -183,7 +183,7 @@ data class RestaurantDetailResponse(
     val menus: List<MenuResponse>?,
     val verified: Boolean,
     val imageUrl: String?,
-    val isBookmarked: Boolean = false
+    val bookmarked: Boolean = false
 ) : Serializable
 
 data class MenuResponse(val id: Long, val name: String, val price: Int, val description: String?, val imageUrl: String?) : Serializable

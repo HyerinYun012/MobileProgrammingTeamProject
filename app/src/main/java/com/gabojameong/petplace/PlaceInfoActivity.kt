@@ -1,5 +1,6 @@
 package com.gabojameong.petplace
 
+import android.content.Intent
 import android.os.Bundle
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
@@ -32,12 +33,11 @@ class PlaceInfoActivity : AppCompatActivity() {
         }
 
         restaurantId = restaurant!!.id
-        isBookmarked = restaurant!!.isBookmarked
+        isBookmarked = restaurant!!.bookmarked
         
         initUI(restaurant!!)
         initFragmentNavigation()
-        
-        // 서버에서 최신 상세 정보를 가져와 북마크 상태 동기화
+
         fetchLatestRestaurantDetail()
 
         binding.btnReturn.setOnClickListener { finish() }
@@ -67,10 +67,11 @@ class PlaceInfoActivity : AppCompatActivity() {
             override fun onResponse(call: Call<ApiResponse<RestaurantDetailResponse>>, response: Response<ApiResponse<RestaurantDetailResponse>>) {
                 if (response.isSuccessful) {
                     response.body()?.data?.let { detail ->
-                        isBookmarked = detail.isBookmarked
+                        isBookmarked = detail.bookmarked
                         updateBookmarkUI()
                         // 로컬 객체 상태도 업데이트
-                        restaurant = restaurant?.copy(isBookmarked = isBookmarked)
+                        restaurant = restaurant?.copy(bookmarked = isBookmarked)
+                        setBookmarkResult()
                     }
                 }
             }
@@ -106,7 +107,8 @@ class PlaceInfoActivity : AppCompatActivity() {
                 if (response.isSuccessful && apiResponse?.success == true) {
                     isBookmarked = apiResponse.data ?: false
                     updateBookmarkUI()
-                    restaurant = restaurant?.copy(isBookmarked = isBookmarked)
+                    restaurant = restaurant?.copy(bookmarked = isBookmarked)
+                    setBookmarkResult()
                     val message = if (isBookmarked) "북마크에 추가되었습니다." else "북마크가 취소되었습니다."
                     Toast.makeText(applicationContext, message, Toast.LENGTH_SHORT).show()
                 }
@@ -121,5 +123,13 @@ class PlaceInfoActivity : AppCompatActivity() {
         binding.btnBookmark.setBackgroundResource(
             if (isBookmarked) R.drawable.icon_heart else R.drawable.icon_heart_empty
         )
+    }
+
+    private fun setBookmarkResult() {
+        val data = Intent().apply {
+            putExtra("restaurantId", restaurantId)
+            putExtra("isBookmarked", isBookmarked)
+        }
+        setResult(RESULT_OK, data)
     }
 }
