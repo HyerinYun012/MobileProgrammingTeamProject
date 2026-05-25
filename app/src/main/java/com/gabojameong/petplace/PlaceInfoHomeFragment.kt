@@ -19,7 +19,7 @@ class PlaceInfoHomeFragment : Fragment(R.layout.fragment_place_info_home) {
 
     private fun initUI(res: RestaurantResponse) {
         binding.textViewAddress.text = res.address
-        binding.textViewPhone.text = res.phone
+        binding.textViewPhone.text = formatPhoneNumber(res.phone)
 
         binding.textViewTime.text = formatOperatingHours(res.operatingHours)
 
@@ -48,6 +48,32 @@ class PlaceInfoHomeFragment : Fragment(R.layout.fragment_place_info_home) {
         binding.layoutSnack.visibility = if (res.hasSnack) View.VISIBLE else View.GONE
         binding.layoutParking.visibility = if (res.hasParking) View.VISIBLE else View.GONE
         binding.layoutRestroom.visibility = if (res.hasRestroom) View.VISIBLE else View.GONE
+    }
+
+    private fun formatPhoneNumber(phone: String): String {
+        var digits = phone.replace(Regex("\\D"), "")
+        if (digits.isEmpty()) return phone
+
+        if (!digits.startsWith("010")) {
+            digits = "010$digits"
+        }
+
+        return when {
+            digits.length == 10 -> {
+                "${digits.substring(0, 3)}-${digits.substring(3, 6)}-${digits.substring(6)}"
+            }
+            digits.length >= 11 -> {
+                val sub = digits.substring(0, 11)
+                "${sub.substring(0, 3)}-${sub.substring(3, 7)}-${sub.substring(7)}"
+            }
+            else -> {
+                if (digits.length > 3) {
+                    "${digits.substring(0, 3)}-${digits.substring(3)}"
+                } else {
+                    digits
+                }
+            }
+        }
     }
 
     private fun formatOperatingHours(hours: List<OperatingHour>?): String {

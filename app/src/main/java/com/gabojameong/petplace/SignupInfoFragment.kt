@@ -1,10 +1,14 @@
 package com.gabojameong.petplace
 
 import android.os.Bundle
+import android.text.Editable
+import android.text.Selection
+import android.text.TextWatcher
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.CheckBox
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import com.gabojameong.petplace.databinding.FragmentSingupInfoBinding
@@ -32,8 +36,6 @@ class SignupInfoFragment : Fragment() {
             role = it.getString("role")
             isSocial = it.getBoolean("isSocial", false)
         }
-        checkedIdDuplication = false
-        checkedNicknameDuplication = false
     }
 
     override fun onCreateView(
@@ -56,10 +58,7 @@ class SignupInfoFragment : Fragment() {
             binding.llPwCheck.visibility = View.GONE
             binding.btnIdCheck.visibility = View.GONE
             binding.textViewUserInfo.text = "소셜 계정 추가 정보 입력"
-            
-            // 전달받은 닉네임 설정
-            //binding.editTextNickname.setText(arguments?.getString("nickname"))
-            
+
             // ID/PW가 없으므로 체크 통과 처리
             checkedIdDuplication = true
         }
@@ -67,18 +66,18 @@ class SignupInfoFragment : Fragment() {
         if (role == "owner") {
             binding.llBusiness.visibility = View.VISIBLE
             binding.textViewBusiness.visibility = View.VISIBLE
+            // 사업자 회원가입 시 기본 서비스 유형 선택
+            binding.checkBoxRestaurant.isChecked = true
         } else {
             binding.llBusiness.visibility = View.GONE
             binding.textViewBusiness.visibility = View.GONE
         }
 
-        // 체크박스 상호 배제 로직
-        binding.checkBoxAgree.setOnCheckedChangeListener { _, isChecked ->
-            if (isChecked) binding.checkBoxDisagree.isChecked = false
-        }
-        binding.checkBoxDisagree.setOnCheckedChangeListener { _, isChecked ->
-            if (isChecked) binding.checkBoxAgree.isChecked = false
-        }
+        // 마케팅 동의 체크박스 상호 배제 로직
+        setupMutualExclusion(listOf(binding.checkBoxAgree, binding.checkBoxDisagree))
+
+        // 서비스 유형 체크박스 상호 배제 로직 (식당/카페/기타)
+        setupMutualExclusion(listOf(binding.checkBoxRestaurant, binding.checkBoxCafe, binding.checkBoxOthers), mandatory = (role == "owner"))
 
         binding.btnIdCheck.setOnClickListener {
             checkIdDuplication()
@@ -90,6 +89,62 @@ class SignupInfoFragment : Fragment() {
 
         binding.btnSubmit.setOnClickListener {
             performSignup()
+        }
+
+        // 전화번호 자동 포맷팅 (010-xxxx-xxxx 고정)
+        binding.editTextPhone.setText("010-")
+        Selection.setSelection(binding.editTextPhone.text, 4)
+        binding.editTextPhone.addTextChangedListener(object : TextWatcher {
+            private var isFormatting = false
+            private val prefix = "010-"
+
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
+
+            override fun afterTextChanged(s: Editable?) {
+                if (isFormatting || s == null) return
+                isFormatting = true
+
+                val input = s.toString()
+
+                // 010- 접두사 강제 유지
+                if (!input.startsWith(prefix)) {
+                    s.replace(0, s.length, prefix)
+                    isFormatting = false
+                    binding.editTextPhone.setSelection(prefix.length)
+                    return
+                }
+
+                // 숫자만 추출 (010- 이후)
+                val body = input.substring(prefix.length).replace("-", "")
+                val digits = body.filter { it.isDigit() }.take(8)
+                
+                val formatted = StringBuilder(prefix)
+                for (i in digits.indices) {
+                    if (i == 4) formatted.append("-")
+                    formatted.append(digits[i])
+                }
+
+                val finalStr = formatted.toString()
+                if (input != finalStr) {
+                    s.replace(0, s.length, finalStr)
+                    binding.editTextPhone.setSelection(finalStr.length)
+                }
+
+                isFormatting = false
+            }
+        })
+    }
+
+    private fun setupMutualExclusion(checkboxes: List<CheckBox>, mandatory: Boolean = false) {
+        checkboxes.forEach { current ->
+            current.setOnClickListener {
+                if (current.isChecked) {
+                    checkboxes.filter { it != current }.forEach { it.isChecked = false }
+                } else if (mandatory) {
+                    current.isChecked = true
+                }
+            }
         }
     }
 
@@ -111,7 +166,8 @@ class SignupInfoFragment : Fragment() {
                         Toast.makeText(requireContext().applicationContext, "이미 사용 중인 아이디입니다.", Toast.LENGTH_SHORT).show()
                     }
                 } else {
-                    Toast.makeText(requireContext().applicationContext, "중복 확인 실패: ${RetrofitClient.parseErrorMessage(response)}", Toast.LENGTH_SHORT).show()
+                    val msg = RetrofitClient.parseErrorMessage(response)
+                    Toast.makeText(requireContext().applicationContext, "중복 확인 실패: $msg", Toast.LENGTH_SHORT).show()
                 }
             }
 
@@ -139,7 +195,8 @@ class SignupInfoFragment : Fragment() {
                         Toast.makeText(requireContext().applicationContext, "이미 사용 중인 닉네임입니다.", Toast.LENGTH_SHORT).show()
                     }
                 } else {
-                    Toast.makeText(requireContext().applicationContext, "중복 확인 실패: ${RetrofitClient.parseErrorMessage(response)}", Toast.LENGTH_SHORT).show()
+                    val msg = RetrofitClient.parseErrorMessage(response)
+                    Toast.makeText(requireContext().applicationContext, "중복 확인 실패: $msg", Toast.LENGTH_SHORT).show()
                 }
             }
 
@@ -151,17 +208,33 @@ class SignupInfoFragment : Fragment() {
 
     private fun performSignup() {
         val nickname = binding.editTextNickname.text.toString().trim()
-        val phone = binding.editTextPhone.text.toString().trim()
+        val phone = binding.editTextPhone.text.toString().replace("-", "")
         val email = binding.editTextEmail.text.toString().trim()
 
-        if (nickname.isEmpty() || phone.isEmpty() || email.isEmpty()) {
-            Toast.makeText(requireContext().applicationContext, "필수 정보를 모두 입력해주세요.", Toast.LENGTH_SHORT).show()
+        if (nickname.isEmpty() || phone.length < 11 || email.isEmpty()) {
+            Toast.makeText(requireContext().applicationContext, "필수 정보를 올바르게 입력해주세요. (전화번호 11자리)", Toast.LENGTH_SHORT).show()
             return
         }
 
         if (!checkedNicknameDuplication) {
             Toast.makeText(requireContext().applicationContext, "닉네임 중복 확인을 해주세요.", Toast.LENGTH_SHORT).show()
             return
+        }
+
+        if (role == "owner") {
+            val businessNumber = binding.editTextBusinessNumber.text.toString().trim()
+            val businessAddress = binding.editTextBusinessAdress.text.toString().trim()
+            val businessName = binding.editTextBusinessName.text.toString().trim()
+            
+            if (businessNumber.isEmpty() || businessAddress.isEmpty() || businessName.isEmpty()) {
+                Toast.makeText(requireContext().applicationContext, "사업자 정보를 입력해주세요.", Toast.LENGTH_SHORT).show()
+                return
+            }
+
+            if (!binding.checkBoxRestaurant.isChecked && !binding.checkBoxCafe.isChecked && !binding.checkBoxOthers.isChecked) {
+                Toast.makeText(requireContext().applicationContext, "서비스 유형을 선택해주세요.", Toast.LENGTH_SHORT).show()
+                return
+            }
         }
 
         if (isSocial) {
@@ -199,16 +272,8 @@ class SignupInfoFragment : Fragment() {
             return
         }
 
-        if (role == "owner") {
-            val businessNumber = binding.editTextBusinessNumber.text.toString().trim()
-            val businessAddress = binding.editTextBusinessAdress.text.toString().trim()
-            val businessName = binding.editTextBusinessName.text.toString().trim()
-            if (businessNumber.isEmpty() || businessAddress.isEmpty()) {
-                Toast.makeText(requireContext().applicationContext, "사업자 정보를 입력해주세요.", Toast.LENGTH_SHORT).show()
-                return
-            }
-
-            val ownerRequest = OwnerSignupRequest(
+        val request = if (role == "owner") {
+            OwnerSignupRequest(
                 loginId = loginId,
                 password = password,
                 passwordConfirm = passwordConfirm,
@@ -217,10 +282,8 @@ class SignupInfoFragment : Fragment() {
                 phone = phone,
                 email = email
             )
-
-            apiService.signupOwner(ownerRequest).enqueue(signupCallback)
         } else {
-            val request = CustomerSignupRequest(
+            CustomerSignupRequest(
                 name = name,
                 loginId = loginId,
                 password = password,
@@ -229,7 +292,12 @@ class SignupInfoFragment : Fragment() {
                 phone = phone,
                 email = email
             )
-            apiService.signupCustomer(request).enqueue(signupCallback)
+        }
+
+        if (role == "owner") {
+            apiService.signupOwner(request as OwnerSignupRequest).enqueue(signupCallback)
+        } else {
+            apiService.signupCustomer(request as CustomerSignupRequest).enqueue(signupCallback)
         }
     }
 
@@ -241,8 +309,25 @@ class SignupInfoFragment : Fragment() {
                     RetrofitClient.setToken(token)
                     registerRestaurantAfterSignup(name, addr, phone, bNo)
                 } else {
-                    val msg = RetrofitClient.parseErrorMessage(response)
-                    Toast.makeText(requireContext().applicationContext, "자동 로그인 실패: $msg", Toast.LENGTH_LONG).show()
+                    navigateToLogin()
+                }
+            }
+            override fun onFailure(call: Call<ApiResponse<String>>, t: Throwable) {
+                navigateToLogin()
+            }
+        })
+    }
+
+    private fun autoSocialLoginAndRegisterRestaurant(provider: String, token: String, id: String, name: String, addr: String, phone: String, bNo: String) {
+        val req = SocialLoginRequest(provider, token, id)
+        apiService.socialLogin(req).enqueue(object : Callback<ApiResponse<String>> {
+            override fun onResponse(call: Call<ApiResponse<String>>, response: Response<ApiResponse<String>>) {
+                val jwt = response.body()?.data
+                if (response.isSuccessful && jwt != null) {
+                    RetrofitClient.setToken(jwt)
+                    registerRestaurantAfterSignup(name, addr, phone, bNo)
+                } else {
+                    Toast.makeText(requireContext().applicationContext, "소셜 자동 로그인 실패", Toast.LENGTH_LONG).show()
                     navigateToLogin()
                 }
             }
@@ -256,7 +341,7 @@ class SignupInfoFragment : Fragment() {
         val category = when {
             binding.checkBoxRestaurant.isChecked -> "RESTAURANT"
             binding.checkBoxCafe.isChecked -> "CAFE"
-            else -> "RESTAURANT"
+            else -> "OTHERS"
         }
 
         val resRequest = RestaurantRequest(
@@ -281,8 +366,6 @@ class SignupInfoFragment : Fragment() {
                     Toast.makeText(requireContext().applicationContext, "가입 및 가게 등록 완료!", Toast.LENGTH_SHORT).show()
                     navigateToLogin()
                 } else {
-                    val msg = RetrofitClient.parseErrorMessage(response)
-                    Toast.makeText(requireContext().applicationContext, "가게 등록 실패: $msg", Toast.LENGTH_LONG).show()
                     navigateToLogin()
                 }
             }
@@ -316,26 +399,32 @@ class SignupInfoFragment : Fragment() {
     private val signupCallback = object : Callback<ApiResponse<Any>> {
         override fun onResponse(call: Call<ApiResponse<Any>>, response: Response<ApiResponse<Any>>) {
             if (response.isSuccessful && response.body()?.success == true) {
-                if (role == "owner" && !isSocial) {
-                    val loginId = binding.editTextId.text.toString().trim()
-                    val pw = binding.editTextPw.text.toString().trim()
+                if (role == "owner") {
                     val bName = binding.editTextBusinessName.text.toString().trim()
                     val bAddr = binding.editTextBusinessAdress.text.toString().trim()
-                    val bPhone = binding.editTextPhone.text.toString().trim()
+                    val bPhone = binding.editTextPhone.text.toString().replace("-", "")
                     val bNo = binding.editTextBusinessNumber.text.toString().trim()
-                    autoLoginAndRegisterRestaurant(loginId, pw, bName, bAddr, bPhone, bNo)
+
+                    if (isSocial) {
+                        val provider = arguments?.getString("provider") ?: ""
+                        val accessToken = arguments?.getString("accessToken") ?: ""
+                        val providerId = arguments?.getString("providerId") ?: ""
+                        autoSocialLoginAndRegisterRestaurant(provider, accessToken, providerId, bName, bAddr, bPhone, bNo)
+                    } else {
+                        val loginId = binding.editTextId.text.toString().trim()
+                        val pw = binding.editTextPw.text.toString().trim()
+                        autoLoginAndRegisterRestaurant(loginId, pw, bName, bAddr, bPhone, bNo)
+                    }
                 } else {
                     Toast.makeText(requireContext().applicationContext, "회원가입 성공!", Toast.LENGTH_SHORT).show()
                     navigateToLogin()
                 }
             } else {
                 val msg = RetrofitClient.parseErrorMessage(response)
-                Log.e("SignupCallback", "onResponse: $msg")
                 Toast.makeText(requireContext().applicationContext, "가입 실패: $msg", Toast.LENGTH_LONG).show()
             }
         }
         override fun onFailure(call: Call<ApiResponse<Any>>, t: Throwable) {
-            Log.e("SignupCallback", "onFailure: ${t.message}", t)
             Toast.makeText(requireContext().applicationContext, "네트워크 오류: ${t.message}", Toast.LENGTH_LONG).show()
         }
     }

@@ -1,6 +1,8 @@
 package com.gabojameong.petplace
 
 import android.os.Bundle
+import android.text.Editable
+import android.text.TextWatcher
 import android.util.Log
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
@@ -20,13 +22,49 @@ class FindPwActivity : AppCompatActivity() {
 
         binding.btnBack.setOnClickListener { finish() }
 
+        // 전화번호 자동 포맷팅 (010-xxxx-xxxx 고정)
+        binding.etPhone.setText("010-")
+        binding.etPhone.setSelection(4)
+        binding.etPhone.addTextChangedListener(object : TextWatcher {
+            private var isFormatting = false
+
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
+
+            override fun afterTextChanged(s: Editable?) {
+                if (isFormatting) return
+                isFormatting = true
+
+                var input = s.toString().replace("-", "")
+                if (!input.startsWith("010")) {
+                    input = "010" + input
+                }
+
+                val formatted = StringBuilder()
+                for (i in input.indices) {
+                    formatted.append(input[i])
+                    if ((i == 2 || i == 6) && i != input.length - 1) {
+                        formatted.append("-")
+                    }
+                    if (i == 10) break
+                }
+
+                val finalStr = formatted.toString()
+                if (s.toString() != finalStr) {
+                    s?.replace(0, s.length, finalStr)
+                    binding.etPhone.setSelection(binding.etPhone.length())
+                }
+                isFormatting = false
+            }
+        })
+
         binding.btnFindPw.setOnClickListener {
             val loginId = binding.etId.text.toString().trim()
             val phone = binding.etPhone.text.toString().trim()
             val newPassword = binding.etNewPw.text.toString().trim()
             val newPassword2 = binding.etNewPw2.text.toString().trim()
 
-            if (loginId.isEmpty() || phone.isEmpty()) {
+            if (loginId.isEmpty() || phone.isEmpty() || phone == "010-") {
                 Toast.makeText(applicationContext, "아이디와 전화번호를 입력해주세요.", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }

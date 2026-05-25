@@ -132,7 +132,8 @@ class SearchActivity : AppCompatActivity() {
             selectedRegions?.let { regions ->
                 val mappedRegions = regions.map { mapRegionToEnum(it) }
                 if (mappedRegions.isNotEmpty()) {
-                    filterMap["regions"] = mappedRegions
+                    // List를 그대로 Map에 넣으면 [VALUE] 형태로 인코딩되므로 쉼표로 연결된 문자열로 변환
+                    filterMap["regions"] = mappedRegions.joinToString(",")
                 }
             }
 
@@ -152,7 +153,7 @@ class SearchActivity : AppCompatActivity() {
                 if (it.contains("간식")) filterMap["hasSnack"] = "true"
                 if (it.contains("화장실")) filterMap["hasRestroom"] = "true"
             }
-            Log.d("SearchActivity", "Filter Map: $filterMap")
+            Log.d("SearchActivity", "Filter Map: $filterMap, Pageable Map: $pageableMap")
             apiService.filterRestaurants(filterMap, pageableMap)
         } else {
             if (query.isEmpty()) {
@@ -161,6 +162,9 @@ class SearchActivity : AppCompatActivity() {
             }
             apiService.search(query, pageableMap)
         }
+
+        // Request URL 로그 추가
+        Log.d("SearchActivity", "Request URL: ${call.request().url}")
 
         call.enqueue(object : Callback<ApiResponse<PageResponse<RestaurantResponse>>> {
             override fun onResponse(call: Call<ApiResponse<PageResponse<RestaurantResponse>>>, response: Response<ApiResponse<PageResponse<RestaurantResponse>>>) {
