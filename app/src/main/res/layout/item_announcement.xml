@@ -40,14 +40,15 @@
         android:id="@+id/ivPreview"
         android:layout_width="0dp"
         android:layout_height="0dp"
-        android:background="@drawable/bg_round_gray"
+        android:background="@null"
         android:scaleType="centerCrop"
+        android:visibility="gone"
         app:layout_constraintDimensionRatio="5:1"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/ivPoster"
-        app:layout_constraintWidth_percent="0.9"
-        app:srcCompat="@drawable/test_announcement_preview" />
+        app:layout_constraintWidth_percent="0.9" />
+<!--        app:srcCompat="@drawable/test_announcement_preview" />-->
 
     <androidx.appcompat.widget.AppCompatButton
         android:id="@+id/btnInvisible"

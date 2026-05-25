@@ -4,25 +4,46 @@ plugins {
     alias(libs.plugins.android.application)
 }
 
+val localProperties = Properties().apply { rootProject.file("local.properties").inputStream().use { load(it) } }
 
 android {
-    namespace = "com.example.petplace"
-    compileSdk {
-        version = release(36) {
-            minorApiLevel = 1
-        }
-    }
+    namespace = "com.gabojameong.petplace"
+    compileSdk = 36
 
     defaultConfig {
-        applicationId = "com.example.petplace"
+        applicationId = "com.gabojameong.petplace"
         minSdk = 35
         targetSdk = 36
         versionCode = 1
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-    }
 
+        val kakaoNativeKey = localProperties.getProperty("KAKAO_NATIVE_KEY") ?: ""
+        buildConfigField("String", "KAKAO_NATIVE_KEY", "\"$kakaoNativeKey\"")
+        manifestPlaceholders["KAKAO_NATIVE_KEY"] = kakaoNativeKey
+
+        buildConfigField(
+            "String",
+            "NAVER_CLIENT_ID",
+            "\"" + localProperties.getProperty("NAVER_CLIENT_ID") + "\""
+        )
+        buildConfigField(
+            "String",
+            "NAVER_CLIENT_SECRET",
+            "\"" + localProperties.getProperty("NAVER_CLIENT_SECRET") + "\""
+        )
+        buildConfigField(
+            "String",
+            "NAVER_MAP_CLIENT_ID",
+            "\"" + localProperties.getProperty("NAVER_MAP_CLIENT_ID") + "\""
+        )
+        buildConfigField(
+            "String",
+            "NAVER_MAP_CLIENT_SECRET",
+            "\"" + localProperties.getProperty("NAVER_MAP_CLIENT_SECRET") + "\""
+        )
+    }
     buildTypes {
         release {
             isMinifyEnabled = false
@@ -35,6 +56,7 @@ android {
 
     buildFeatures{
         viewBinding = true
+        buildConfig = true
     }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
@@ -61,6 +83,8 @@ dependencies {
     androidTestImplementation(libs.androidx.espresso.core)
     // Kakao Login
     implementation("com.kakao.sdk:v2-user:2.20.6")
+    // Naver Login
+    implementation("com.navercorp.nid:oauth:5.11.2")
     // Retrofit (Java/Kotlin RESTful API 맞추기용)
     implementation("com.squareup.retrofit2:retrofit:2.9.0")
     implementation("com.squareup.retrofit2:converter-gson:2.9.0")

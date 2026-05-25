@@ -8,7 +8,7 @@
 
     <!-- 이미지: 너비의 92% 사용, 1:1 비율 유지, 중앙 정렬로 자동 마진 생성 -->
     <ImageButton
-        android:id="@+id/btnFavorite"
+        android:id="@+id/btnBookmark"
         android:layout_width="40dp"
         android:layout_height="40dp"
         android:background="@drawable/icon_heart_empty"
@@ -39,7 +39,7 @@
         android:text="[Location]"
         android:textColor="@color/gray"
         android:textSize="11sp"
-        app:layout_constraintEnd_toStartOf="@+id/btnFavorite"
+        app:layout_constraintEnd_toStartOf="@+id/btnBookmark"
         app:layout_constraintStart_toStartOf="@+id/ivPlace"
         app:layout_constraintTop_toBottomOf="@+id/ivPlace" />
 
@@ -53,7 +53,7 @@
         android:text="[Place Name]"
         android:textColor="@color/black"
         android:textSize="15sp"
-        app:layout_constraintEnd_toStartOf="@+id/btnFavorite"
+        app:layout_constraintEnd_toStartOf="@+id/btnBookmark"
         app:layout_constraintStart_toStartOf="@+id/tvLocation"
         app:layout_constraintTop_toBottomOf="@+id/tvLocation" />
 
