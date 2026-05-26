@@ -74,20 +74,21 @@
         android:fontFamily="@font/nanum_gothic_regular"
         android:layout_marginBottom="16dp" />
 
-    <androidx.cardview.widget.CardView
-        android:id="@+id/cv_photo_container"
-        android:layout_width="120dp"
-        android:layout_height="120dp"
-        app:cardCornerRadius="12dp"
-        app:cardElevation="0dp"
-        app:cardBackgroundColor="@android:color/transparent">
+    <androidx.viewpager2.widget.ViewPager2
+        android:id="@+id/vp_review_photos"
+        android:layout_width="match_parent"
+        android:layout_height="200dp"
+        android:layout_marginTop="16dp"
+        android:visibility="gone" />
 
-        <ImageView
-            android:id="@+id/iv_review_photo"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:scaleType="centerCrop" />
-    </androidx.cardview.widget.CardView>
+    <LinearLayout
+        android:id="@+id/indicator_layout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center"
+        android:layout_marginTop="8dp"
+        android:visibility="gone" />
 
     <View
         android:layout_width="match_parent"
