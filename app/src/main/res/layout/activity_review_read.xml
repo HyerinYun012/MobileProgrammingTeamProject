@@ -48,161 +48,20 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 
-    <!-- [3. 가운데 스크롤되는 리뷰 목록 영역] -->
-    <ScrollView
-        android:id="@+id/scroll_view"
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rv_reviews"
         android:layout_width="0dp"
         android:layout_height="0dp"
+        android:paddingHorizontal="20dp"
+        android:paddingTop="24dp"
+        android:clipToPadding="false"
+        android:paddingBottom="100dp"
+        app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
         app:layout_constraintTop_toBottomOf="@id/view_thick_divider"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent">
+        app:layout_constraintEnd_toEndOf="parent" />
 
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:paddingHorizontal="20dp"
-            android:paddingTop="24dp"
-            android:paddingBottom="80dp"> <!-- 하단 버튼에 글씨가 가려지지 않게 여유 공간 부여 -->
-
-            <!-- 총 리뷰 개수 타이틀 -->
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="최근 리뷰 2개"
-                android:textColor="#000000"
-                android:textSize="18sp"
-                android:fontFamily="@font/nanum_gothic_bold"
-                android:layout_marginBottom="24dp" />
-
-            <!-- ===================== 첫 번째 리뷰 (아지짱) ===================== -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical">
-
-                <!-- 1) 프로필 이미지 & 이름 & 별점 가로 배치 -->
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:gravity="center_vertical">
-
-                    <ImageView
-                        android:id="@+id/iv_profile_1"
-                        android:layout_width="44dp"
-                        android:layout_height="44dp"
-                        android:src="@drawable/ic_profile_dog" /> <!-- 피그마에서 추출한 강아지 프로필 적용 -->
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="아지짱"
-                        android:textColor="#000000"
-                        android:textSize="16sp"
-                        android:fontFamily="@font/nanum_gothic_bold"
-                        android:layout_marginStart="12dp" />
-
-                    <!-- 별점 5개 -->
-                    <LinearLayout
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:orientation="horizontal"
-                        android:layout_marginStart="12dp">
-                        <ImageView android:layout_width="20dp" android:layout_height="20dp" android:src="@drawable/ic_star" android:layout_marginEnd="4dp"/>
-                        <ImageView android:layout_width="20dp" android:layout_height="20dp" android:src="@drawable/ic_star" android:layout_marginEnd="4dp"/>
-                        <ImageView android:layout_width="20dp" android:layout_height="20dp" android:src="@drawable/ic_star" android:layout_marginEnd="4dp"/>
-                        <ImageView android:layout_width="20dp" android:layout_height="20dp" android:src="@drawable/ic_star" android:layout_marginEnd="4dp"/>
-                        <ImageView android:layout_width="20dp" android:layout_height="20dp" android:src="@drawable/ic_star" />
-                    </LinearLayout>
-                </LinearLayout>
-
-                <!-- 2) 리뷰 내용 텍스트 -->
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="강아지랑 오기 정말 좋은 곳 같아요~ 산책하다가 들렸는데 맛집을 찾아서 기분이 좋네요. 종종 방문할게요 :)"
-                    android:textColor="#000000"
-                    android:textSize="15sp"
-                    android:lineSpacingExtra="4dp"
-                    android:fontFamily="@font/nanum_gothic_regular"
-                    android:layout_marginTop="16dp" />
-
-                <!-- 3) 사용자가 올린 음식 사진 -->
-                <ImageView
-                    android:id="@+id/iv_review_photo_1"
-                    android:layout_width="120dp"
-                    android:layout_height="120dp"
-                    android:scaleType="centerCrop"
-                    android:src="@drawable/img_food"
-                    android:layout_marginTop="16dp" />
-            </LinearLayout>
-
-            <!-- ===================== 리뷰 사이 얇은 구분선 ===================== -->
-            <View
-                android:layout_width="match_parent"
-                android:layout_height="1dp"
-                android:background="#E0E0E0"
-                android:layout_marginTop="24dp"
-                android:layout_marginBottom="24dp" />
-
-            <!-- ===================== 두 번째 리뷰 (대박이) ===================== -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:gravity="center_vertical">
-
-                    <ImageView
-                        android:id="@+id/iv_profile_2"
-                        android:layout_width="44dp"
-                        android:layout_height="44dp"
-                        android:src="@drawable/ic_profile_dog" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="대박이"
-                        android:textColor="#000000"
-                        android:textSize="16sp"
-                        android:fontFamily="@font/nanum_gothic_bold"
-                        android:layout_marginStart="12dp" />
-
-                    <LinearLayout
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:orientation="horizontal"
-                        android:layout_marginStart="12dp">
-                        <ImageView android:layout_width="20dp" android:layout_height="20dp" android:src="@drawable/ic_star" android:layout_marginEnd="4dp"/>
-                        <ImageView android:layout_width="20dp" android:layout_height="20dp" android:src="@drawable/ic_star" android:layout_marginEnd="4dp"/>
-                        <ImageView android:layout_width="20dp" android:layout_height="20dp" android:src="@drawable/ic_star" android:layout_marginEnd="4dp"/>
-                        <ImageView android:layout_width="20dp" android:layout_height="20dp" android:src="@drawable/ic_star" android:layout_marginEnd="4dp"/>
-                        <ImageView android:layout_width="20dp" android:layout_height="20dp" android:src="@drawable/ic_star" />
-                    </LinearLayout>
-                </LinearLayout>
-
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="맛있는데요? 추천합니다~"
-                    android:textColor="#000000"
-                    android:textSize="15sp"
-                    android:lineSpacingExtra="4dp"
-                    android:fontFamily="@font/nanum_gothic_regular"
-                    android:layout_marginTop="16dp" />
-            </LinearLayout>
-
-        </LinearLayout>
-    </ScrollView>
-
-    <!-- [4. 화면 우측 하단에 떠 있는 리뷰쓰기 버튼] -->
-    <!-- ConstraintLayout 속성을 이용해 바닥(Bottom)과 오른쪽(End)에 딱 고정시킵니다. -->
     <ImageView
         android:id="@+id/btn_write_review"
         android:layout_width="wrap_content"

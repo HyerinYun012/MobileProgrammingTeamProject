@@ -7,7 +7,7 @@
     android:layout_height="match_parent"
     android:background="#FFFFFF"
     android:fitsSystemWindows="true"
-    tools:context=".ReviewWriteActivity">
+    tools:context=".StoreManageActivity">
 
     <RelativeLayout
         android:id="@+id/layout_header"
@@ -105,13 +105,26 @@
                 android:textColor="#000000"
                 android:textSize="18sp" />
 
-            <ImageView
-                android:id="@+id/iv_banner_add"
-                android:layout_width="100dp"
-                android:layout_height="100dp"
+            <HorizontalScrollView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
                 android:layout_marginBottom="24dp"
-                android:scaleType="fitCenter"
-                android:src="@drawable/ic_add_photo" />
+                android:scrollbars="none">
+
+                <LinearLayout
+                    android:id="@+id/layout_banner_container"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal">
+
+                    <ImageView
+                        android:id="@+id/iv_banner_add"
+                        android:layout_width="100dp"
+                        android:layout_height="100dp"
+                        android:scaleType="fitCenter"
+                        android:src="@drawable/ic_add_photo" />
+                </LinearLayout>
+            </HorizontalScrollView>
 
             <TextView
                 android:layout_width="wrap_content"
@@ -131,7 +144,7 @@
                 android:fontFamily="@font/nanum_gothic_regular"
                 android:hint="업장 이름을 입력해주세요"
                 android:textColor="#000000"
-                android:textSize="16sp" />
+                android:textColorHint="#CCCCCC" android:textSize="16sp" />
 
             <TextView
                 android:layout_width="wrap_content"
@@ -146,12 +159,160 @@
                 android:id="@+id/et_store_address"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="32dp"
+                android:layout_marginBottom="24dp"
                 android:backgroundTint="#CCCCCC"
                 android:fontFamily="@font/nanum_gothic_regular"
                 android:hint="업장 주소를 입력해주세요"
                 android:textColor="#000000"
-                android:textSize="16sp" />
+                android:textColorHint="#CCCCCC" android:textSize="16sp" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="8dp"
+                android:fontFamily="@font/nanum_gothic_bold"
+                android:text="업장 전화번호"
+                android:textColor="#000000"
+                android:textSize="18sp" />
+
+            <EditText
+                android:id="@+id/et_store_phone"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="32dp"
+                android:backgroundTint="#CCCCCC"
+                android:fontFamily="@font/nanum_gothic_regular"
+                android:hint="업장 전화번호를 입력해주세요"
+                android:inputType="phone"
+                android:textColor="#000000"
+                android:textColorHint="#CCCCCC" android:textSize="16sp" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp"
+                android:fontFamily="@font/nanum_gothic_bold"
+                android:text="업장 영업시간"
+                android:textColor="#000000"
+                android:textSize="20sp" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="12dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="16dp"
+                    android:fontFamily="@font/nanum_gothic_bold"
+                    android:text="반복"
+                    android:textColor="#000000"
+                    android:textSize="16sp" />
+
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="40dp"
+                    android:background="@drawable/bg_border_box">
+
+                    <Spinner
+                        android:id="@+id/spinner_repeat"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:background="@null"
+                        android:popupBackground="#FFFFFF" android:paddingHorizontal="12dp" />
+
+                    <ImageView
+                        android:layout_width="20dp"
+                        android:layout_height="20dp"
+                        android:layout_alignParentEnd="true"
+                        android:layout_centerVertical="true"
+                        android:layout_marginEnd="12dp"
+                        android:src="@drawable/ic_arrow_down" />
+                </RelativeLayout>
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/layout_weekly_days"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="12dp"
+                android:layout_marginStart="44dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:visibility="gone">
+
+                <CheckBox android:id="@+id/cb_mon" style="@style/DaySelectionCheckbox" android:text="월" android:layout_marginEnd="2dp"/>
+                <CheckBox android:id="@+id/cb_tue" style="@style/DaySelectionCheckbox" android:text="화" android:layout_marginEnd="2dp"/>
+                <CheckBox android:id="@+id/cb_wed" style="@style/DaySelectionCheckbox" android:text="수" android:layout_marginEnd="2dp"/>
+                <CheckBox android:id="@+id/cb_thu" style="@style/DaySelectionCheckbox" android:text="목" android:layout_marginEnd="2dp"/>
+                <CheckBox android:id="@+id/cb_fri" style="@style/DaySelectionCheckbox" android:text="금" android:layout_marginEnd="2dp"/>
+                <CheckBox android:id="@+id/cb_sat" style="@style/DaySelectionCheckbox" android:text="토" android:layout_marginEnd="2dp"/>
+                <CheckBox android:id="@+id/cb_sun" style="@style/DaySelectionCheckbox" android:text="일" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="16dp"
+                    android:fontFamily="@font/nanum_gothic_bold"
+                    android:text="시간"
+                    android:textColor="#000000"
+                    android:textSize="16sp" />
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="40dp"
+                    android:background="@drawable/bg_border_box"
+                    android:gravity="center"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:id="@+id/tv_start_time"
+                        android:layout_width="0dp"
+                        android:layout_height="match_parent"
+                        android:layout_weight="1"
+                        android:gravity="center"
+                        android:text="입력"
+                        android:textColor="#000000"
+                        android:textSize="14sp" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="~"
+                        android:textColor="#000000"
+                        android:textStyle="bold"
+                        android:textSize="14sp"/>
+
+                    <TextView
+                        android:id="@+id/tv_end_time"
+                        android:layout_width="0dp"
+                        android:layout_height="match_parent"
+                        android:layout_weight="1"
+                        android:gravity="center"
+                        android:text="입력"
+                        android:textColor="#000000"
+                        android:textSize="14sp" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <com.google.android.material.chip.ChipGroup
+                android:id="@+id/cg_selected_times"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="32dp"
+                app:chipSpacing="8dp">
+            </com.google.android.material.chip.ChipGroup>
 
             <TextView
                 android:layout_width="wrap_content"
@@ -183,8 +344,8 @@
                     android:layout_height="wrap_content"
                     android:layout_marginEnd="16dp"
                     android:button="@drawable/custom_checkbox"
-                    android:buttonTint="@null"
-                    app:buttonTint="@null"
+                    android:buttonTint="@null" app:buttonTint="@null"
+                    app:useMaterialThemeColors="false"
                     android:paddingTop="7dp"
                     android:checked="false"
                     android:fontFamily="@font/nanum_gothic_bold"
@@ -201,6 +362,7 @@
                     android:button="@drawable/custom_checkbox"
                     android:buttonTint="@null"
                     app:buttonTint="@null"
+                    app:useMaterialThemeColors="false"
                     android:paddingTop="7dp"
                     android:fontFamily="@font/nanum_gothic_bold"
                     android:gravity="center_vertical"
@@ -215,6 +377,7 @@
                     android:button="@drawable/custom_checkbox"
                     android:buttonTint="@null"
                     app:buttonTint="@null"
+                    app:useMaterialThemeColors="false"
                     android:paddingTop="7dp"
                     android:fontFamily="@font/nanum_gothic_bold"
                     android:gravity="center_vertical"
@@ -246,6 +409,7 @@
                     android:button="@drawable/custom_checkbox"
                     android:buttonTint="@null"
                     app:buttonTint="@null"
+                    app:useMaterialThemeColors="false"
                     android:checked="false"
                     android:paddingTop="7dp"
                     android:fontFamily="@font/nanum_gothic_bold"
@@ -262,6 +426,7 @@
                     android:button="@drawable/custom_checkbox"
                     android:buttonTint="@null"
                     app:buttonTint="@null"
+                    app:useMaterialThemeColors="false"
                     android:paddingTop="7dp"
                     android:fontFamily="@font/nanum_gothic_bold"
                     android:gravity="center_vertical"
@@ -277,6 +442,7 @@
                     android:button="@drawable/custom_checkbox"
                     android:buttonTint="@null"
                     app:buttonTint="@null"
+                    app:useMaterialThemeColors="false"
                     android:paddingTop="7dp"
                     android:fontFamily="@font/nanum_gothic_bold"
                     android:gravity="center_vertical"
@@ -292,6 +458,7 @@
                     android:button="@drawable/custom_checkbox"
                     android:buttonTint="@null"
                     app:buttonTint="@null"
+                    app:useMaterialThemeColors="false"
                     android:checked="false"
                     android:paddingTop="7dp"
                     android:fontFamily="@font/nanum_gothic_bold"
@@ -324,6 +491,7 @@
                     android:button="@drawable/custom_checkbox"
                     android:buttonTint="@null"
                     app:buttonTint="@null"
+                    app:useMaterialThemeColors="false"
                     android:paddingTop="7dp"
                     android:fontFamily="@font/nanum_gothic_bold"
                     android:gravity="center_vertical"
@@ -338,6 +506,7 @@
                     android:button="@drawable/custom_checkbox"
                     android:buttonTint="@null"
                     app:buttonTint="@null"
+                    app:useMaterialThemeColors="false"
                     android:checked="false"
                     android:paddingTop="7dp"
                     android:fontFamily="@font/nanum_gothic_bold"
@@ -358,7 +527,9 @@
         android:layout_marginTop="10dp"
         android:layout_marginBottom="10dp"
         android:scaleType="fitCenter"
-        android:src="@drawable/btn_save"
+        android:src="@drawable/btn_save_selector"
+        android:clickable="true"
+        android:focusable="true"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"

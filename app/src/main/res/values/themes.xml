@@ -1,9 +1,27 @@
-<resources xmlns:tools="http://schemas.android.com/tools">
-    <!-- Base application theme. -->
-    <style name="Base.Theme.PetPlace" parent="Theme.Material3.DayNight.NoActionBar">
-        <!-- Customize your light theme here. -->
-        <!-- <item name="colorPrimary">@color/my_light_primary</item> -->
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <style name="Theme.PetPlace" parent="Theme.MaterialComponents.DayNight.NoActionBar">
     </style>
 
-    <style name="Theme.PetPlace" parent="Base.Theme.PetPlace" />
+    <style name="CircleTimeButton">
+        <item name="android:layout_width">45dp</item> <item name="android:layout_height">45dp</item>
+        <item name="android:layout_margin">2.3dp</item>
+        <item name="android:background">@drawable/bg_circle_selector</item>
+        <item name="android:button">@null</item>
+        <item name="android:gravity">center</item>
+        <item name="android:textColor">@color/selector_text_orange_to_white</item>
+        <item name="android:textSize">20sp</item>
+    </style>
+
+    <style name="DaySelectionCheckbox">
+        <item name="android:layout_width">35dp</item>
+        <item name="android:layout_height">35dp</item>
+        <item name="android:layout_margin">2.3dp</item>
+        <item name="android:background">@drawable/bg_circle_selector</item>
+        <item name="android:button">@null</item>
+        <item name="android:gravity">center</item>
+        <item name="android:textColor">@color/selector_text_orange_to_white</item>
+        <item name="android:textSize">16sp</item>
+    </style>
 </resources>

@@ -8,23 +8,23 @@
     android:padding="24dp">
 
     <TextView
+        android:id="@+id/tv_dialog_message"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginBottom="24dp"
         android:fontFamily="@font/nanum_gothic_regular"
-        android:text="리뷰가 등록되었습니다!"
+        android:text="알림 메시지"
         android:textColor="#000000"
-        android:textSize="18sp" />
-
-    <TextView
-        android:id="@+id/btn_confirm"
-        android:layout_width="match_parent"
-        android:layout_height="48dp"
-        android:background="@drawable/bg_button_orange"
-        android:fontFamily="@font/nanum_gothic_bold"
-        android:gravity="center"
-        android:text="확인"
-        android:textColor="#FFFFFF"
-        android:textSize="16sp" />
+        android:textSize="18sp"
+        android:textAlignment="center" /> <TextView
+    android:id="@+id/btn_confirm"
+    android:layout_width="match_parent"
+    android:layout_height="48dp"
+    android:background="@drawable/bg_button_orange"
+    android:fontFamily="@font/nanum_gothic_bold"
+    android:gravity="center"
+    android:text="확인"
+    android:textColor="#FFFFFF"
+    android:textSize="16sp" />
 
 </LinearLayout>

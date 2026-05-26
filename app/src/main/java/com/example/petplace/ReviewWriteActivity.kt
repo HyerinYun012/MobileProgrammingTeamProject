@@ -1,58 +1,77 @@
 package com.example.petplace
 
-import android.app.Dialog
-import android.graphics.Color
-import android.graphics.drawable.ColorDrawable
+import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
-import android.view.Window
-import android.widget.ImageView
-import android.widget.TextView
-import androidx.activity.enableEdgeToEdge
+import androidx.activity.result.PickVisualMediaRequest
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowInsetsCompat
+import androidx.recyclerview.widget.LinearLayoutManager
+import com.example.petplace.databinding.ActivityReviewWriteBinding
 
 class ReviewWriteActivity : AppCompatActivity() {
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_review_write)
+    private lateinit var binding: ActivityReviewWriteBinding
+    private lateinit var photoAdapter: ReviewPhotoAdapter
+    private val selectedPhotos = mutableListOf<Uri>()
 
-        // 상단 뒤로가기 버튼
-        val btnBack = findViewById<ImageView>(R.id.btn_back)
-
-        btnBack.setOnClickListener {
-            finish()
-        }
-
-        // 리뷰 등록하기 버튼 찾아오기
-        val btnSubmitReview = findViewById<ImageView>(R.id.btn_submit_review)
-
-        // 버튼을 누르면 커스텀 팝업창 띄우기
-        btnSubmitReview.setOnClickListener {
-            showSuccessDialog()
+    private val imagePickerLauncher = registerForActivityResult(ActivityResultContracts.PickMultipleVisualMedia(5)) { uris ->
+        if (uris.isNotEmpty()) {
+            for (uri in uris) {
+                if (!selectedPhotos.contains(uri) && selectedPhotos.size < 5) {
+                    contentResolver.takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                    selectedPhotos.add(uri)
+                }
+            }
+            photoAdapter.setPhotos(selectedPhotos)
         }
     }
 
-    // 팝업창을 만들고 동작시키는 함수
-    private fun showSuccessDialog() {
-        // 다이얼로그(팝업창) 생성
-        val dialog = Dialog(this)
-        dialog.requestWindowFeature(Window.FEATURE_NO_TITLE) // 기본 타이틀 제거
-        dialog.setContentView(R.layout.dialog_review_success) // 아까 만든 디자인 연결
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        binding = ActivityReviewWriteBinding.inflate(layoutInflater)
+        setContentView(binding.root)
 
-        // 팝업창 뒤의 기본 배경을 투명하게 설정
-        dialog.window?.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
+        binding.btnBack.setOnClickListener { finish() }
 
-        // 팝업창 안의 확인 버튼 찾아오기
-        val btnConfirm = dialog.findViewById<TextView>(R.id.btn_confirm)
+        // 어댑터 생성자 콜백 내부에 사진 추가 로직 연동
+        photoAdapter = ReviewPhotoAdapter(
+            onAddClick = {
+                imagePickerLauncher.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
+            },
+            onDeleteClick = { uri ->
+                selectedPhotos.remove(uri)
+                photoAdapter.setPhotos(selectedPhotos)
+            }
+        )
 
-        // 확인 버튼을 눌렀을 때의 동작
-        btnConfirm.setOnClickListener {
-            dialog.dismiss() // 팝업창 닫기
-            finish()         // 현재 화면 종료하고 이전 화면으로 돌아가기
+        binding.rvReviewPhotos.layoutManager = LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false)
+        binding.rvReviewPhotos.adapter = photoAdapter
+
+        // 🚀 등록 버튼 클릭 이벤트
+        binding.btnSubmitReview.setOnClickListener {
+            val rating = binding.ratingBar.rating
+            // trim()을 붙여서 앞뒤 공백(스페이스바)만 친 경우를 다 날려버림!
+            val content = binding.etReviewContent.text.toString().trim()
+
+            // 🔥 1. 필수 입력값 방어막 (유효성 검사)
+            if (rating == 0f || content.isEmpty()) {
+                // 둘 중 하나라도 안 적혀 있으면 팝업 띄우고
+                showCustomDialog("별점과 리뷰 내용을 모두 작성해주세요!")
+                // return을 써서 여기서 함수를 강제 종료시켜버림! (밑에 DB 저장 로직 실행 안 됨)
+                return@setOnClickListener
+            }
+
+            // 🔥 2. 위 방어막을 무사히 통과했다면 DB에 저장!
+            // 사진 주소들을 쉼표로 묶어서 하나의 텍스트로 만듦
+            val imageUrisString = photoAdapter.getPhotos().joinToString(",") { it.toString() }
+
+            val dbHelper = DatabaseHelper(this)
+            dbHelper.insertReview(rating, content, imageUrisString)
+
+            // 성공 팝업 띄우고 목록으로 돌아가기
+            showCustomDialog("리뷰가 등록되었습니다!") {
+                finish()
+            }
         }
-
-        // 팝업창 화면에 띄우기
-        dialog.show()
     }
 }

@@ -12,6 +12,24 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.PetPlace">
         <activity
+            android:name=".ImageDetailActivity"
+            android:exported="false" />
+        <activity
+            android:name=".StoreManageActivity"
+            android:exported="false" />
+        <activity
+            android:name=".InquiryDetailActivity"
+            android:exported="false" />
+        <activity
+            android:name=".InquiryManageActivity"
+            android:exported="false" />
+        <activity
+            android:name=".BusinessManageActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ReportManageActivity"
+            android:exported="false" />
+        <activity
             android:name=".OwnerReviewManageActivity"
             android:exported="false" />
         <activity
@@ -21,7 +39,13 @@
             android:name=".ReviewWriteActivity"
             android:exported="false" />
         <activity
+            android:name=".AdminMyPageActivity"
+            android:exported="false" />
+        <activity
             android:name=".ReviewReadActivity"
+            android:exported="false" />
+        <activity
+            android:name=".TempTestActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -29,9 +53,6 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity
-            android:name=".StoreManageActivity"
-            android:exported="true" />
     </application>
 
 </manifest>
