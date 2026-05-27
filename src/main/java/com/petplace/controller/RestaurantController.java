@@ -42,26 +42,21 @@ public class RestaurantController {
         List<MultipartFile> getImages();
     }
 
-    @Operation(summary = "내 주변 장소 조회", description = "위도/경도 기준으로 반경 내 장소를 페이징 조회합니다.")
+    @Operation(summary = "내 주변 장소 조회", description = "위도/경도 기준으로 반경 내 장소를 거리순으로 페이징 조회합니다.")
     @GetMapping("/nearby")
     public ResponseEntity<ApiResponse<Page<RestaurantResponse>>> nearby(
             @RequestParam double lat,
             @RequestParam double lng,
             @RequestParam(defaultValue = "3.0") double radius,
-            // 💡 @ParameterObject 추가 및 기본값 세팅 (page=0, size=1, createdAt,desc)
             @org.springdoc.core.annotations.ParameterObject
-            @PageableDefault(page = 0, size = 1, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable
+            @PageableDefault(page = 0, size = 10) Pageable pageable
     ) {
-        // 💡 "string" 방어 코드 추가
-        if (pageable.getSort().stream().anyMatch(order -> "string".equals(order.getProperty()))) {
-            pageable = org.springframework.data.domain.PageRequest.of(
-                    pageable.getPageNumber(),
-                    pageable.getPageSize(),
-                    org.springframework.data.domain.Sort.by("createdAt").descending()
-            );
-        }
+        Pageable plainPageable = org.springframework.data.domain.PageRequest.of(
+                pageable.getPageNumber(),
+                pageable.getPageSize()
+        );
 
-        return ResponseEntity.ok(ApiResponse.success(restaurantService.findNearby(lat, lng, radius, pageable)));
+        return ResponseEntity.ok(ApiResponse.success(restaurantService.findNearby(lat, lng, radius, plainPageable)));
     }
 
     @Operation(summary = "장소 키워드 검색", description = "검색 로그를 저장하며, 로그인한 경우 최근 검색어에 반영됩니다.")

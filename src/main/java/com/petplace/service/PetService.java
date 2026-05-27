@@ -39,7 +39,6 @@ public class PetService {
      */
     @Transactional
     public Pet addPet(Long userId, PetRequest req, MultipartFile image) {
-        // 💡 ErrorCode 적용: 사용자 존재 확인
         User user = userRepo.findById(userId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
 
@@ -64,11 +63,9 @@ public class PetService {
      */
     @Transactional
     public Pet updatePet(Long userId, Long petId, PetRequest req, MultipartFile image) {
-        // 💡 ErrorCode 적용: 반려동물 존재 확인
         Pet pet = petRepo.findById(petId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.PET_NOT_FOUND));
 
-        // 💡 ErrorCode 적용: 권한 검증
         if (!Objects.equals(pet.getUser().getId(), userId)) {
             throw new BusinessException(ErrorCode.NO_PERMISSION);
         }

@@ -55,7 +55,7 @@ public class MyPageService {
             nextProfileUrl = fileService.uploadFile(profileImage);
         }
 
-        user.updateProfileInfo(req.getNickname(), req.getEmail(), req.getPhone(), nextProfileUrl);
+        user.updateProfileInfo(req.nickname(), req.email(), req.phone(), nextProfileUrl);
     }
 
     /**

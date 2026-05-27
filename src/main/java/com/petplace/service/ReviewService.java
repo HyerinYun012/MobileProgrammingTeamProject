@@ -63,8 +63,8 @@ public class ReviewService {
         Review rv = Review.builder()
                 .user(userRepository.getReferenceById(userId))
                 .restaurant(restaurantRepository.getReferenceById(restaurantId))
-                .rating(req.getRating())
-                .content(req.getContent())
+                .rating(req.rating())
+                .content(req.content())
                 .imageUrl(imageUrl)
                 .build();
 
@@ -112,7 +112,7 @@ public class ReviewService {
         }
 
         // 3. 더티 체킹을 통한 엔티티 상태 변경
-        review.updateReview(req.getRating(), req.getContent(), updatedImageUrl);
+        review.updateReview(req.rating(), req.content(), updatedImageUrl);
     }
 
     /**

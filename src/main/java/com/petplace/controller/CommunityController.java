@@ -1,5 +1,6 @@
 package com.petplace.controller;
 
+import com.petplace.dto.request.*;
 import com.petplace.dto.response.ApiResponse;
 import com.petplace.dto.response.CommentResponse;
 import com.petplace.dto.response.PostDetailResponse;
@@ -8,6 +9,7 @@ import com.petplace.service.CommunityService;
 import com.petplace.service.FileService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -31,11 +33,9 @@ public class CommunityController {
     @Operation(summary = "커뮤니티 전체 게시글 최신순 조회")
     @GetMapping("/posts")
     public ResponseEntity<ApiResponse<Page<Post>>> getAllPosts(
-            // 💡 @ParameterObject 추가 및 기본값 세팅 (page=0, size=1, createdAt,desc)
             @org.springdoc.core.annotations.ParameterObject
             @PageableDefault(page = 0, size = 1, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
 
-        // 💡 "string" 방어 코드 추가
         if (pageable.getSort().stream().anyMatch(order -> "string".equals(order.getProperty()))) {
             pageable = org.springframework.data.domain.PageRequest.of(
                     pageable.getPageNumber(),
@@ -55,26 +55,24 @@ public class CommunityController {
         return ResponseEntity.ok(ApiResponse.success("조회 성공", communityService.getPostDetail(postId)));
     }
 
-    @Operation(summary = "커뮤니티 게시글 작성")
+    @Operation(summary = "커뮤니티 게시글 작성", description = "텍스트(data 파트, JSON)와 이미지 파일(image 파트)을 분리하여 전송합니다.")
     @PostMapping(value = "/posts", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<ApiResponse<Void>> writePost(
             @AuthenticationPrincipal Long currentUserId,
-            @RequestParam String title,
-            @RequestParam String content,
+            @Valid @RequestPart("data") PostRequest req,
             @RequestPart(value = "image", required = false) MultipartFile image) {
-        communityService.writePost(currentUserId, title, content, uploadIfPresent(image));
+        communityService.writePost(currentUserId, req.title(), req.content(), uploadIfPresent(image));
         return ResponseEntity.ok(ApiResponse.success("작성 성공", null));
     }
 
-    @Operation(summary = "커뮤니티 게시글 수정")
+    @Operation(summary = "커뮤니티 게시글 수정", description = "본인이 작성한 글을 수정합니다. 텍스트(data 파트, JSON)와 이미지 파일(image 파트)을 분리하여 전송합니다.")
     @PutMapping(value = "/posts/{postId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<ApiResponse<Void>> updatePost(
             @PathVariable Long postId,
             @AuthenticationPrincipal Long currentUserId,
-            @RequestParam String title,
-            @RequestParam String content,
+            @Valid @RequestPart("data") PostRequest req,
             @RequestPart(value = "image", required = false) MultipartFile image) {
-        communityService.updatePost(currentUserId, postId, title, content, uploadIfPresent(image));
+        communityService.updatePost(currentUserId, postId, req.title(), req.content(), uploadIfPresent(image));
         return ResponseEntity.ok(ApiResponse.success("수정 성공", null));
     }
 
@@ -87,24 +85,23 @@ public class CommunityController {
         return ResponseEntity.ok(ApiResponse.success("삭제 성공", null));
     }
 
-    @Operation(summary = "댓글 및 대댓글 작성")
+    @Operation(summary = "댓글 및 대댓글 작성", description = "댓글을 등록합니다.")
     @PostMapping("/posts/{postId}/comments")
     public ResponseEntity<ApiResponse<Void>> writeComment(
             @PathVariable Long postId,
             @AuthenticationPrincipal Long currentUserId,
-            @RequestParam(required = false) Long parentId,
-            @RequestParam String content) {
-        communityService.writeComment(currentUserId, postId, parentId, content);
+            @Valid @RequestBody CommentRequest req) {
+        communityService.writeComment(currentUserId, postId, req.parentId(), req.content());
         return ResponseEntity.ok(ApiResponse.success("댓글 등록 성공", null));
     }
 
-    @Operation(summary = "댓글 수정")
+    @Operation(summary = "댓글 수정", description = "댓글 내용을 수정합니다.")
     @PutMapping("/comments/{commentId}")
     public ResponseEntity<ApiResponse<Void>> updateComment(
             @PathVariable Long commentId,
             @AuthenticationPrincipal Long currentUserId,
-            @RequestParam String content) {
-        communityService.updateComment(commentId, currentUserId, content);
+            @Valid @RequestBody CommentRequest req) {
+        communityService.updateComment(commentId, currentUserId, req.content());
         return ResponseEntity.ok(ApiResponse.success("수정 성공", null));
     }
 
@@ -122,11 +119,9 @@ public class CommunityController {
     public ResponseEntity<ApiResponse<Page<CommentResponse>>> getComments(
             @PathVariable Long postId,
             @AuthenticationPrincipal Long currentUserId,
-            // 💡 @ParameterObject 추가 및 기본값 세팅 (page=0, size=1, createdAt,desc)
             @org.springdoc.core.annotations.ParameterObject
             @PageableDefault(page = 0, size = 1, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
 
-        // 💡 "string" 방어 코드 추가
         if (pageable.getSort().stream().anyMatch(order -> "string".equals(order.getProperty()))) {
             pageable = org.springframework.data.domain.PageRequest.of(
                     pageable.getPageNumber(),
@@ -138,23 +133,23 @@ public class CommunityController {
         return ResponseEntity.ok(ApiResponse.success("조회 성공", communityService.getCommentsByPost(postId, currentUserId, pageable)));
     }
 
-    @Operation(summary = "커뮤니티 게시글 신고")
+    @Operation(summary = "커뮤니티 게시글 신고", description = "사유를 기반으로 게시글을 신고합니다.")
     @PostMapping("/posts/{postId}/report")
     public ResponseEntity<ApiResponse<Void>> reportPost(
             @PathVariable Long postId,
             @AuthenticationPrincipal Long currentUserId,
-            @RequestParam String reason) {
-        communityService.reportPost(currentUserId, postId, reason);
+            @Valid @RequestBody CommunityReportRequest req) { // 💡 신고 규격도 @RequestBody JSON으로 변경
+        communityService.reportPost(currentUserId, postId, req.reason());
         return ResponseEntity.ok(ApiResponse.success("신고 성공", null));
     }
 
-    @Operation(summary = "커뮤니티 댓글 신고")
+    @Operation(summary = "커뮤니티 댓글 신고", description = "사유를 기반으로 댓글을 신고합니다.")
     @PostMapping("/comments/{commentId}/report")
     public ResponseEntity<ApiResponse<Void>> reportComment(
             @PathVariable Long commentId,
             @AuthenticationPrincipal Long currentUserId,
-            @RequestParam String reason) {
-        communityService.reportComment(currentUserId, commentId, reason);
+            @Valid @RequestBody CommunityReportRequest req) {
+        communityService.reportComment(currentUserId, commentId, req.reason());
         return ResponseEntity.ok(ApiResponse.success("신고 성공", null));
     }
 

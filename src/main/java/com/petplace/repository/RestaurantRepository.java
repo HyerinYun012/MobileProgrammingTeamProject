@@ -24,9 +24,7 @@ public interface RestaurantRepository extends JpaRepository<Restaurant, Long>, R
     Page<Restaurant> findByNameContainingIgnoreCase(String keyword, Pageable pageable);
 
     /**
-     * 💡 [페이징 적용] 위치 기반 반경 내 장소 검색 (Haversine Formula 사용)
-     * 1. Pageable 파라미터 추가
-     * 2. countQuery 명시: 네이티브 쿼리에서 페이징을 하려면 전체 개수를 세는 쿼리가 필수입니다.
+     * 💡 [페이징 적용] 위치 기반 반경 내 장소 검색 (Haversine Formula 사용 및 거리순 정렬 완료)
      */
     @Query(value = "SELECT * FROM (" +
             "  SELECT *, " +
@@ -35,7 +33,8 @@ public interface RestaurantRepository extends JpaRepository<Restaurant, Long>, R
             "  sin(radians(:lat)) * sin(radians(latitude)))) AS distance " +
             "  FROM restaurants" +
             ") r " +
-            "WHERE r.distance < :radius",
+            "WHERE r.distance < :radius " +
+            "ORDER BY r.distance ASC",
             countQuery = "SELECT count(*) FROM (" +
                     "  SELECT (6371 * acos(cos(radians(:lat)) * cos(radians(latitude)) * " +
                     "  cos(radians(longitude) - radians(:lng)) + " +

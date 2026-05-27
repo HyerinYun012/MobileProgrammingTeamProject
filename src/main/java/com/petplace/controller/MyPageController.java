@@ -18,6 +18,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.Set;
 
@@ -40,13 +41,14 @@ public class MyPageController {
         return ResponseEntity.ok(ApiResponse.success("프로필 정보가 성공적으로 조회되었습니다.", response));
     }
 
-    @Operation(summary = "프로필 수정", description = "하나의 Form-Data 양식 안에 변경할 닉네임, 연락처와 실제 물리 프로필 이미지 파일(profileImage)을 실어 전송합니다.")
+    @Operation(summary = "프로필 수정", description = "텍스트 데이터(data 파트, JSON)와 실제 물리 프로필 이미지 파일(profileImage 파트)을 분리하여 전송합니다.")
     @PutMapping(value = "/profile", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<ApiResponse<Void>> updateProfile(
             @AuthenticationPrincipal Long userId,
-            @Valid @ModelAttribute UpdateProfileRequest req
+            @Valid @RequestPart("data") UpdateProfileRequest req,
+            @RequestPart(value = "profileImage", required = false) MultipartFile profileImage
     ) {
-        service.updateProfile(userId, req, req.getProfileImage());
+        service.updateProfile(userId, req, profileImage);
         return ResponseEntity.ok(ApiResponse.success("프로필 정보가 수정되었습니다.", null));
     }
 

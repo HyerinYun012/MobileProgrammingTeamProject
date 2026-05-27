@@ -3,7 +3,6 @@ package com.petplace.controller;
 import com.petplace.dto.request.PetRequest;
 import com.petplace.dto.response.ApiResponse;
 import com.petplace.dto.response.PetResponse;
-import com.petplace.entity.Pet;
 import com.petplace.service.PetService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -22,7 +21,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 @Tag(name = "반려동물(Pet) API", description = "반려동물 등록, 수정, 조회 및 프로필 이미지 관리 API")
 @RestController
-@RequestMapping("/api/my/pets") // 💡 프론트엔드 코드 수정을 최소화하기 위해 기존 주소 유지
+@RequestMapping("/api/my/pets")
 @RequiredArgsConstructor
 public class PetController {
 
@@ -32,11 +31,9 @@ public class PetController {
     @GetMapping
     public ResponseEntity<ApiResponse<Page<PetResponse>>> getPets(
             @AuthenticationPrincipal Long userId,
-            // 💡 @ParameterObject 추가 및 기본값 세팅 (page=0, size=1, createdAt,desc)
             @org.springdoc.core.annotations.ParameterObject
             @PageableDefault(page = 0, size = 1, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable
     ) {
-        // 💡 "string" 방어 코드 추가
         if (pageable.getSort().stream().anyMatch(order -> "string".equals(order.getProperty()))) {
             pageable = org.springframework.data.domain.PageRequest.of(
                     pageable.getPageNumber(),
@@ -49,26 +46,32 @@ public class PetController {
         return ResponseEntity.ok(ApiResponse.success("반려동물 목록 조회가 완료되었습니다.", response));
     }
 
-    @Operation(summary = "반려동물 추가", description = "새로운 반려동물을 등록합니다. 프로필 사진 이미지를 첨부할 수 있습니다.")
+    @Operation(summary = "반려동물 추가", description = "새로운 반려동물을 등록합니다. 텍스트 데이터(data 파트, JSON)와 이미지 파일(image 파트)을 분리하여 전송합니다.")
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<ApiResponse<Pet>> addPet(
+    public ResponseEntity<ApiResponse<Void>> addPet(
             @AuthenticationPrincipal Long userId,
-            @Valid @RequestPart("request") PetRequest req,
+            // 💡 "request" 대신 프로젝트 표준인 "data"로 파트명 대통합!
+            @Valid @RequestPart("data") PetRequest req,
             @Parameter(description = "반려동물 프로필 사진 (선택)")
             @RequestPart(value = "image", required = false) MultipartFile image
     ) {
-        return ResponseEntity.ok(ApiResponse.success(petService.addPet(userId, req, image)));
+        // 💡 엔티티 노출을 막고, 다른 쓰기 API들과 마찬가지로 응답 규격을 Void(null)로 일치화!
+        petService.addPet(userId, req, image);
+        return ResponseEntity.ok(ApiResponse.success("반려동물이 성공적으로 등록되었습니다.", null));
     }
 
-    @Operation(summary = "반려동물 정보 수정", description = "반려동물의 정보를 수정합니다. 본인 소유 검증 및 S3 이미지 물리 교체가 포함됩니다.")
+    @Operation(summary = "반려동물 정보 수정", description = "반려동물의 정보를 수정합니다. 텍스트 데이터(data 파트, JSON)와 이미지 파일(image 파트)을 분리하여 전송합니다.")
     @PutMapping(value = "/{petId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<ApiResponse<Pet>> updatePet(
+    public ResponseEntity<ApiResponse<Void>> updatePet(
             @AuthenticationPrincipal Long userId,
             @Parameter(description = "반려동물 ID") @PathVariable Long petId,
-            @Valid @RequestPart("request") PetRequest req,
+            // 💡 여기도 동일하게 "data" 파트명으로 일치화!
+            @Valid @RequestPart("data") PetRequest req,
             @Parameter(description = "새로 교체할 프로필 사진 (선택)")
             @RequestPart(value = "image", required = false) MultipartFile image
     ) {
-        return ResponseEntity.ok(ApiResponse.success(petService.updatePet(userId, petId, req, image)));
+        // 💡 응답 규격을 Void(null)로 통일하여 깔끔한 결과 메시지만 반환!
+        petService.updatePet(userId, petId, req, image);
+        return ResponseEntity.ok(ApiResponse.success("반려동물 정보가 성공적으로 수정되었습니다.", null));
     }
 }

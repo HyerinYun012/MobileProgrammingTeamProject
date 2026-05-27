@@ -1,5 +1,6 @@
 package com.petplace.controller;
 
+import com.petplace.dto.request.NoticeRequest;
 import com.petplace.dto.response.ApiResponse;
 import com.petplace.dto.response.NoticeResponse;
 import com.petplace.service.NoticeService;
@@ -7,6 +8,7 @@ import com.petplace.service.FileService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -34,11 +36,9 @@ public class NoticeController {
     @GetMapping("/{restaurantId}/notices")
     public ResponseEntity<ApiResponse<Page<NoticeResponse>>> getNotices(
             @Parameter(description = "조회할 식당 고유 ID", example = "1") @PathVariable Long restaurantId,
-            // 💡 @ParameterObject 추가 및 기본값 세팅 (page=0, size=1, createdAt,desc)
             @org.springdoc.core.annotations.ParameterObject
             @PageableDefault(page = 0, size = 1, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable
     ) {
-        // 💡 "string" 방어 코드 추가
         if (pageable.getSort().stream().anyMatch(order -> "string".equals(order.getProperty()))) {
             pageable = org.springframework.data.domain.PageRequest.of(
                     pageable.getPageNumber(),
@@ -54,44 +54,38 @@ public class NoticeController {
     /**
      * 가게 공지사항 신규 등록
      */
-    @Operation(summary = "가게 공지사항 신규 등록", description = "대표 이미지 파일, 본문 설명 이미지 파일을 조합하여 새로운 가게 공지를 등록합니다.")
+    @Operation(summary = "가게 공지사항 신규 등록", description = "텍스트 데이터(data 파트, JSON)와 여러 이미지 파일 파트들을 완벽히 분리하여 새로운 가게 공지를 등록합니다.")
     @PostMapping(value = "/{restaurantId}/notices", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<ApiResponse<Void>> createNotice(
             @Parameter(description = "식당 고유 ID", example = "1") @PathVariable Long restaurantId,
             @AuthenticationPrincipal Long currentUserId,
-            @Parameter(description = "공지사항 제목", example = "이번 주말 임시 휴업 안내") @RequestParam String title,
-            @Parameter(description = "공지사항 본문 내용", example = "내부 인테리어 공사로 인해 이번 주 토요일은 휴무합니다.") @RequestParam String content,
-            @Parameter(description = "공지 목록에 노출될 썸네일 대표 사진 파일 (선택)")
+            @Valid @RequestPart("data") NoticeRequest req,
             @RequestPart(value = "thumbnail", required = false) MultipartFile thumbnail,
-            @Parameter(description = "공지 본문 내 삽입될 설명 이미지 파일 (선택)")
-            @RequestPart(value = "descriptionImage", required = false) MultipartFile descriptionImage) { // 💡 throws IOException 추가
+            @RequestPart(value = "descriptionImage", required = false) MultipartFile descriptionImage) {
 
         String thumbnailUrl = uploadIfPresent(thumbnail);
         String descriptionImageUrl = uploadIfPresent(descriptionImage);
 
-        noticeService.createNotice(restaurantId, currentUserId, title, content, thumbnailUrl, descriptionImageUrl);
+        noticeService.createNotice(restaurantId, currentUserId, req.title(), req.content(), thumbnailUrl, descriptionImageUrl);
         return ResponseEntity.ok(ApiResponse.success("공지사항이 등록되었습니다.", null));
     }
 
     /**
      * 가게 공지사항 수정
      */
-    @Operation(summary = "가게 공지사항 수정", description = "이미 등록된 공지사항의 정보 및 새로운 이미지 파일들로 변경합니다. (파일 미첨부 시 기존 이미지 유지)")
+    @Operation(summary = "가게 공지사항 수정", description = "이미 등록된 공지사항의 정보 및 새로운 이미지 파일들로 변경합니다. (텍스트는 data 파트 JSON 사용)")
     @PutMapping(value = "/notices/{noticeId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<ApiResponse<Void>> updateNotice(
             @Parameter(description = "수정할 공지사항 ID", example = "5") @PathVariable Long noticeId,
             @AuthenticationPrincipal Long currentUserId,
-            @Parameter(description = "수정할 공지 제목") @RequestParam String title,
-            @Parameter(description = "수정할 공지 본문 내용") @RequestParam String content,
-            @Parameter(description = "수정할 썸네일 이미지 파일 (선택)")
+            @Valid @RequestPart("data") NoticeRequest req,
             @RequestPart(value = "thumbnail", required = false) MultipartFile thumbnail,
-            @Parameter(description = "수정할 설명용 이미지 파일 (선택)")
-            @RequestPart(value = "descriptionImage", required = false) MultipartFile descriptionImage) { // 💡 throws IOException 추가
+            @RequestPart(value = "descriptionImage", required = false) MultipartFile descriptionImage) {
 
         String thumbnailUrl = uploadIfPresent(thumbnail);
         String descriptionImageUrl = uploadIfPresent(descriptionImage);
 
-        noticeService.updateNotice(noticeId, currentUserId, title, content, thumbnailUrl, descriptionImageUrl);
+        noticeService.updateNotice(noticeId, currentUserId, req.title(), req.content(), thumbnailUrl, descriptionImageUrl);
         return ResponseEntity.ok(ApiResponse.success("공지사항이 수정되었습니다.", null));
     }
 
@@ -111,7 +105,7 @@ public class NoticeController {
     /**
      * 파일이 존재할 경우에만 S3에 업로드하고 주소를 반환합니다.
      */
-    private String uploadIfPresent(MultipartFile file) { // 💡 throws IOException 추가
+    private String uploadIfPresent(MultipartFile file) {
         if (file != null && !file.isEmpty()) {
             return fileService.uploadFile(file);
         }
