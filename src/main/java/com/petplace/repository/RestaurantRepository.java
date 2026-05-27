@@ -8,8 +8,16 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.util.List; // 💡 List 임포트 추가
+
 @Repository
 public interface RestaurantRepository extends JpaRepository<Restaurant, Long>, RestaurantRepositoryCustom {
+
+    /**
+     * 사장님 ID로 등록된 모든 사업장(식당/카페) 목록 조회
+     * 특정 사장님의 승인을 진행할 때 제출한 모든 사업자 정보를 확인하기 위해 사용됩니다.
+     */
+    List<Restaurant> findAllByOwnerId(Long ownerId);
 
     /**
      * 사업자 번호 중복 여부 확인
@@ -18,13 +26,13 @@ public interface RestaurantRepository extends JpaRepository<Restaurant, Long>, R
     boolean existsByBusinessNo(String businessNo);
 
     /**
-     * 💡 [페이징 적용] 이름 기반 검색 (대소문자 무시)
+     * [페이징 적용] 이름 기반 검색 (대소문자 무시)
      * 많은 검색 결과가 나올 수 있으므로 Page<Restaurant>로 변경
      */
     Page<Restaurant> findByNameContainingIgnoreCase(String keyword, Pageable pageable);
 
     /**
-     * 💡 [페이징 적용] 위치 기반 반경 내 장소 검색 (Haversine Formula 사용 및 거리순 정렬 완료)
+     * [페이징 적용] 위치 기반 반경 내 장소 검색 (Haversine Formula 사용 및 거리순 정렬 완료)
      */
     @Query(value = "SELECT * FROM (" +
             "  SELECT *, " +

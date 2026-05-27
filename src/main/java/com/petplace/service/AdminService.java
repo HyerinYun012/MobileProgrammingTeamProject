@@ -1,8 +1,6 @@
 package com.petplace.service;
 
-import com.petplace.dto.response.CommunityReportResponse;
-import com.petplace.dto.response.InquiryResponse;
-import com.petplace.dto.response.ReviewReportResponse;
+import com.petplace.dto.response.*;
 import com.petplace.entity.*;
 import com.petplace.exception.BusinessException;
 import com.petplace.exception.ErrorCode;
@@ -31,6 +29,7 @@ public class AdminService {
     private final PostRepository postRepository;
     private final CommentRepository commentRepository;
     private final CommunityReportRepository communityReportRepository;
+    private final RestaurantRepository restaurantRepository;
 
     /**
      * 사장님 승인
@@ -41,6 +40,33 @@ public class AdminService {
 
         owner.verify();
         log.info("Admin {} verified owner {}", adminId, ownerId);
+    }
+
+    /**
+     * 가입 승인 대기 중인 사장님 목록 조회 (페이징 적용)
+     */
+    @Transactional(readOnly = true)
+    public Page<OwnerSummaryResponse> getPendingOwners(Long adminId, Pageable pageable) {
+        log.info("Admin {} viewed pending owners list", adminId);
+
+        return userRepository.findAllByRoleAndIsVerifiedFalse(User.Role.OWNER, pageable)
+                .map(OwnerSummaryResponse::from);
+    }
+
+    /**
+     * 사장님 입점 승인을 위한 사업자 정보 조회
+     */
+    @Transactional(readOnly = true)
+    public OwnerBusinessInfoResponse getOwnerBusinessInfo(Long ownerId) {
+        // 1. 사장님(User) 정보 조회
+        User owner = userRepository.findById(ownerId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.OWNER_NOT_FOUND));
+
+        // 2. 사장님이 등록한 사업장(Restaurant) 목록 조회
+        List<Restaurant> restaurants = restaurantRepository.findAllByOwnerId(ownerId);
+
+        // 3. 응답 DTO 조합
+        return OwnerBusinessInfoResponse.of(owner, restaurants);
     }
 
     /**

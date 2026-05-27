@@ -1,9 +1,6 @@
 package com.petplace.controller;
 
-import com.petplace.dto.response.ApiResponse;
-import com.petplace.dto.response.InquiryResponse;
-import com.petplace.dto.response.ReviewReportResponse;
-import com.petplace.dto.response.CommunityReportResponse;
+import com.petplace.dto.response.*;
 import com.petplace.entity.CommunityReport;
 import com.petplace.service.AdminService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -45,6 +42,44 @@ public class AdminController {
 
         Page<ReviewReportResponse> response = adminService.getAllReviewReports(pageable);
         return ResponseEntity.ok(ApiResponse.success("리뷰 신고 내역 목록이 성공적으로 조회되었습니다.", response));
+    }
+
+    @Operation(
+            summary = "사장님 사업자 정보 및 매장 조회",
+            description = "입점 승인을 위해 사장님의 계정 정보와 해당 사장님이 등록한 사업장(식당/카페 등)의 사업자 등록번호, 상호명 등을 함께 조회합니다."
+    )
+    @GetMapping("/owners/{ownerId}/business-info")
+    public ResponseEntity<ApiResponse<OwnerBusinessInfoResponse>> getOwnerBusinessInfo(
+            @AuthenticationPrincipal Long adminId,
+            @Parameter(description = "조회할 사장님의 유저 ID", example = "1") @PathVariable Long ownerId) {
+
+        OwnerBusinessInfoResponse response = adminService.getOwnerBusinessInfo(ownerId);
+        return ResponseEntity.ok(ApiResponse.success("사장님 사업자 정보가 성공적으로 조회되었습니다.", response));
+    }
+
+    /**
+     * 가입 승인 대기 중인 사장님 전체 목록 조회 API
+     */
+    @Operation(
+            summary = "가입 승인 대기 사장님 목록 조회",
+            description = "관리자 권한으로 가입 승인 대기 중인(isVerified = false) 사장님 유저 목록을 최신순으로 페이징하여 조회합니다."
+    )
+    @GetMapping("/owners/pending")
+    public ResponseEntity<ApiResponse<Page<OwnerSummaryResponse>>> getPendingOwners(
+            @AuthenticationPrincipal Long adminId,
+            @org.springdoc.core.annotations.ParameterObject
+            @PageableDefault(page = 0, size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
+
+        if (pageable.getSort().stream().anyMatch(order -> "string".equals(order.getProperty()))) {
+            pageable = org.springframework.data.domain.PageRequest.of(
+                    pageable.getPageNumber(),
+                    pageable.getPageSize(),
+                    org.springframework.data.domain.Sort.by("createdAt").descending()
+            );
+        }
+
+        Page<OwnerSummaryResponse> response = adminService.getPendingOwners(adminId, pageable);
+        return ResponseEntity.ok(ApiResponse.success("승인 대기 중인 사장님 목록이 성공적으로 조회되었습니다.", response));
     }
 
     /**

@@ -43,6 +43,9 @@ public class User extends BaseTimeEntity {
     @Column(nullable = false)
     private boolean isVerified = false; // 사장님 승인 여부
 
+    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private LocalAuth localAuth;
+
     // ID만 받는 생성자 (기존 영속성 컨텍스트 조회 및 맵핑 편의용 헬퍼 코드 유지)
     public User(Long id) {
         this.id = id;
@@ -59,6 +62,13 @@ public class User extends BaseTimeEntity {
                 return null;
             }
         }
+    }
+
+    /**
+     * 연관관계 편의 메서드
+     */
+    public void linkLocalAuth(LocalAuth localAuth) {
+        this.localAuth = localAuth;
     }
 
     /**
