@@ -52,6 +52,9 @@
         <activity android:name=".AnnouncementActivity" android:exported="false" />
         <activity android:name=".MapActivity" android:exported="false" />
 
+        <activity android:name=".CustomerMyPageActivity" android:exported="false" />
+        <activity android:name=".OwnerMyPageActivity" android:exported="false" />
+
         <activity android:name=".AdminMyPageActivity" android:exported="false" />
         <activity android:name=".ReportManageActivity" android:exported="false" />
         <activity android:name=".BusinessManageActivity" android:exported="false" />
@@ -63,7 +66,6 @@
         <activity android:name=".ReviewReadActivity" android:exported="false" />
         <activity android:name=".ReviewWriteActivity" android:exported="false" />
         <activity android:name=".ImageDetailActivity" android:exported="false" />
-        <activity android:name=".TempTestActivity" android:exported="false" />
 
     </application>
 

@@ -8,6 +8,7 @@ import com.google.gson.Gson
 import okhttp3.Authenticator
 import okhttp3.Interceptor
 import okhttp3.OkHttpClient
+import okhttp3.Protocol
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Response
 import retrofit2.Retrofit
@@ -31,12 +32,13 @@ object RetrofitClient {
         val builder = original.newBuilder()
         
         authToken?.let {
-            builder.header("Authorization", "Bearer $it")
+            // 토큰 내부나 양 끝의 줄바꿈/공백 제거 (헤더 손상 방지)
+            val cleanToken = it.replace("\n", "").replace("\r", "").trim()
+            builder.header("Authorization", "Bearer $cleanToken")
         }
         
-        // EOFException 방지를 위해 Connection: close 헤더 추가 고려
-        // 서버에서 Keep-Alive 연결을 비정상적으로 종료하는 경우 도움이 될 수 있음
-        builder.header("Connection", "close")
+        builder.header("Accept", "application/json")
+        builder.header("User-Agent", "PetPlace-Android")
         
         chain.proceed(builder.build())
     }
@@ -63,8 +65,8 @@ object RetrofitClient {
             clear()
         }
 
-        // 2. 로그인 화면으로 이동
-        val intent = Intent(context, LoginActivity::class.java).apply {
+        // 2. 메인 화면으로 이동
+        val intent = Intent(context, MainActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_SINGLE_TOP
         }
         context.startActivity(intent)
@@ -92,13 +94,16 @@ object RetrofitClient {
     }
 
     private val client = OkHttpClient.Builder()
-        .connectTimeout(30, TimeUnit.SECONDS)
-        .readTimeout(30, TimeUnit.SECONDS)
-        .writeTimeout(30, TimeUnit.SECONDS)
+        .connectTimeout(60, TimeUnit.SECONDS) // 타임아웃을 넉넉하게 늘림
+        .readTimeout(60, TimeUnit.SECONDS)
+        .writeTimeout(60, TimeUnit.SECONDS)
         .addInterceptor(authInterceptor)
         .authenticator(tokenAuthenticator)
         .addInterceptor(loggingInterceptor)
         .retryOnConnectionFailure(true)
+        // 특정 서버에서 HTTP/2 이슈가 있을 때 HTTP/1.1을 강제하기도 하지만, 
+        // 오히려 역효과가 날 수 있으므로 기본 설정을 따르거나 안정적인 설정을 유지합니다.
+        // 여기서는 명시적인 프로토콜 제한을 해제하여 OkHttp가 최선의 프로토콜을 선택하게 합니다.
         .build()
 
     private val retrofit: Retrofit by lazy {

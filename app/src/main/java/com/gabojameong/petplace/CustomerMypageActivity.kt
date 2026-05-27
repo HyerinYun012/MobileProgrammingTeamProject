@@ -1,26 +1,28 @@
 package com.gabojameong.petplace
 
-import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import android.widget.Toast
+import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
 import com.bumptech.glide.Glide
-import com.gabojameong.petplace.databinding.ActivityAdminMyPageBinding
+import com.gabojameong.petplace.databinding.ActivityCustomerMypageBinding
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 
-class AdminMyPageActivity : AppCompatActivity() {
-
-    private lateinit var binding: ActivityAdminMyPageBinding
+class CustomerMypageActivity : AppCompatActivity() {
+    private lateinit var binding: ActivityCustomerMypageBinding
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        binding = ActivityAdminMyPageBinding.inflate(layoutInflater)
+        enableEdgeToEdge()
+        binding = ActivityCustomerMypageBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        binding.btnBack.setOnClickListener {
+        binding.imageView7.setOnClickListener {
             finish()
         }
 
@@ -32,36 +34,23 @@ class AdminMyPageActivity : AppCompatActivity() {
             fetchUserProfile()
         }
 
-        binding.layoutMenuReport.setOnClickListener {
-            val intent = Intent(this, ReportManageActivity::class.java)
-            startActivity(intent)
-        }
-
-        binding.layoutMenuBusiness.setOnClickListener {
-            val intent = Intent(this, BusinessManageActivity::class.java)
-            startActivity(intent)
-        }
-
-        binding.layoutMenuInquiry.setOnClickListener {
-            val intent = Intent(this, InquiryManageActivity::class.java)
-            startActivity(intent)
-        }
-        
-        binding.layoutLogout.setOnClickListener {
-            RetrofitClient.logout()
+        ViewCompat.setOnApplyWindowInsetsListener(binding.root) { v, insets ->
+            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
+            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
+            insets
         }
     }
 
     private fun updateUI(profile: UserProfileResponse) {
-        binding.tvNickname.text = profile.nickname
+        binding.textView4.text = profile.nickname
         
         if (!profile.profileImageUrl.isNullOrEmpty()) {
             Glide.with(this)
                 .load(profile.profileImageUrl)
-                .placeholder(R.drawable.icon_pfp1)
-                .error(R.drawable.icon_pfp1)
+                .placeholder(R.drawable.union)
+                .error(R.drawable.union)
                 .circleCrop()
-                .into(binding.ivProfile)
+                .into(binding.imageView6)
         }
     }
 
@@ -76,13 +65,13 @@ class AdminMyPageActivity : AppCompatActivity() {
                     profile?.let { updateUI(it) }
                 } else {
                     val errorMsg = RetrofitClient.parseErrorMessage(response)
-                    Toast.makeText(this@AdminMyPageActivity, "프로필 로드 실패: $errorMsg", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(applicationContext, "프로필 로드 실패: $errorMsg", Toast.LENGTH_SHORT).show()
                 }
             }
 
             override fun onFailure(call: Call<ApiResponse<UserProfileResponse>>, t: Throwable) {
-                Log.e("AdminMyPage", "Profile load failed", t)
-                Toast.makeText(this@AdminMyPageActivity, "네트워크 오류: ${t.message}", Toast.LENGTH_SHORT).show()
+                Log.e("CustomerMypage", "Profile load failed", t)
+                Toast.makeText(applicationContext, "네트워크 오류: ${t.message}", Toast.LENGTH_SHORT).show()
             }
         })
     }

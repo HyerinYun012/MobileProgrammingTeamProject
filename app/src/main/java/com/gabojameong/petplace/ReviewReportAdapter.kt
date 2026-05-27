@@ -7,6 +7,7 @@ import com.gabojameong.petplace.databinding.ItemReviewReportBinding
 
 class ReviewReportAdapter(
     private val onDeleteClick: (Long) -> Unit,
+    private val onCompleteClick: (Long) -> Unit,
     private val onItemClick: (ReviewReportItem) -> Unit
 ) : RecyclerView.Adapter<ReviewReportAdapter.ViewHolder>() {
 
@@ -35,9 +36,11 @@ class ReviewReportAdapter(
             binding.tvReviewerName.text = item.ownerName
 
             binding.btnDeleteReview.setOnClickListener {
-                onDeleteClick(item.id)
+                onDeleteClick(item.reviewId)
             }
-
+            binding.btnCompleteReview.setOnClickListener {
+                onCompleteClick(item.id)
+            }
             binding.root.setOnClickListener {
                 onItemClick(item)
             }

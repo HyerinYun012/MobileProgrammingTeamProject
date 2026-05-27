@@ -9,7 +9,6 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.LinearLayout
-import android.widget.Toast
 import androidx.core.net.toUri
 import androidx.fragment.app.Fragment
 import com.bumptech.glide.Glide
@@ -22,6 +21,7 @@ class PlaceInfoReviewFragment : Fragment() {
     private var _binding: FragmentPlaceInfoReviewBinding? = null
     private val binding get() = _binding!!
     private val apiService = RetrofitClient.apiService
+    private var currentRestaurantId: Long = -1L
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -38,6 +38,7 @@ class PlaceInfoReviewFragment : Fragment() {
         val restaurant = arguments?.getSerializable("restaurant", RestaurantResponse::class.java)
         
         restaurant?.let {
+            currentRestaurantId = it.id
             fetchReviews(it.id)
             
             binding.btnNaverPage.setOnClickListener { _ ->
@@ -45,6 +46,15 @@ class PlaceInfoReviewFragment : Fragment() {
                 val encodedQuery = Uri.encode(searchQuery)
                 val url = "https://m.place.naver.com/place/list?query=$encodedQuery"
                 startActivity(Intent(Intent.ACTION_VIEW, url.toUri()))
+            }
+        }
+
+        binding.btnRecentReview.setOnClickListener {
+            if (currentRestaurantId != -1L) {
+                val intent = Intent(requireContext(), ReviewReadActivity::class.java).apply {
+                    putExtra("RESTAURANT_ID", currentRestaurantId)
+                }
+                startActivity(intent)
             }
         }
     }
@@ -87,7 +97,7 @@ class PlaceInfoReviewFragment : Fragment() {
         binding.tvRateCount.text = "${reviews.size}개 평점"
 
         val recentReview = reviews[0]
-        binding.btnRecentReview.text = getString(R.string.best_review_format, recentReview.writerName, recentReview.content)
+        binding.btnRecentReview.text = getString(R.string.best_review_format, recentReview.writerName ?: "익명", recentReview.content)
         
         if (!recentReview.imageUrl.isNullOrEmpty()) {
             binding.ivRecentReview.visibility = View.VISIBLE
@@ -99,10 +109,6 @@ class PlaceInfoReviewFragment : Fragment() {
         } else {
             binding.ivRecentReview.visibility = View.GONE
             binding.btnRecentReview.setPadding(dpToPx(16), 0, dpToPx(16), 0)
-        }
-
-        binding.btnRecentReview.setOnClickListener {
-            Toast.makeText(requireContext().applicationContext, "리뷰 목록 화면으로 이동합니다 (구현 예정)", Toast.LENGTH_SHORT).show()
         }
 
         binding.llImageReviews.removeAllViews()
@@ -123,6 +129,12 @@ class PlaceInfoReviewFragment : Fragment() {
                     }
                     scaleType = ImageView.ScaleType.CENTER_CROP
                     clipToOutline = true
+                    setOnClickListener {
+                        val intent = Intent(requireContext(), ReviewReadActivity::class.java).apply {
+                            putExtra("RESTAURANT_ID", currentRestaurantId)
+                        }
+                        startActivity(intent)
+                    }
                 }
                 
                 Glide.with(this)

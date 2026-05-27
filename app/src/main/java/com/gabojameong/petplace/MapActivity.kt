@@ -108,6 +108,7 @@ class MapActivity : AppCompatActivity(), OnMapReadyCallback {
             fetchNearbyRestaurants(center.latitude, center.longitude)
         }
 
+        //차후 주석처리
         val testRestaurant = RestaurantResponse(
             id = -1L, // 중복 방지를 위해 음수 ID 사용
             name = "테스트 애견카페",
@@ -116,7 +117,7 @@ class MapActivity : AppCompatActivity(), OnMapReadyCallback {
             address = "경기도 시흥시 시청로 20",
             latitude = 37.3801,
             longitude = 126.8030,
-            phone = "010-1234-5678",
+            phone = "010-9999-9999",
             operatingHours = null,
             allowSmall = true,
             allowMedium = true,
@@ -138,7 +139,7 @@ class MapActivity : AppCompatActivity(), OnMapReadyCallback {
 
     private fun fetchNearbyRestaurants(lat: Double, lng: Double) {
         val pageable = mapOf("page" to "0", "size" to "100")
-        RetrofitClient.apiService.getNearbyRestaurants(lat, lng, 5.0, pageable)
+        RetrofitClient.apiService.getNearbyRestaurants(lat, lng, 10.0, pageable)
             .enqueue(object : Callback<ApiResponse<PageResponse<RestaurantResponse>>> {
                 override fun onResponse(
                     call: Call<ApiResponse<PageResponse<RestaurantResponse>>>,
@@ -157,7 +158,7 @@ class MapActivity : AppCompatActivity(), OnMapReadyCallback {
                 override fun onFailure(call: Call<ApiResponse<PageResponse<RestaurantResponse>>>, t: Throwable) {
                     Log.e("MapActivity", "서버 데이터 로드 실패", t)
                     if (!isFinishing) {
-                        Toast.makeText(this@MapActivity, "서버 연결이 원활하지 않습니다.", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(applicationContext, "서버 연결이 원활하지 않습니다.", Toast.LENGTH_SHORT).show()
                     }
                 }
             })

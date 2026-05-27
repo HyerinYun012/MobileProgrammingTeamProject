@@ -1,12 +1,15 @@
 package com.gabojameong.petplace
 
+import android.app.Dialog
 import android.graphics.Color
+import android.graphics.drawable.ColorDrawable
 import android.graphics.drawable.GradientDrawable
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.Window
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.Toast
@@ -14,6 +17,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.RecyclerView
 import androidx.viewpager2.widget.ViewPager2
 import com.gabojameong.petplace.databinding.ActivityOwnerReviewManageBinding
+import com.gabojameong.petplace.databinding.DialogReportBinding
 import com.gabojameong.petplace.databinding.ItemOwnerReviewBinding
 import retrofit2.Call
 import retrofit2.Callback
@@ -56,7 +60,7 @@ class OwnerReviewManageActivity : AppCompatActivity() {
                     val reviews = response.body()?.data?.content ?: emptyList()
                     binding.tvReviewCount.text = "${reviews.size}개"
                     binding.rvOwnerReviews.adapter = OwnerReviewAdapter(reviews) { reviewId ->
-                        reportReview(reviewId)
+                        showReportDialog(reviewId)
                     }
                 }
             }
@@ -67,8 +71,33 @@ class OwnerReviewManageActivity : AppCompatActivity() {
         })
     }
 
-    private fun reportReview(reviewId: Long) {
-        val reasonMap = mapOf("reason" to "부적절한 리뷰 신고")
+    private fun showReportDialog(reviewId: Long) {
+        val dialog = Dialog(this)
+        dialog.requestWindowFeature(Window.FEATURE_NO_TITLE)
+        val dialogBinding = DialogReportBinding.inflate(layoutInflater)
+        dialog.setContentView(dialogBinding.root)
+
+        dialog.window?.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
+
+        dialogBinding.btnCancel.setOnClickListener {
+            dialog.dismiss()
+        }
+
+        dialogBinding.btnReportConfirm.setOnClickListener {
+            val reason = dialogBinding.etReportReason.text.toString().trim()
+            if (reason.isEmpty()) {
+                Toast.makeText(this, "신고 사유를 입력해주세요.", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+            dialog.dismiss()
+            performReport(reviewId, reason)
+        }
+
+        dialog.show()
+    }
+
+    private fun performReport(reviewId: Long, reason: String) {
+        val reasonMap = mapOf("reason" to reason)
         apiService.reportReview(reviewId, reasonMap).enqueue(object : Callback<ApiResponse<Any>> {
             override fun onResponse(call: Call<ApiResponse<Any>>, response: Response<ApiResponse<Any>>) {
                 if (response.isSuccessful) {
@@ -76,7 +105,7 @@ class OwnerReviewManageActivity : AppCompatActivity() {
                         loadReviews()
                     }
                 } else {
-                    Toast.makeText(this@OwnerReviewManageActivity, "신고 요청에 실패했습니다.", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(applicationContext, "신고 요청에 실패했습니다.", Toast.LENGTH_SHORT).show()
                 }
             }
             override fun onFailure(call: Call<ApiResponse<Any>>, t: Throwable) {

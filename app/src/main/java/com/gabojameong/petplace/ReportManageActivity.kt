@@ -37,7 +37,7 @@ class ReportManageActivity : AppCompatActivity() {
                     val reports = response.body()?.data?.content ?: emptyList()
                     reviewAdapter.setData(reports)
                 } else {
-                    Toast.makeText(this@ReportManageActivity, "신고 목록을 불러오지 못했습니다.", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(applicationContext, "신고 목록을 불러오지 못했습니다.", Toast.LENGTH_SHORT).show()
                 }
             }
 
@@ -49,8 +49,11 @@ class ReportManageActivity : AppCompatActivity() {
 
     private fun setupRecyclerView() {
         reviewAdapter = ReviewReportAdapter(
-            onDeleteClick = { reportId ->
-                deleteReview(reportId)
+            onDeleteClick = { reviewId ->
+                deleteReview(reviewId)
+            },
+            onCompleteClick = { reportId ->
+                completeReview(reportId)
             },
             onItemClick = { item ->
                 val intent = Intent(this, ReviewReadActivity::class.java)
@@ -65,11 +68,34 @@ class ReportManageActivity : AppCompatActivity() {
         apiService.adminDeleteReview(reviewId).enqueue(object : Callback<ApiResponse<Any>> {
             override fun onResponse(call: Call<ApiResponse<Any>>, response: Response<ApiResponse<Any>>) {
                 if (response.isSuccessful) {
-                    Toast.makeText(this@ReportManageActivity, "리뷰가 삭제되었습니다.", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(applicationContext, "리뷰가 삭제되었습니다.", Toast.LENGTH_SHORT).show()
                     loadReportedReviews()
+                } else {
+                    Toast.makeText(applicationContext, "리뷰 삭제에 실패했습니다.", Toast.LENGTH_SHORT).show()
                 }
             }
-            override fun onFailure(call: Call<ApiResponse<Any>>, t: Throwable) {}
+            override fun onFailure(call: Call<ApiResponse<Any>>, t: Throwable) {
+                Log.e("ReportManage", "Error deleting review", t)
+                Toast.makeText(applicationContext, "네트워크 오류가 발생했습니다.", Toast.LENGTH_SHORT).show()
+            }
+        })
+    }
+
+    private fun completeReview(reportId: Long) {
+        apiService.completeReviewReport(reportId).enqueue(object : Callback<ApiResponse<Any>> {
+            override fun onResponse(call: Call<ApiResponse<Any>>, response: Response<ApiResponse<Any>>) {
+                if (response.isSuccessful) {
+                    Toast.makeText(applicationContext, "신고 처리가 완료되었습니다.", Toast.LENGTH_SHORT).show()
+                    loadReportedReviews() // 목록 새로고침
+                } else {
+                    Toast.makeText(applicationContext, "신고 처리에 실패했습니다.", Toast.LENGTH_SHORT).show()
+                }
+            }
+
+            override fun onFailure(call: Call<ApiResponse<Any>>, t: Throwable) {
+                Log.e("ReportManage", "Error completing report", t)
+                Toast.makeText(applicationContext, "네트워크 오류가 발생했습니다.", Toast.LENGTH_SHORT).show()
+            }
         })
     }
 }

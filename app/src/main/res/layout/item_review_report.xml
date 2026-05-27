@@ -72,16 +72,31 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:background="@drawable/bg_solid_orange"
+        android:backgroundTint="#ED0000"
         android:fontFamily="@font/nanum_gothic_bold"
         android:paddingHorizontal="24dp"
         android:paddingVertical="8dp"
-        android:layout_marginTop="13dp"
         android:text="삭제"
         android:textColor="#FFFFFF"
         android:textSize="14sp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toBottomOf="@id/iv_reviewer_profile"
-        app:layout_constraintVertical_bias="1.0" />
+        app:layout_constraintVertical_bias="0.0" />
+
+    <TextView
+        android:id="@+id/btn_complete_review"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="5dp"
+        android:background="@drawable/bg_solid_orange"
+        android:fontFamily="@font/nanum_gothic_bold"
+        android:paddingHorizontal="24dp"
+        android:paddingVertical="8dp"
+        android:text="완료처리"
+        android:textColor="#FFFFFF"
+        android:textSize="14sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/btn_delete_review" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

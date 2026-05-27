@@ -27,6 +27,7 @@ class SignupInfoFragment : Fragment() {
     private var isSocial: Boolean = false
     private var checkedIdDuplication = false
     private var checkedNicknameDuplication = false
+    private var isAccountCreated = false // 추가: 회원가입 계정 생성 여부 플래그
     private val apiService = RetrofitClient.apiService
     private val gson = Gson()
 
@@ -107,7 +108,6 @@ class SignupInfoFragment : Fragment() {
 
                 val input = s.toString()
 
-                // 010- 접두사 강제 유지
                 if (!input.startsWith(prefix)) {
                     s.replace(0, s.length, prefix)
                     isFormatting = false
@@ -115,7 +115,6 @@ class SignupInfoFragment : Fragment() {
                     return
                 }
 
-                // 숫자만 추출 (010- 이후)
                 val body = input.substring(prefix.length).replace("-", "")
                 val digits = body.filter { it.isDigit() }.take(8)
                 
@@ -129,6 +128,38 @@ class SignupInfoFragment : Fragment() {
                 if (input != finalStr) {
                     s.replace(0, s.length, finalStr)
                     binding.editTextPhone.setSelection(finalStr.length)
+                }
+
+                isFormatting = false
+            }
+        })
+
+        // 사업자 등록번호 자동 포맷팅 (xxx-xx-xxxxx)
+        binding.editTextBusinessNumber.addTextChangedListener(object : TextWatcher {
+            private var isFormatting = false
+
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
+
+            override fun afterTextChanged(s: Editable?) {
+                if (isFormatting || s == null) return
+                isFormatting = true
+
+                val input = s.toString().replace("-", "")
+                val digits = input.filter { it.isDigit() }.take(10)
+                
+                val formatted = StringBuilder()
+                for (i in digits.indices) {
+                    formatted.append(digits[i])
+                    if ((i == 2 && digits.length > 3) || (i == 4 && digits.length > 5)) {
+                        formatted.append("-")
+                    }
+                }
+
+                val finalStr = formatted.toString()
+                if (s.toString() != finalStr) {
+                    s.replace(0, s.length, finalStr)
+                    binding.editTextBusinessNumber.setSelection(finalStr.length)
                 }
 
                 isFormatting = false
@@ -235,6 +266,12 @@ class SignupInfoFragment : Fragment() {
                 Toast.makeText(requireContext().applicationContext, "서비스 유형을 선택해주세요.", Toast.LENGTH_SHORT).show()
                 return
             }
+
+            // 추가: 계정이 이미 생성되었다면 바로 가게 등록 단계로 진행 (Opt 2)
+            if (isAccountCreated) {
+                proceedToOwnerStep()
+                return
+            }
         }
 
         if (isSocial) {
@@ -301,6 +338,25 @@ class SignupInfoFragment : Fragment() {
         }
     }
 
+    // 추가: 사장님 가입 후 다음 단계(로그인 및 가게등록)를 통합 수행하는 함수
+    private fun proceedToOwnerStep() {
+        val bName = binding.editTextBusinessName.text.toString().trim()
+        val bAddr = binding.editTextBusinessAdress.text.toString().trim()
+        val bPhone = binding.editTextPhone.text.toString().replace("-", "")
+        val bNo = binding.editTextBusinessNumber.text.toString().trim()
+
+        if (isSocial) {
+            val provider = arguments?.getString("provider") ?: ""
+            val accessToken = arguments?.getString("accessToken") ?: ""
+            val providerId = arguments?.getString("providerId") ?: ""
+            autoSocialLoginAndRegisterRestaurant(provider, accessToken, providerId, bName, bAddr, bPhone, bNo)
+        } else {
+            val loginId = binding.editTextId.text.toString().trim()
+            val pw = binding.editTextPw.text.toString().trim()
+            autoLoginAndRegisterRestaurant(loginId, pw, bName, bAddr, bPhone, bNo)
+        }
+    }
+
     private fun autoLoginAndRegisterRestaurant(loginId: String, pw: String, name: String, addr: String, phone: String, bNo: String) {
         apiService.login(LoginRequest(loginId, pw)).enqueue(object : Callback<ApiResponse<String>> {
             override fun onResponse(call: Call<ApiResponse<String>>, response: Response<ApiResponse<String>>) {
@@ -309,11 +365,12 @@ class SignupInfoFragment : Fragment() {
                     RetrofitClient.setToken(token)
                     registerRestaurantAfterSignup(name, addr, phone, bNo)
                 } else {
-                    navigateToLogin()
+                    val msg = RetrofitClient.parseErrorMessage(response)
+                    Toast.makeText(requireContext().applicationContext, "자동 로그인 실패: $msg", Toast.LENGTH_LONG).show()
                 }
             }
             override fun onFailure(call: Call<ApiResponse<String>>, t: Throwable) {
-                navigateToLogin()
+                Toast.makeText(requireContext().applicationContext, "로그인 네트워크 오류: ${t.message}", Toast.LENGTH_SHORT).show()
             }
         })
     }
@@ -327,12 +384,12 @@ class SignupInfoFragment : Fragment() {
                     RetrofitClient.setToken(jwt)
                     registerRestaurantAfterSignup(name, addr, phone, bNo)
                 } else {
-                    Toast.makeText(requireContext().applicationContext, "소셜 자동 로그인 실패", Toast.LENGTH_LONG).show()
-                    navigateToLogin()
+                    val msg = RetrofitClient.parseErrorMessage(response)
+                    Toast.makeText(requireContext().applicationContext, "소셜 자동 로그인 실패: $msg", Toast.LENGTH_LONG).show()
                 }
             }
             override fun onFailure(call: Call<ApiResponse<String>>, t: Throwable) {
-                navigateToLogin()
+                Toast.makeText(requireContext().applicationContext, "소셜 로그인 네트워크 오류: ${t.message}", Toast.LENGTH_SHORT).show()
             }
         })
     }
@@ -366,11 +423,12 @@ class SignupInfoFragment : Fragment() {
                     Toast.makeText(requireContext().applicationContext, "가입 및 가게 등록 완료!", Toast.LENGTH_SHORT).show()
                     navigateToLogin()
                 } else {
-                    navigateToLogin()
+                    val msg = RetrofitClient.parseErrorMessage(response)
+                    Toast.makeText(requireContext().applicationContext, "가게 등록 실패: $msg\n정보를 확인하고 다시 시도해주세요.", Toast.LENGTH_LONG).show()
                 }
             }
             override fun onFailure(call: Call<ApiResponse<Long>>, t: Throwable) {
-                navigateToLogin()
+                Toast.makeText(requireContext().applicationContext, "가게 등록 네트워크 오류: ${t.message}", Toast.LENGTH_SHORT).show()
             }
         })
     }
@@ -399,29 +457,23 @@ class SignupInfoFragment : Fragment() {
     private val signupCallback = object : Callback<ApiResponse<Any>> {
         override fun onResponse(call: Call<ApiResponse<Any>>, response: Response<ApiResponse<Any>>) {
             if (response.isSuccessful && response.body()?.success == true) {
+                isAccountCreated = true // 계정 생성 성공 표시
                 if (role == "owner") {
-                    val bName = binding.editTextBusinessName.text.toString().trim()
-                    val bAddr = binding.editTextBusinessAdress.text.toString().trim()
-                    val bPhone = binding.editTextPhone.text.toString().replace("-", "")
-                    val bNo = binding.editTextBusinessNumber.text.toString().trim()
-
-                    if (isSocial) {
-                        val provider = arguments?.getString("provider") ?: ""
-                        val accessToken = arguments?.getString("accessToken") ?: ""
-                        val providerId = arguments?.getString("providerId") ?: ""
-                        autoSocialLoginAndRegisterRestaurant(provider, accessToken, providerId, bName, bAddr, bPhone, bNo)
-                    } else {
-                        val loginId = binding.editTextId.text.toString().trim()
-                        val pw = binding.editTextPw.text.toString().trim()
-                        autoLoginAndRegisterRestaurant(loginId, pw, bName, bAddr, bPhone, bNo)
-                    }
+                    proceedToOwnerStep()
                 } else {
                     Toast.makeText(requireContext().applicationContext, "회원가입 성공!", Toast.LENGTH_SHORT).show()
                     navigateToLogin()
                 }
             } else {
                 val msg = RetrofitClient.parseErrorMessage(response)
-                Toast.makeText(requireContext().applicationContext, "가입 실패: $msg", Toast.LENGTH_LONG).show()
+                // 이미 존재하는 계정인 경우, 사장님이라면 가게 등록 단계로 진행 시도
+                if (role == "owner" && (msg.contains("이미") || msg.contains("중복") || msg.contains("exists"))) {
+                    isAccountCreated = true
+                    Toast.makeText(requireContext().applicationContext, "이미 가입된 계정입니다. 가게 등록을 진행합니다.", Toast.LENGTH_SHORT).show()
+                    proceedToOwnerStep()
+                } else {
+                    Toast.makeText(requireContext().applicationContext, "가입 실패: $msg", Toast.LENGTH_LONG).show()
+                }
             }
         }
         override fun onFailure(call: Call<ApiResponse<Any>>, t: Throwable) {

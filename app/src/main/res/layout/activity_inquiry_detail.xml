@@ -69,7 +69,7 @@
                 android:fontFamily="@font/nanum_gothic_regular"
                 android:paddingHorizontal="24dp"
                 android:paddingVertical="20dp"
-                android:text="일반 문의"
+                android:text="오류 문의"
                 android:textColor="#000000"
                 android:textSize="18sp" />
 
@@ -77,17 +77,6 @@
                 android:layout_width="match_parent"
                 android:layout_height="1dp"
                 android:background="#C8C8C8" />
-
-            <TextView
-                android:id="@+id/tv_inquiry_email"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:fontFamily="@font/nanum_gothic_regular"
-                android:paddingHorizontal="24dp"
-                android:paddingVertical="20dp"
-                android:text="gmdd112@naver.com"
-                android:textColor="#000000"
-                android:textSize="18sp" />
 
             <View
                 android:layout_width="match_parent"
@@ -103,7 +92,40 @@
                 android:paddingHorizontal="24dp"
                 android:paddingTop="24dp"
                 android:paddingBottom="40dp"
-                android:text="아니 제가 반려동물 동반 여부를 확인하고 간건데 동반 안된다고 그러네요. 식당 이름은 뫄뫄네 식당 입니다.\n답변 꼭 해주셨으면 좋겠습니다."
+                android:text="로그아웃 하려고 하면 앱이 죽어요"
+                android:textColor="#000000"
+                android:textSize="16sp" />
+
+            <View
+                android:id="@+id/view"
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="#C8C8C8" />
+
+            <TextView
+                android:id="@+id/tv_answer"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:fontFamily="@font/nanum_gothic_bold"
+                android:paddingHorizontal="24dp"
+                android:paddingTop="6dp"
+                android:paddingBottom="6dp"
+                android:text="내 답변"
+                android:textColor="@color/orange"
+                android:textSize="20sp" />
+
+            <EditText
+                android:id="@+id/editTextAnswer"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@null"
+                android:fontFamily="@font/nanum_gothic_regular"
+                android:hint="답변 입력"
+                android:lineSpacingExtra="6dp"
+                android:paddingHorizontal="24dp"
+                android:paddingTop="24dp"
+                android:paddingBottom="40dp"
+                android:text=""
                 android:textColor="#000000"
                 android:textSize="16sp" />
 
@@ -120,7 +142,7 @@
         android:background="@drawable/bg_chip_orange"
         android:backgroundTint="@color/orange"
         android:fontFamily="@font/nanum_gothic_bold"
-        android:text="처리완료"
+        android:text="답변 등록"
         android:textColor="@color/white"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"

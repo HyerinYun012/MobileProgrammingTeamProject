@@ -32,18 +32,19 @@ class InquiryManageActivity : AppCompatActivity() {
     }
 
     private fun loadInquiries() {
-        apiService.getAdminInquiries().enqueue(object : Callback<ApiResponse<List<InquiryResponse>>> {
+        val pageable = mapOf("page" to "0", "size" to "100")
+        apiService.getAdminInquiries(pageable).enqueue(object : Callback<ApiResponse<PageResponse<InquiryResponse>>> {
             override fun onResponse(
-                call: Call<ApiResponse<List<InquiryResponse>>>,
-                response: Response<ApiResponse<List<InquiryResponse>>>
+                call: Call<ApiResponse<PageResponse<InquiryResponse>>>,
+                response: Response<ApiResponse<PageResponse<InquiryResponse>>>
             ) {
                 if (response.isSuccessful) {
-                    val inquiryList = response.body()?.data ?: emptyList()
+                    val inquiryList = response.body()?.data?.content ?: emptyList()
                     binding.rvInquiries.adapter = InquiryAdapter(inquiryList) { inquiry ->
                         val intent = Intent(this@InquiryManageActivity, InquiryDetailActivity::class.java).apply {
                             putExtra("INQUIRY_ID", inquiry.id)
                             putExtra("CATEGORY", inquiry.category)
-                            putExtra("EMAIL", "") // User email if available in DTO
+                            putExtra("EMAIL", inquiry.email) // User email if available in DTO
                             putExtra("CONTENT", inquiry.content)
                         }
                         startActivity(intent)
@@ -53,7 +54,7 @@ class InquiryManageActivity : AppCompatActivity() {
                 }
             }
 
-            override fun onFailure(call: Call<ApiResponse<List<InquiryResponse>>>, t: Throwable) {
+            override fun onFailure(call: Call<ApiResponse<PageResponse<InquiryResponse>>>, t: Throwable) {
                 Log.e("InquiryManage", "Error loading inquiries", t)
             }
         })

@@ -1,18 +1,14 @@
 package com.gabojameong.petplace
 
 import android.content.Intent
-import android.graphics.Color
-import android.graphics.drawable.GradientDrawable
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.ImageView
-import android.widget.LinearLayout
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.RecyclerView
-import androidx.viewpager2.widget.ViewPager2
+import com.bumptech.glide.Glide
 import com.gabojameong.petplace.databinding.ActivityReviewReadBinding
 import com.gabojameong.petplace.databinding.ItemReviewReadBinding
 import retrofit2.Call
@@ -31,6 +27,11 @@ class ReviewReadActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         restaurantId = intent.getLongExtra("RESTAURANT_ID", -1L)
+        if (restaurantId == -1L) {
+            // Intent extra name might be different depending on where it's called from
+            restaurantId = intent.getLongExtra("REVIEW_ID", -1L) // fallback if needed
+        }
+
         binding.btnBack.setOnClickListener { finish() }
 
         binding.btnWriteReview.setOnClickListener {
@@ -41,6 +42,11 @@ class ReviewReadActivity : AppCompatActivity() {
         }
         
         loadReviews()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        loadReviews() // 새 리뷰 작성 후 돌아왔을 때 갱신
     }
 
     private fun loadReviews() {
@@ -64,13 +70,25 @@ class ReviewReadActivity : AppCompatActivity() {
             fun bind(review: ReviewResponse) {
                 itemBinding.itemRatingBar.rating = review.rating.toFloat()
                 itemBinding.tvReviewContent.text = review.content
-                // item_review_read.xml의 ID가 tv_reviewer_name인지 확인 필요
-                // itemBinding.tvReviewerName.text = review.writerName ?: "익명"
+                itemBinding.tvReviewerName.text = review.writerName ?: review.user?.nickname ?: "익명"
 
+                // 프로필 이미지 설정
+                val profileUrl = review.user?.profileUrl
+                if (!profileUrl.isNullOrEmpty()) {
+                    Glide.with(itemView.context)
+                        .load(profileUrl)
+                        .circleCrop()
+                        .placeholder(R.drawable.icon_pfp1)
+                        .into(itemBinding.ivReviewerProfile)
+                } else {
+                    itemBinding.ivReviewerProfile.setImageResource(R.drawable.icon_pfp1)
+                }
+
+                // 리뷰 이미지 설정 (현재 API는 단일 이미지 지원)
                 if (!review.imageUrl.isNullOrEmpty()) {
                     val imageList = listOf(review.imageUrl)
                     itemBinding.vpReviewPhotos.visibility = View.VISIBLE
-                    itemBinding.indicatorLayout.visibility = View.VISIBLE
+                    // itemBinding.indicatorLayout.visibility = View.VISIBLE // 이미지가 하나일 때는 인디케이터 숨김 처리 가능
                     itemBinding.vpReviewPhotos.adapter = ReadImageSliderAdapter(imageList)
                 } else {
                     itemBinding.vpReviewPhotos.visibility = View.GONE
