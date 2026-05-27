@@ -12,6 +12,22 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.PetPlace">
         <activity
+            android:name=".PetManageActivity"
+            android:exported="false" />
+        <activity
+            android:name=".NoticeWriteActivity"
+            android:exported="false" />
+        <activity
+            android:name=".NoticeManageActivity"
+            android:exported="false" />
+        <activity
+            android:name="com.yalantis.ucrop.UCropActivity"
+            android:screenOrientation="portrait"
+            android:theme="@style/Theme.AppCompat.Light.NoActionBar" />
+        <activity
+            android:name=".MenuManageActivity"
+            android:exported="false" />
+        <activity
             android:name=".ImageDetailActivity"
             android:exported="false" />
         <activity

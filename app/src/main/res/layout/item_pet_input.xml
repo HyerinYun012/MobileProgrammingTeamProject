@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:paddingHorizontal="20dp"
+    android:paddingBottom="20dp">
+
+    <ImageView
+        android:id="@+id/btn_remove_pet"
+        android:layout_width="24dp"
+        android:layout_height="24dp"
+        android:layout_marginTop="20dp"
+        android:src="@android:drawable/ic_menu_close_clear_cancel"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <ImageView
+        android:id="@+id/iv_pet_profile"
+        android:layout_width="100dp"
+        android:layout_height="100dp"
+        android:layout_marginTop="20dp"
+        android:src="@drawable/ic_profile_dog"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <EditText
+        android:id="@+id/et_pet_name"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:layout_marginTop="24dp"
+        android:background="@null"
+        android:hint="이름"
+        android:textColor="#000000"
+        android:textColorHint="#999999"
+        android:textSize="18sp"
+        android:inputType="text"
+        app:layout_constraintTop_toBottomOf="@id/iv_pet_profile" />
+    <View android:id="@+id/line_name" android:layout_width="match_parent" android:layout_height="1dp" android:background="#CCCCCC" app:layout_constraintTop_toBottomOf="@id/et_pet_name" />
+
+    <EditText
+        android:id="@+id/et_pet_birthday"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:layout_marginTop="16dp"
+        android:background="@null"
+        android:hint="생일 (예: 20230101)"
+        android:textColor="#000000"
+        android:textColorHint="#999999"
+        android:textSize="18sp"
+        android:inputType="number"
+        app:layout_constraintTop_toBottomOf="@id/line_name" />
+    <View android:id="@+id/line_birth" android:layout_width="match_parent" android:layout_height="1dp" android:background="#CCCCCC" app:layout_constraintTop_toBottomOf="@id/et_pet_birthday" />
+
+    <EditText
+        android:id="@+id/et_pet_breed"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:layout_marginTop="16dp"
+        android:background="@null"
+        android:hint="품종"
+        android:textColor="#000000"
+        android:textColorHint="#999999"
+        android:textSize="18sp"
+        android:inputType="text"
+        app:layout_constraintTop_toBottomOf="@id/line_birth" />
+
+    <View android:id="@+id/line_breed"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="#CCCCCC"
+        app:layout_constraintTop_toBottomOf="@id/et_pet_breed"
+        app:layout_constraintBottom_toBottomOf="parent"/>
+</androidx.constraintlayout.widget.ConstraintLayout>

@@ -30,6 +30,30 @@ class TempTestActivity : AppCompatActivity() {
             startActivity(intent)
         }
 
+        // 사장님 모드(업장 등록/관리) 화면 이동
+        binding.btnTestStoreManage.setOnClickListener {
+            val intent = Intent(this, StoreManageActivity::class.java)
+            startActivity(intent)
+        }
+
+        // 사장님 모드(메뉴 관리) 화면 이동
+        binding.btnTestMenuManage.setOnClickListener {
+            val intent = Intent(this, MenuManageActivity::class.java)
+            startActivity(intent)
+        }
+
+        // 사장님 모드(공지 관리) 화면 이동
+        binding.btnTestNoticeManage.setOnClickListener {
+            val intent = Intent(this, NoticeManageActivity::class.java)
+            startActivity(intent)
+        }
+
+        // 고객 모드(반려동물 등록) 화면 이동
+        binding.btnTestPetManage.setOnClickListener {
+            val intent = Intent(this, PetManageActivity::class.java)
+            startActivity(intent)
+        }
+
         // 고객 모드(내 리뷰) 화면 이동
         binding.btnTestCustomer.setOnClickListener {
             val intent = Intent(this, MyReviewActivity::class.java).apply {
@@ -58,12 +82,6 @@ class TempTestActivity : AppCompatActivity() {
             val categories = listOf("일반 문의", "오류 문의", "신고 문의")
             dbHelper.insertInquiry(categories.random(), "문의 사항 테스트 내용입니다.", "user_test@naver.com")
             showCustomDialog("문의 데이터가 추가되었습니다.")
-        }
-
-        // 업장 등록/관리 화면 이동
-        binding.btnTestStoreManage.setOnClickListener {
-            val intent = Intent(this, StoreManageActivity::class.java)
-            startActivity(intent)
         }
     }
 }
