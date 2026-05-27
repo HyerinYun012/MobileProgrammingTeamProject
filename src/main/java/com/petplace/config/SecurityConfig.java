@@ -29,39 +29,27 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-                .csrf(AbstractHttpConfigurer::disable) // API 서버이므로 CSRF 비활성화
+                .csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(session ->
-                        session.sessionCreationPolicy(SessionCreationPolicy.STATELESS) // 세션 미사용 (JWT 필수 체계)
+                        session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
                 .authorizeHttpRequests(auth -> auth
-                        // 1. 최소한의 시스템 허용 경로 (로그인 및 사장님/고객 회원가입 창구만 오픈)
                         .requestMatchers("/", "/favicon.ico", "/error").permitAll()
-                        .requestMatchers("/api/auth/**").permitAll() // 로그인, 회원가입, 중복체크 API만 비인증 접근 가능
-
-                        // 2. 프론트엔드/백엔드 협업용 API 문서 명세서 인프라 허용
-                        .requestMatchers(
-                                "/v3/api-docs/**",
-                                "/swagger-ui/**",
-                                "/swagger-ui.html",
-                                "/swagger-resources/**",
-                                "/webjars/**"
-                        ).permitAll()
-
-                        //비로그인 유저도 식당 조회(목록, 상세, 검색 등) 가능
+                        .requestMatchers("/api/auth/**").permitAll()
+                        .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html", "/swagger-resources/**", "/webjars/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/restaurants/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/search/**").permitAll()
 
-                        // 💡 3. 권한별 접근 제한 (Role Based)
-                        .requestMatchers("/api/owner/**").hasAuthority("OWNER")
-                        .requestMatchers("/api/admin/**").hasAuthority("ADMIN")
-                        .requestMatchers(HttpMethod.POST, "/api/restaurants/**").hasAnyAuthority("OWNER", "ADMIN")
-                        .requestMatchers(HttpMethod.PUT, "/api/restaurants/**").hasAnyAuthority("OWNER", "ADMIN")
-                        .requestMatchers(HttpMethod.DELETE, "/api/restaurants/**").hasAnyAuthority("OWNER", "ADMIN")
+                        .requestMatchers("/api/admin/**").hasRole("ADMIN")
 
-                        // 4. 나머지 모든 API 요청(맛집 단순 GET 조회, 검색, 커뮤니티, 리뷰 전체 포함)은 무조건 인증된 회원만 진입 허용
+                        .requestMatchers("/api/owner/**", "/api/owners/**").hasAnyRole("OWNER", "ADMIN")
+
+                        .requestMatchers(HttpMethod.POST, "/api/restaurants/**").hasAnyRole("OWNER", "ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/api/restaurants/**").hasAnyRole("OWNER", "ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/api/restaurants/**").hasAnyRole("OWNER", "ADMIN")
+
                         .anyRequest().authenticated()
                 )
-                // 필터 체인 앞단에 JWT 검증 필터를 배치하여 토큰이 없거나 올바르지 않으면 컨트롤러 도달 전에 쳐냅니다.
                 .addFilterBefore(new JwtFilter(jwtUtil, handlerExceptionResolver), UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
