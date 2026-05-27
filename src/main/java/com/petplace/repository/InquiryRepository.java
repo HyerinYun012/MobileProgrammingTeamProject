@@ -7,30 +7,48 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
+import java.util.Collection;
 
 @Repository
 public interface InquiryRepository extends JpaRepository<Inquiry, Long> {
 
     /**
-     * 💡 [페이징 적용] 관리자 대시보드용 전체 1:1 문의 내역 페이징 조회
-     * * @param pageable 페이징 정보 (Sort 정보 포함 가능)
-     * @return Page<Inquiry> 페이징된 문의 목록
+     * 특정 카테고리들에 해당하는 문의 내역 페이징 조회 (관리자용)
      */
     @Query(value = "select i from Inquiry i " +
             "left join fetch i.user " +
+            "left join fetch i.restaurant " + // 💡 [N+1 방지 추가]
+            "where i.category in :categories " +
             "order by i.createdAt desc",
-            countQuery = "select count(i) from Inquiry i")
-    Page<Inquiry> findAllByOrderByCreatedAtDesc(Pageable pageable);
+            countQuery = "select count(i) from Inquiry i where i.category in :categories")
+    Page<Inquiry> findAllByCategoryIn(@Param("categories") Collection<Inquiry.Category> categories, Pageable pageable);
 
     /**
-     * 💡 [페이징 적용] 일반 사용자 마이페이지용 본인 1:1 문의 내역 페이징 조회
-     * * @param userId 조회할 유저 ID
-     * @param pageable 페이징 정보
-     * @return Page<Inquiry> 페이징된 문의 목록
+     * 일반 사용자 마이페이지용 본인 1:1 문의 내역 페이징 조회
      */
     @Query(value = "select i from Inquiry i " +
             "left join fetch i.user " +
+            "left join fetch i.restaurant " + // 💡 [N+1 방지 추가]
             "where i.user.id = :userId",
             countQuery = "select count(i) from Inquiry i where i.user.id = :userId")
     Page<Inquiry> findAllByUserId(@Param("userId") Long userId, Pageable pageable);
+
+    /**
+     * 사장님 본인의 식당에 접수된 특정 카테고리(GENERAL) 문의 내역만 페이징 조회
+     */
+    @Query(value = "select i from Inquiry i " +
+            "left join fetch i.user " +
+            "left join fetch i.restaurant r " +
+            "where i.category = :category " +
+            "and r.owner.id = :ownerId " +
+            "order by i.createdAt desc",
+            countQuery = "select count(i) from Inquiry i " +
+                    "join i.restaurant r " +
+                    "where i.category = :category " +
+                    "and r.owner.id = :ownerId")
+    Page<Inquiry> findAllByCategoryAndRestaurantOwnerId(
+            @Param("category") Inquiry.Category category,
+            @Param("ownerId") Long ownerId,
+            Pageable pageable
+    );
 }

@@ -36,7 +36,8 @@ public class MyPageService {
                 user.getId(),
                 user.getEmail(),
                 user.getNickname(),
-                user.getProfileUrl()
+                user.getProfileUrl(),
+                user.getRole().name()
         );
     }
 

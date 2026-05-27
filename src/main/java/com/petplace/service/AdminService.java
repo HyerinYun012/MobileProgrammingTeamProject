@@ -44,30 +44,30 @@ public class AdminService {
     }
 
     /**
-     * 문의 상태 업데이트
+     * 관리자용 문의 상태 업데이트 (비즈니스/오류 문의만 가능)
      */
     public void updateInquiryStatus(Long inquiryId, Long adminId) {
         Inquiry inquiry = inquiryRepository.findById(inquiryId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.INQUIRY_NOT_FOUND));
+
+        // 일반 문의(GENERAL)를 관리자가 처리하려고 할 경우 예외 발생
+        if (inquiry.getCategory() == Inquiry.Category.GENERAL) {
+            throw new BusinessException(ErrorCode.UNAUTHORIZED_INQUIRY_ACCESS);
+        }
 
         inquiry.completeInquiry();
         log.info("Admin {} completed inquiry {}", adminId, inquiryId);
     }
 
     /**
-     * 관리자용 전체 문의 내역 페이징 조회
+     * 관리자용 전체 문의 내역 페이징 조회 (BUSINESS, ERROR만 조회)
      */
     @Transactional(readOnly = true)
     public Page<InquiryResponse> getAllInquiries(Pageable pageable) {
-        return inquiryRepository.findAllByOrderByCreatedAtDesc(pageable)
-                .map(inquiry -> new InquiryResponse(
-                        inquiry.getId(),
-                        inquiry.getUser() != null ? inquiry.getUser().getNickname() : "알 수 없는 사용자",
-                        inquiry.getCategory() != null ? inquiry.getCategory().name() : "일반",
-                        inquiry.getContent(),
-                        inquiry.getStatus() != null ? inquiry.getStatus().name() : "대기",
-                        inquiry.getCreatedAt()
-                ));
+        List<Inquiry.Category> adminCategories = List.of(Inquiry.Category.BUSINESS, Inquiry.Category.ERROR);
+
+        return inquiryRepository.findAllByCategoryIn(adminCategories, pageable)
+                .map(InquiryResponse::from);
     }
 
     /**

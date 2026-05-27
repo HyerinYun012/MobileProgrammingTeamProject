@@ -17,6 +17,10 @@ public class Inquiry extends BaseTimeEntity {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "restaurant_id", nullable = true)
+    private Restaurant restaurant;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private Category category;
@@ -35,24 +39,19 @@ public class Inquiry extends BaseTimeEntity {
     @Column(nullable = false)
     private Status status;
 
-    /**
-     * 💡 [정적 팩토리 메서드 고도화]
-     * 내부 세터 호출을 제거하고 direct 필드 대입으로 수정하여 완전성을 확보합니다.
-     */
-    public static Inquiry createInquiry(User user, Category category, String content, String email, String imageUrl) {
+
+    public static Inquiry createInquiry(User user, Restaurant restaurant, Category category, String content, String email, String imageUrl) {
         Inquiry inquiry = new Inquiry();
         inquiry.user = user;
+        inquiry.restaurant = restaurant;
         inquiry.category = category;
         inquiry.content = content;
         inquiry.email = email;
         inquiry.imageUrl = imageUrl;
-        inquiry.status = Status.PENDING; // 초기 비즈니스 상태 강제 보장
+        inquiry.status = Status.PENDING;
         return inquiry;
     }
 
-    /**
-     * 🛡️ [도메인 비즈니스 메서드] 명확한 상태 변경 메서드 유지
-     */
     public void completeInquiry() {
         this.status = Status.COMPLETED;
     }

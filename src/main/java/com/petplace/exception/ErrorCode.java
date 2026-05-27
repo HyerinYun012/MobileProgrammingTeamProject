@@ -51,6 +51,7 @@ public enum ErrorCode {
     // --- Inquiry 관련 에러 ---
     INQUIRY_NOT_FOUND(HttpStatus.NOT_FOUND, "해당 문의 내역을 찾을 수 없습니다."),
     INQUIRY_SUBMISSION_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "문의 등록 중 오류가 발생했습니다."),
+    UNAUTHORIZED_INQUIRY_ACCESS(HttpStatus.FORBIDDEN, "해당 카테고리의 문의를 처리할 권한이 없습니다."),
 
     // --- Pet 관련 에러 ---
     PET_NOT_FOUND(HttpStatus.NOT_FOUND, "반려동물 정보를 찾을 수 없습니다."),

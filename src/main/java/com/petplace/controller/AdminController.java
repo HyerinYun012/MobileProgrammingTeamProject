@@ -32,11 +32,9 @@ public class AdminController {
     @Operation(summary = "리뷰 신고 내역 전체 조회", description = "관리자가 처리해야 할 모든 리뷰 신고 내역을 페이징하여 조회합니다.")
     @GetMapping("/reports/reviews")
     public ResponseEntity<ApiResponse<Page<ReviewReportResponse>>> getAllReviewReports(
-            // 💡 @ParameterObject 추가 및 기본값 세팅 (page=0, size=1, createdAt,desc)
             @org.springdoc.core.annotations.ParameterObject
             @PageableDefault(page = 0, size = 1, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
 
-        // 💡 "string" 방어 코드 추가
         if (pageable.getSort().stream().anyMatch(order -> "string".equals(order.getProperty()))) {
             pageable = org.springframework.data.domain.PageRequest.of(
                     pageable.getPageNumber(),
@@ -50,16 +48,17 @@ public class AdminController {
     }
 
     /**
-     * 관리자용 1:1 문의 내역 전체 조회 (페이징 적용)
+     * 💡 [Swagger 수정] 관리자용 1:1 문의 내역 전체 조회 (페이징 적용)
      */
-    @Operation(summary = "1:1 문의 내역 전체 조회", description = "관리자 대시보드에서 처리해야 할 모든 1:1 문의 내역을 페이징하여 조회합니다.")
+    @Operation(
+            summary = "관리자용 문의 내역 전체 조회",
+            description = "관리자가 처리해야 할 비즈니스(BUSINESS) 및 시스템 오류(ERROR) 문의 내역을 페이징하여 조회합니다. 일반(GENERAL) 문의는 사장님 전용 API를 이용하세요."
+    )
     @GetMapping("/inquiries")
     public ResponseEntity<ApiResponse<Page<InquiryResponse>>> getAllInquiries(
-            // 💡 @ParameterObject 추가 및 기본값 세팅 (page=0, size=1, createdAt,desc)
             @org.springdoc.core.annotations.ParameterObject
             @PageableDefault(page = 0, size = 1, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
 
-        // 💡 "string" 방어 코드 추가
         if (pageable.getSort().stream().anyMatch(order -> "string".equals(order.getProperty()))) {
             pageable = org.springframework.data.domain.PageRequest.of(
                     pageable.getPageNumber(),
@@ -69,7 +68,7 @@ public class AdminController {
         }
 
         Page<InquiryResponse> response = adminService.getAllInquiries(pageable);
-        return ResponseEntity.ok(ApiResponse.success("1:1 문의 내역 목록이 성공적으로 조회되었습니다.", response));
+        return ResponseEntity.ok(ApiResponse.success("관리자 전용 문의 내역 목록이 성공적으로 조회되었습니다.", response));
     }
 
     /**
@@ -80,11 +79,9 @@ public class AdminController {
     public ResponseEntity<ApiResponse<Page<CommunityReportResponse>>> getCommunityReports(
             @Parameter(description = "신고 처리 상태 (PENDING, COMPLETED)")
             @RequestParam CommunityReport.Status status,
-            // 💡 @ParameterObject 추가 및 기본값 세팅 (page=0, size=1, createdAt,desc)
             @org.springdoc.core.annotations.ParameterObject
             @PageableDefault(page = 0, size = 1, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
 
-        // 💡 "string" 방어 코드 추가
         if (pageable.getSort().stream().anyMatch(order -> "string".equals(order.getProperty()))) {
             pageable = org.springframework.data.domain.PageRequest.of(
                     pageable.getPageNumber(),
@@ -107,7 +104,13 @@ public class AdminController {
         return ResponseEntity.ok(ApiResponse.success("사장님 입점 승인이 완료되었습니다.", null));
     }
 
-    @Operation(summary = "1:1 문의 처리 완료", description = "사용자의 문의 내역을 확인하고 처리 상태를 '처리완료'로 변경합니다.")
+    /**
+     * 💡 [Swagger 수정] 1:1 문의 처리 완료
+     */
+    @Operation(
+            summary = "관리자용 문의 처리 완료",
+            description = "비즈니스(BUSINESS) 및 시스템 오류(ERROR) 문의의 상태를 '처리완료'로 변경합니다. 사장님 담당인 일반(GENERAL) 문의 요청 시 권한 에러(403 - UNAUTHORIZED_INQUIRY_ACCESS)가 발생합니다."
+    )
     @PatchMapping("/inquiries/{inquiryId}/complete")
     public ResponseEntity<ApiResponse<Void>> completeInquiry(
             @AuthenticationPrincipal Long adminId,

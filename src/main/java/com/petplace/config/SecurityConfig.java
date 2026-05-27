@@ -51,7 +51,8 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/restaurants/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/search/**").permitAll()
 
-                        // 권한별 접근 제한 (Role Based)
+                        // 💡 3. 권한별 접근 제한 (Role Based)
+                        .requestMatchers("/api/owner/**").hasAuthority("OWNER")
                         .requestMatchers("/api/admin/**").hasAuthority("ADMIN")
                         .requestMatchers(HttpMethod.POST, "/api/restaurants/**").hasAnyAuthority("OWNER", "ADMIN")
                         .requestMatchers(HttpMethod.PUT, "/api/restaurants/**").hasAnyAuthority("OWNER", "ADMIN")
