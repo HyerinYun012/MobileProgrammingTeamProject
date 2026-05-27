@@ -6,7 +6,7 @@ import lombok.*;
 @Entity
 @Table(name = "inquiries")
 @Getter
-@NoArgsConstructor(access = AccessLevel.PROTECTED) // 🛡️ 안전장치 확보
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Inquiry extends BaseTimeEntity {
 
     @Id
@@ -25,12 +25,15 @@ public class Inquiry extends BaseTimeEntity {
     @Column(nullable = false)
     private Category category;
 
-    @Column(length = 100)
-    private String email;
+    @Column(length = 100, nullable = false)
+    private String title;
 
     @Lob
     @Column(nullable = false)
     private String content;
+
+    @Lob
+    private String reply;
 
     @Column(length = 500)
     private String imageUrl;
@@ -39,20 +42,21 @@ public class Inquiry extends BaseTimeEntity {
     @Column(nullable = false)
     private Status status;
 
-
-    public static Inquiry createInquiry(User user, Restaurant restaurant, Category category, String content, String email, String imageUrl) {
+    public static Inquiry createInquiry(User user, Restaurant restaurant, Category category, String title, String content, String imageUrl) {
         Inquiry inquiry = new Inquiry();
         inquiry.user = user;
         inquiry.restaurant = restaurant;
         inquiry.category = category;
+        inquiry.title = title;
         inquiry.content = content;
-        inquiry.email = email;
         inquiry.imageUrl = imageUrl;
         inquiry.status = Status.PENDING;
         return inquiry;
     }
 
-    public void completeInquiry() {
+    // 💡 답변과 함께 처리 상태를 완료로 변경
+    public void completeInquiry(String reply) {
+        this.reply = reply;
         this.status = Status.COMPLETED;
     }
 

@@ -2,6 +2,7 @@ package com.petplace.controller;
 
 import com.petplace.dto.request.InquiryRequest;
 import com.petplace.dto.response.ApiResponse;
+import com.petplace.dto.response.InquiryDetailResponse;
 import com.petplace.dto.response.InquiryResponse;
 import com.petplace.service.InquiryService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -67,5 +68,21 @@ public class InquiryController {
 
         Page<InquiryResponse> responses = inquiryService.getMyInquiries(userId, pageable);
         return ResponseEntity.ok(ApiResponse.success("내 문의 내역 조회가 완료되었습니다.", responses));
+    }
+
+    /**
+     * 💡 [신규 추가] 내 1:1 문의 단건 상세 조회
+     */
+    @Operation(
+            summary = "내 1:1 문의 상세 조회",
+            description = "로그인한 사용자가 본인이 작성한 특정 문의의 상세 내용 및 답변을 확인합니다. 타인의 문의 조회 시 권한 에러(403)가 발생합니다."
+    )
+    @GetMapping("/{inquiryId}")
+    public ResponseEntity<ApiResponse<InquiryDetailResponse>> getMyInquiryDetail(
+            @Parameter(hidden = true) @AuthenticationPrincipal Long userId,
+            @Parameter(description = "조회할 문의 ID", example = "1") @PathVariable Long inquiryId
+    ) {
+        InquiryDetailResponse response = inquiryService.getMyInquiryDetail(inquiryId, userId);
+        return ResponseEntity.ok(ApiResponse.success("문의 상세 내역이 성공적으로 조회되었습니다.", response));
     }
 }

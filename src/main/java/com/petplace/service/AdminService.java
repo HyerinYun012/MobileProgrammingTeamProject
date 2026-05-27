@@ -70,19 +70,20 @@ public class AdminService {
     }
 
     /**
-     * 관리자용 문의 상태 업데이트 (비즈니스/오류 문의만 가능)
+     * 💡 관리자용 문의 상태 업데이트 (비즈니스/오류 문의만 처리 가능 + 답변 추가)
      */
-    public void updateInquiryStatus(Long inquiryId, Long adminId) {
+    public void updateInquiryStatus(Long inquiryId, Long adminId, String reply) {
         Inquiry inquiry = inquiryRepository.findById(inquiryId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.INQUIRY_NOT_FOUND));
 
-        // 일반 문의(GENERAL)를 관리자가 처리하려고 할 경우 예외 발생
+        // 💡 일반 문의(GENERAL)는 관리자가 처리 불가 (가게 사장님만 가능)
         if (inquiry.getCategory() == Inquiry.Category.GENERAL) {
             throw new BusinessException(ErrorCode.UNAUTHORIZED_INQUIRY_ACCESS);
         }
 
-        inquiry.completeInquiry();
-        log.info("Admin {} completed inquiry {}", adminId, inquiryId);
+        // 답변 등록 및 상태 완료 처리
+        inquiry.completeInquiry(reply);
+        log.info("Admin {} completed inquiry {} with reply", adminId, inquiryId);
     }
 
     /**
@@ -94,6 +95,25 @@ public class AdminService {
 
         return inquiryRepository.findAllByCategoryIn(adminCategories, pageable)
                 .map(InquiryResponse::from);
+    }
+
+    /**
+     * 관리자용 문의 단건 상세 조회 (Fetch Join 적용)
+     */
+    @Transactional(readOnly = true)
+    public InquiryDetailResponse getInquiryDetail(Long inquiryId, Long adminId) {
+
+        User admin = userRepository.findById(adminId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
+
+        if (admin.getRole() != User.Role.ADMIN) {
+            throw new BusinessException(ErrorCode.UNAUTHORIZED_INQUIRY_ACCESS);
+        }
+
+        Inquiry inquiry = inquiryRepository.findByIdWithUserAndRestaurant(inquiryId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.INQUIRY_NOT_FOUND));
+
+        return InquiryDetailResponse.from(inquiry);
     }
 
     /**

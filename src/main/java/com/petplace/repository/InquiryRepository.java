@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import java.util.Collection;
+import java.util.Optional;
 
 @Repository
 public interface InquiryRepository extends JpaRepository<Inquiry, Long> {
@@ -51,4 +52,15 @@ public interface InquiryRepository extends JpaRepository<Inquiry, Long> {
             @Param("ownerId") Long ownerId,
             Pageable pageable
     );
+
+    /**
+     * 단건 상세 조회 성능 최적화를 위한 Fetch Join 쿼리
+     * Inquiry 상세 응답 DTO 변환 및 사장님 권한 검증에 필요한 연관 엔티티를 한 번에 가져옵니다.
+     */
+    @Query("select i from Inquiry i " +
+            "left join fetch i.user " +
+            "left join fetch i.restaurant r " +
+            "left join fetch r.owner " +
+            "where i.id = :id")
+    Optional<Inquiry> findByIdWithUserAndRestaurant(@Param("id") Long id);
 }

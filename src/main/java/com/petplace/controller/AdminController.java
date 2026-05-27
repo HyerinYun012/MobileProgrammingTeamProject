@@ -1,11 +1,13 @@
 package com.petplace.controller;
 
+import com.petplace.dto.request.InquiryReplyRequest;
 import com.petplace.dto.response.*;
 import com.petplace.entity.CommunityReport;
 import com.petplace.service.AdminService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -107,6 +109,22 @@ public class AdminController {
     }
 
     /**
+     * 관리자용 문의 단건 상세 조회
+     */
+    @Operation(
+            summary = "관리자용 문의 상세 조회",
+            description = "관리자가 제휴(BUSINESS) 및 시스템 오류(ERROR) 문의의 상세 내용을 확인합니다."
+    )
+    @GetMapping("/inquiries/{inquiryId}")
+    public ResponseEntity<ApiResponse<InquiryDetailResponse>> getAdminInquiryDetail(
+            @AuthenticationPrincipal Long adminId,
+            @Parameter(description = "조회할 문의 ID", example = "1") @PathVariable Long inquiryId
+    ) {
+        InquiryDetailResponse response = adminService.getInquiryDetail(inquiryId, adminId);
+        return ResponseEntity.ok(ApiResponse.success("문의 상세 내역이 성공적으로 조회되었습니다.", response));
+    }
+
+    /**
      * 커뮤니티 신고 내역 조건별 목록 조회 (페이징 적용)
      */
     @Operation(summary = "커뮤니티 신고 내역 목록 조회", description = "접수된 커뮤니티 신고 내역을 상태별로 페이징 조회합니다.")
@@ -140,19 +158,21 @@ public class AdminController {
     }
 
     /**
-     * 💡 [Swagger 수정] 1:1 문의 처리 완료
+     * 💡 [Swagger 및 파라미터 수정] 1:1 문의 처리 완료 (답변 추가)
      */
     @Operation(
             summary = "관리자용 문의 처리 완료",
-            description = "비즈니스(BUSINESS) 및 시스템 오류(ERROR) 문의의 상태를 '처리완료'로 변경합니다. 사장님 담당인 일반(GENERAL) 문의 요청 시 권한 에러(403 - UNAUTHORIZED_INQUIRY_ACCESS)가 발생합니다."
+            description = "비즈니스(BUSINESS) 및 시스템 오류(ERROR) 문의에 답변을 달고 상태를 '처리완료'로 변경합니다. 사장님 담당인 일반(GENERAL) 문의 요청 시 권한 에러(403)가 발생합니다."
     )
     @PatchMapping("/inquiries/{inquiryId}/complete")
     public ResponseEntity<ApiResponse<Void>> completeInquiry(
             @AuthenticationPrincipal Long adminId,
-            @Parameter(description = "처리할 문의 ID") @PathVariable Long inquiryId) {
+            @Parameter(description = "처리할 문의 ID") @PathVariable Long inquiryId,
+            @Valid @RequestBody InquiryReplyRequest req) {
 
-        adminService.updateInquiryStatus(inquiryId, adminId);
-        return ResponseEntity.ok(ApiResponse.success("문의 처리가 완료되었습니다.", null));
+        // 💡 RequestBody에서 reply를 꺼내어 Service로 전달
+        adminService.updateInquiryStatus(inquiryId, adminId, req.getReply());
+        return ResponseEntity.ok(ApiResponse.success("문의 처리가 성공적으로 완료되었습니다.", null));
     }
 
     @Operation(summary = "신고된 리뷰 삭제", description = "신고가 정당할 경우 리뷰를 삭제하고 해당 신고 건들을 처리완료합니다.")

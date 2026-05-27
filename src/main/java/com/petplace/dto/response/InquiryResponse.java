@@ -4,24 +4,15 @@ import com.petplace.entity.Inquiry;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.time.LocalDateTime;
 
-@Schema(description = "1:1 문의 내역 응답 객체 (영문 표준 데이터 표준 규격 적용)")
+@Schema(description = "1:1 문의 목록 조회 응답 객체")
 public record InquiryResponse(
-        @Schema(description = "문의 ID", example = "1")
+        @Schema(description = "문의 ID (상세 페이지 이동 시 사용)", example = "1")
         Long id,
 
-        @Schema(description = "작성자 닉네임", example = "홍길동")
-        String userName,
+        @Schema(description = "문의 제목", example = "예약 취소는 어떻게 하나요?")
+        String title,
 
-        @Schema(description = "작성자 이메일", example = "user@example.com")
-        String email,
-
-        @Schema(description = "문의 카테고리 (GENERAL, BUSINESS, ERROR)", example = "GENERAL")
-        String category,
-
-        @Schema(description = "문의 내용", example = "결제 취소는 어떻게 하나요?")
-        String content,
-
-        @Schema(description = "처리 상태 (PENDING, COMPLETED)", example = "PENDING")
+        @Schema(description = "처리 상태 (PENDING, COMPLETED)", example = "COMPLETED")
         String status,
 
         @Schema(description = "작성일")
@@ -30,10 +21,7 @@ public record InquiryResponse(
     public static InquiryResponse from(Inquiry inquiry) {
         return new InquiryResponse(
                 inquiry.getId(),
-                inquiry.getUser() != null ? inquiry.getUser().getNickname() : "알 수 없음",
-                inquiry.getUser() != null ? inquiry.getUser().getEmail() : "알 수 없음",
-                inquiry.getCategory() != null ? inquiry.getCategory().name() : null,
-                inquiry.getContent(),
+                inquiry.getTitle(),
                 inquiry.getStatus() != null ? inquiry.getStatus().name() : null,
                 inquiry.getCreatedAt()
         );

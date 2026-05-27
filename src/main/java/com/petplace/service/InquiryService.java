@@ -1,6 +1,7 @@
 package com.petplace.service;
 
 import com.petplace.dto.request.InquiryRequest;
+import com.petplace.dto.response.InquiryDetailResponse;
 import com.petplace.dto.response.InquiryResponse;
 import com.petplace.entity.Inquiry;
 import com.petplace.entity.Restaurant;
@@ -27,6 +28,11 @@ public class InquiryService {
 
     @Transactional
     public void submitInquiry(Long userId, InquiryRequest req) {
+
+        if (req.getCategory() == Inquiry.Category.GENERAL && req.getRestaurantId() == null) {
+            throw new BusinessException(ErrorCode.INVALID_INPUT_VALUE); // "일반 문의는 대상 식당을 선택해야 합니다."
+        }
+
         User user = userRepo.findById(userId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
 
@@ -42,12 +48,80 @@ public class InquiryService {
                 user,
                 restaurant,
                 category,
+                req.getTitle(),
                 req.getContent(),
-                req.getEmail(),
                 req.getImageUrl()
         );
 
         inquiryRepo.save(inquiry);
+    }
+
+    /**
+     * 일반 사용자용 1:1 문의 단건 상세 조회 (Fetch Join 적용)
+     */
+    public InquiryDetailResponse getMyInquiryDetail(Long inquiryId, Long userId) {
+        Inquiry inquiry = inquiryRepo.findByIdWithUserAndRestaurant(inquiryId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.INQUIRY_NOT_FOUND));
+
+        // 🛡️ 보안 검증: 현재 로그인한 사용자가 본인이 작성한 문의글이 맞는지 확인
+        if (!inquiry.getUser().getId().equals(userId)) {
+            throw new BusinessException(ErrorCode.UNAUTHORIZED_INQUIRY_ACCESS);
+        }
+
+        return InquiryDetailResponse.from(inquiry);
+    }
+
+    /**
+     * 사장님용 일반 문의 단건 상세 조회 (Fetch Join 적용)
+     */
+    public InquiryDetailResponse getOwnerInquiryDetail(Long inquiryId, Long ownerId) {
+        Inquiry inquiry = inquiryRepo.findByIdWithUserAndRestaurant(inquiryId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.INQUIRY_NOT_FOUND));
+
+        // 🛡️ 카테고리 검증: 사장님은 일반(GENERAL) 식당 문의만 접근 가능
+        if (inquiry.getCategory() != Inquiry.Category.GENERAL) {
+            throw new BusinessException(ErrorCode.UNAUTHORIZED_INQUIRY_ACCESS);
+        }
+
+        if (inquiry.getRestaurant() == null || !inquiry.getRestaurant().getOwner().getId().equals(ownerId)) {
+            throw new BusinessException(ErrorCode.UNAUTHORIZED_INQUIRY_ACCESS);
+        }
+
+        return InquiryDetailResponse.from(inquiry);
+    }
+
+    /**
+     * 사장님용 본인 가게 일반 문의(GENERAL) 페이징 조회
+     */
+    public Page<InquiryResponse> getOwnerInquiries(Long ownerId, Pageable pageable) {
+        return inquiryRepo.findAllByCategoryAndRestaurantOwnerId(
+                Inquiry.Category.GENERAL,
+                ownerId,
+                pageable
+        ).map(InquiryResponse::from);
+    }
+
+    /**
+     * 사장님의 '일반 문의(GENERAL)' 처리 로직
+     * 본인 가게에 달린 일반 문의인지 2단계로 검증한 뒤 답변과 상태를 갱신합니다.
+     */
+    @Transactional
+    public void processGeneralInquiry(Long inquiryId, Long ownerId, String reply) {
+        Inquiry inquiry = inquiryRepo.findById(inquiryId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.INQUIRY_NOT_FOUND));
+
+        // 1. 카테고리 검증: GENERAL(일반 문의)만 처리 가능
+        if (inquiry.getCategory() != Inquiry.Category.GENERAL) {
+            throw new BusinessException(ErrorCode.UNAUTHORIZED_INQUIRY_ACCESS);
+        }
+
+        // 2. 권한 검증: 문의 대상 식당이 있고, 그 식당의 주인이 요청한 ownerId와 일치하는지 확인
+        if (inquiry.getRestaurant() == null || !inquiry.getRestaurant().getOwner().getId().equals(ownerId)) {
+            throw new BusinessException(ErrorCode.UNAUTHORIZED_INQUIRY_ACCESS);
+        }
+
+        // 3. 답변 달고 처리 완료 (COMPLETED)
+        inquiry.completeInquiry(reply);
     }
 
     public Page<InquiryResponse> getMyInquiries(Long userId, Pageable pageable) {

@@ -14,6 +14,7 @@ public enum ErrorCode {
     PARENT_COMMENT_NOT_FOUND(HttpStatus.NOT_FOUND, "부모 댓글을 찾을 수 없습니다."),
     INVALID_PRICE_VALUE(HttpStatus.BAD_REQUEST, "가격은 음수일 수 없습니다."),
 
+    INVALID_INPUT_VALUE(HttpStatus.BAD_REQUEST, "올바르지 않은 입력값입니다."),
     DUPLICATE_BUSINESS_NUMBER(HttpStatus.CONFLICT, "이미 등록된 사업자 번호입니다."),
 
     // 403 Forbidden
