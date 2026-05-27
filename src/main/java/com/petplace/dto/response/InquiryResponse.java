@@ -12,6 +12,9 @@ public record InquiryResponse(
         @Schema(description = "작성자 닉네임", example = "홍길동")
         String userName,
 
+        @Schema(description = "작성자 이메일", example = "user@example.com")
+        String email,
+
         @Schema(description = "문의 카테고리 (GENERAL, BUSINESS, ERROR)", example = "GENERAL")
         String category,
 
@@ -24,14 +27,11 @@ public record InquiryResponse(
         @Schema(description = "작성일")
         LocalDateTime createdAt
 ) {
-    /**
-     * 💡 엔티티를 DTO로 안전하게 역직렬화/매핑해주는 팩토리 생성자 기법
-     * 엔티티의 영문 Enum 명칭(.name())을 그대로 스트링 직렬화하여 반환합니다.
-     */
     public static InquiryResponse from(Inquiry inquiry) {
         return new InquiryResponse(
                 inquiry.getId(),
                 inquiry.getUser() != null ? inquiry.getUser().getNickname() : "알 수 없음",
+                inquiry.getUser() != null ? inquiry.getUser().getEmail() : "알 수 없음",
                 inquiry.getCategory() != null ? inquiry.getCategory().name() : null,
                 inquiry.getContent(),
                 inquiry.getStatus() != null ? inquiry.getStatus().name() : null,
