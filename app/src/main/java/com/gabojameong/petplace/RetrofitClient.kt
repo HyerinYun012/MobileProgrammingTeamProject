@@ -12,6 +12,7 @@ import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Response
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
+import java.util.concurrent.TimeUnit
 
 object RetrofitClient {
     private const val BASE_URL = "http://3.21.169.86:8080/"
@@ -32,6 +33,10 @@ object RetrofitClient {
         authToken?.let {
             builder.header("Authorization", "Bearer $it")
         }
+        
+        // EOFException 방지를 위해 Connection: close 헤더 추가 고려
+        // 서버에서 Keep-Alive 연결을 비정상적으로 종료하는 경우 도움이 될 수 있음
+        builder.header("Connection", "close")
         
         chain.proceed(builder.build())
     }
@@ -87,9 +92,13 @@ object RetrofitClient {
     }
 
     private val client = OkHttpClient.Builder()
+        .connectTimeout(30, TimeUnit.SECONDS)
+        .readTimeout(30, TimeUnit.SECONDS)
+        .writeTimeout(30, TimeUnit.SECONDS)
         .addInterceptor(authInterceptor)
         .authenticator(tokenAuthenticator)
         .addInterceptor(loggingInterceptor)
+        .retryOnConnectionFailure(true)
         .build()
 
     private val retrofit: Retrofit by lazy {

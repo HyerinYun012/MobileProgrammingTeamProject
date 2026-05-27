@@ -5,6 +5,8 @@
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
 
     <application
         android:name=".GlobalApplication"
@@ -17,6 +19,7 @@
         android:roundIcon="@mipmap/icon_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.PetPlace">
+
         <activity
             android:name="com.kakao.sdk.auth.AuthCodeHandlerActivity"
             android:exported="true">
@@ -28,51 +31,39 @@
                     android:scheme="kakao${KAKAO_NATIVE_KEY}" />
             </intent-filter>
         </activity>
-        <activity
-            android:name=".SearchActivity"
-            android:exported="false">
-        </activity>
-        <activity
-            android:name=".SignupActivity"
-            android:exported="false">
-        </activity>
-        <activity
-            android:name=".LoginActivity"
-            android:exported="true">
-        </activity>
-        <activity
-            android:name=".MainActivity"
-            android:exported="true">
-        </activity>
+
         <activity
             android:name=".SplashActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity
-            android:name=".ResultActivity"
-            android:exported="true">
-        </activity>
-        <activity
-            android:name=".PlaceInfoActivity"
-            android:exported="false">
-        </activity>
-        <activity
-            android:name=".FindIdActivity"
-            android:exported="true">
-        </activity>
-        <activity
-            android:name=".FindPwActivity"
-            android:exported="true">
-        </activity>
-        <activity
-            android:name=".AnnouncementActivity"
-            android:exported="false">
-        </activity>
+
+        <activity android:name=".MainActivity" android:exported="true" />
+        <activity android:name=".LoginActivity" android:exported="true" />
+        <activity android:name=".SignupActivity" android:exported="false" />
+        <activity android:name=".SearchActivity" android:exported="false" />
+        <activity android:name=".ResultActivity" android:exported="true" />
+        <activity android:name=".PlaceInfoActivity" android:exported="false" />
+        <activity android:name=".FindIdActivity" android:exported="true" />
+        <activity android:name=".FindPwActivity" android:exported="true" />
+        <activity android:name=".AnnouncementActivity" android:exported="false" />
+        <activity android:name=".MapActivity" android:exported="false" />
+
+        <activity android:name=".AdminMyPageActivity" android:exported="false" />
+        <activity android:name=".ReportManageActivity" android:exported="false" />
+        <activity android:name=".BusinessManageActivity" android:exported="false" />
+        <activity android:name=".InquiryManageActivity" android:exported="false" />
+        <activity android:name=".InquiryDetailActivity" android:exported="false" />
+        <activity android:name=".StoreManageActivity" android:exported="false" />
+        <activity android:name=".MyReviewActivity" android:exported="false" />
+        <activity android:name=".OwnerReviewManageActivity" android:exported="false" />
+        <activity android:name=".ReviewReadActivity" android:exported="false" />
+        <activity android:name=".ReviewWriteActivity" android:exported="false" />
+        <activity android:name=".ImageDetailActivity" android:exported="false" />
+        <activity android:name=".TempTestActivity" android:exported="false" />
 
     </application>
 

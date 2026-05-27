@@ -205,7 +205,8 @@ data class MyReviewResponse(
     val restaurantName: String,
     val content: String,
     val rating: Int,
-    val createdAt: String
+    val createdAt: String,
+    val imageUrl: String?
 ) : Serializable
 
 data class NoticeResponse(val id: Long, val title: String, val content: String, val createdAt: String, val imageUrl: String?, val thumbnailUrl: String?) : Serializable
@@ -251,18 +252,25 @@ data class RecentViewResponse(val restaurantId: Long, val restaurantName: String
 data class InquiryRequest(val category: String, val email: String, val content: String, val imageUrl: String? = null)
 data class InquiryResponse(val id: Long, val userName: String, val category: String, val content: String, val status: String, val createdAt: String) : Serializable
 
-// --- 7. API Interface ---
-interface ApiService {
-    @GET("api/search/search")
-    fun search(
-        @Query("keyword") keyword: String,
-        @QueryMap pageable: Map<String, String>
-    ): Call<ApiResponse<PageResponse<RestaurantResponse>>>
+// --- 7. Admin DTOs ---
+data class ReviewReportItem(
+    val id: Long,
+    val reviewId: Long,
+    val reviewContent: String,
+    val ownerName: String,
+    val reason: String,
+    val status: String,
+    val createdAt: String
+) : Serializable
 
+
+
+// --- 8. API Interface ---
+interface ApiService {
+    @GET("api/search/search") fun search(@Query("keyword") keyword: String, @QueryMap pageable: Map<String, String>): Call<ApiResponse<PageResponse<RestaurantResponse>>>
     @GET("api/search/recent") fun getRecentSearches(): Call<ApiResponse<List<String>>>
     @DELETE("api/search/recent/{keyword}") fun deleteRecentSearch(@Path("keyword") keyword: String): Call<ApiResponse<Any>>
     @GET("api/search/popular") fun getPopularKeywords(): Call<ApiResponse<List<String>>>
-
     @POST("api/auth/login") fun login(@Body request: LoginRequest): Call<ApiResponse<String>>
     @POST("api/auth/social/signup") fun socialSignup(@Body request: SocialSignupRequest): Call<ApiResponse<Any>>
     @POST("api/auth/social/login") fun socialLogin(@Body request: SocialLoginRequest): Call<ApiResponse<String>>
@@ -318,4 +326,19 @@ interface ApiService {
 
     @POST("api/inquiries") fun submitInquiry(@Body request: InquiryRequest): Call<ApiResponse<Any>>
     @GET("api/inquiries/my") fun getMyInquiries(@QueryMap pageable: Map<String, String>): Call<ApiResponse<PageResponse<InquiryResponse>>>
+
+    @PATCH("api/admin/reports/{reportId}/complete")
+    fun completeReviewReport(@Path("reportId") reportId: Long): Call<ApiResponse<Any>>
+    @PATCH("api/admin/owners/{ownerId}/verify")
+    fun verifyOwner(@Path("ownerId") ownerId: Long): Call<ApiResponse<Any>>
+    @PATCH("api/admin/inquiries/{inquiryId}/complete")
+    fun completeInquiry(@Path("inquiryId") inquiryId: Long): Call<ApiResponse<Any>>
+    @PATCH("api/admin/community/reports/{reportId}/complete")
+    fun completeCommunityReport(@Path("reportId") reportId: Long): Call<ApiResponse<Any>>
+    @GET("api/admin/reports/reviews")
+    fun getReviewReports(@Query("page") page: Int, @Query("size") size: Int): Call<ApiResponse<PageResponse<ReviewReportItem>>>
+    @GET("api/admin/reports/community") fun getCommunityReports(): Call<ApiResponse<List<Any>>>
+    @GET("api/admin/inquiries") fun getAdminInquiries(): Call<ApiResponse<List<InquiryResponse>>>
+    @DELETE("api/admin/reports/reviews/{reviewId}") fun adminDeleteReview(@Path("reviewId") reviewId: Long): Call<ApiResponse<Any>>@DELETE("api/admin/community/posts/{postId}") fun adminDeleteCommunityPost(@Path("postId") postId: Long): Call<ApiResponse<Any>>@DELETE("api/admin/community/comments/{commentId}")
+    fun adminDeleteCommunityComment(@Path("commentId") commentId: Long): Call<ApiResponse<Any>>
 }

@@ -20,6 +20,7 @@
         android:backgroundTint="@null"
         android:foreground="@null"
         android:paddingStart="20dp"
+        android:paddingEnd="2dp"
         android:text="원하는 장소를 검색"
         android:textAlignment="viewStart"
         android:textColor="@color/gray"
@@ -30,13 +31,14 @@
         app:layout_constraintWidth_percent="0.9" />
 
     <Button
-        android:id="@+id/button"
+        android:id="@+id/btnMap"
         android:layout_width="296dp"
         android:layout_height="127dp"
         android:backgroundTint="#F89A66"
         android:elevation="20dp"
         android:fontFamily="@font/br_b"
-        android:paddingRight="80dp"
+        android:paddingStart="24dp"
+        android:paddingEnd="80dp"
         android:stateListAnimator="@null"
         android:text="지도탐색"
         android:textColor="@color/white"
@@ -48,7 +50,7 @@
         app:layout_constraintVertical_bias="0.32999998" />
 
     <Button
-        android:id="@+id/button2"
+        android:id="@+id/btnCheck"
         android:layout_width="297dp"
         android:layout_height="134dp"
         android:layout_marginTop="30dp"
@@ -61,7 +63,7 @@
         android:textSize="30sp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/button" />
+        app:layout_constraintTop_toBottomOf="@+id/btnMap" />
 
     <TextView
         android:id="@+id/textTop"
@@ -74,8 +76,8 @@
         android:text="동반 가능"
         android:textSize="25sp"
         android:textStyle="bold"
-        app:layout_constraintStart_toStartOf="@+id/button2"
-        app:layout_constraintTop_toTopOf="@+id/button2" />
+        app:layout_constraintStart_toStartOf="@+id/btnCheck"
+        app:layout_constraintTop_toTopOf="@+id/btnCheck" />
 
     <TextView
         android:id="@+id/textBottom"
@@ -98,9 +100,9 @@
         android:layout_height="100dp"
         android:layout_marginEnd="8dp"
         android:elevation="20dp"
-        app:layout_constraintBottom_toBottomOf="@+id/button"
-        app:layout_constraintEnd_toEndOf="@+id/button"
-        app:layout_constraintTop_toTopOf="@+id/button"
+        app:layout_constraintBottom_toBottomOf="@+id/btnMap"
+        app:layout_constraintEnd_toEndOf="@+id/btnMap"
+        app:layout_constraintTop_toTopOf="@+id/btnMap"
         app:layout_constraintVertical_bias="0.481"
         app:srcCompat="@drawable/map_icon" />
 
@@ -132,6 +134,20 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:srcCompat="@drawable/mypage" />
 
+    <ImageButton
+        android:id="@+id/btnTesting"
+        android:layout_width="70dp"
+        android:layout_height="75dp"
+        android:layout_marginEnd="308dp"
+        android:layout_marginBottom="12dp"
+        android:background="@null"
+        android:contentDescription="@string/contentDescription_mypage"
+        android:padding="0dp"
+        android:scaleType="fitCenter"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:srcCompat="@drawable/mypage" />
+
     <ImageView
         android:id="@+id/imageView8"
         android:layout_width="50dp"
@@ -153,9 +169,9 @@
         android:layout_height="100dp"
         android:layout_marginEnd="10dp"
         android:elevation="20dp"
-        app:layout_constraintBottom_toBottomOf="@+id/button2"
-        app:layout_constraintEnd_toEndOf="@+id/button2"
-        app:layout_constraintTop_toTopOf="@+id/button2"
+        app:layout_constraintBottom_toBottomOf="@+id/btnCheck"
+        app:layout_constraintEnd_toEndOf="@+id/btnCheck"
+        app:layout_constraintTop_toTopOf="@+id/btnCheck"
         app:srcCompat="@drawable/dog" />
 
 

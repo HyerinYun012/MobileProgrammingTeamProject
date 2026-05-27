@@ -19,13 +19,11 @@ class MainActivity : AppCompatActivity() {
         enableEdgeToEdge()
         setContentView(R.layout.activity_main)
 
-        // 1. 검색 버튼
         findViewById<Button>(R.id.btnSearch).setOnClickListener {
             val intent = Intent(this, SearchActivity::class.java)
             startActivity(intent)
         }
 
-        // 2. 마이페이지 버튼 (로그인 체크)
         findViewById<ImageButton>(R.id.btnMypage).setOnClickListener {
             val sharedPref = getSharedPreferences("PetPlacePref", Context.MODE_PRIVATE)
             val token = sharedPref.getString("jwt_token", null)
@@ -40,8 +38,15 @@ class MainActivity : AppCompatActivity() {
                 startActivity(intent)
             }
         }
+        findViewById<ImageButton>(R.id.btnTesting).setOnClickListener {
+            val intent = Intent(this, TempTestActivity::class.java)
+            startActivity(intent)
+        }
+        findViewById<Button>(R.id.btnMap).setOnClickListener{
+            val intent = Intent(this, MapActivity::class.java)
+            startActivity(intent)
+        }
 
-        // 3. 테스트 로그아웃 버튼 (클릭 시 세션 정보를 파기하고 로그인 화면으로 이동합니다)
         findViewById<ImageButton>(R.id.btnTestLogout).setOnClickListener {
             Toast.makeText(applicationContext, "로그아웃 테스트를 진행합니다.", Toast.LENGTH_SHORT).show()
             RetrofitClient.logout()

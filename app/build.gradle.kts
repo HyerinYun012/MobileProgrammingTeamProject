@@ -87,6 +87,10 @@ dependencies {
     implementation("com.kakao.sdk:v2-user:2.20.6")
     // Naver Login
     implementation("com.navercorp.nid:oauth:5.11.2")
+    // Naver Map SDK
+    implementation("com.naver.maps:map-sdk:3.23.2")
+    // Google Play Services Location (네이버맵에 필요함)
+    implementation("com.google.android.gms:play-services-location:21.3.0")
     // Retrofit (Java/Kotlin RESTful API 맞추기용)
     implementation("com.squareup.retrofit2:retrofit:2.9.0")
     implementation("com.squareup.retrofit2:converter-gson:2.9.0")

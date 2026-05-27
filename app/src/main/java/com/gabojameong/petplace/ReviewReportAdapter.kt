@@ -1,0 +1,46 @@
+package com.gabojameong.petplace
+
+import android.view.LayoutInflater
+import android.view.ViewGroup
+import androidx.recyclerview.widget.RecyclerView
+import com.gabojameong.petplace.databinding.ItemReviewReportBinding
+
+class ReviewReportAdapter(
+    private val onDeleteClick: (Long) -> Unit,
+    private val onItemClick: (ReviewReportItem) -> Unit
+) : RecyclerView.Adapter<ReviewReportAdapter.ViewHolder>() {
+
+    private val reportList = mutableListOf<ReviewReportItem>()
+
+    fun setData(newData: List<ReviewReportItem>) {
+        reportList.clear()
+        reportList.addAll(newData)
+        notifyDataSetChanged()
+    }
+
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
+        val binding = ItemReviewReportBinding.inflate(LayoutInflater.from(parent.context), parent, false)
+        return ViewHolder(binding)
+    }
+
+    override fun onBindViewHolder(holder: ViewHolder, position: Int) {
+        holder.bind(reportList[position])
+    }
+
+    override fun getItemCount(): Int = reportList.size
+
+    inner class ViewHolder(private val binding: ItemReviewReportBinding) : RecyclerView.ViewHolder(binding.root) {
+        fun bind(item: ReviewReportItem) {
+            binding.tvReviewContent.text = item.reviewContent
+            binding.tvReviewerName.text = item.ownerName
+
+            binding.btnDeleteReview.setOnClickListener {
+                onDeleteClick(item.id)
+            }
+
+            binding.root.setOnClickListener {
+                onItemClick(item)
+            }
+        }
+    }
+}
