@@ -13,6 +13,8 @@ public interface ReviewReportRepository extends JpaRepository<ReviewReport, Long
      */
     boolean existsByReviewIdAndOwnerId(Long reviewId, Long ownerId);
 
+    void deleteByReviewId(Long reviewId);
+
     /**
      * 💡 [페이징 적용] 관리자가 리뷰 삭제 시 관련 신고들을 조회
      * 특정 리뷰에 신고가 다수 발생할 수 있으므로 페이징 처리를 권장합니다.

@@ -21,6 +21,9 @@ public interface CommunityReportRepository extends JpaRepository<CommunityReport
      */
     Page<CommunityReport> findAllByCommentId(Long commentId, Pageable pageable);
 
+    void deleteByPostId(Long postId);
+    void deleteByCommentId(Long commentId);
+
     /**
      * 💡 [성능 최적화 및 페이징 적용]
      * 1. countQuery 명시: 복잡한 조인 쿼리 시, 개수만 빠르게 세기 위해 countQuery를 분리하여 성능을 최적화합니다.

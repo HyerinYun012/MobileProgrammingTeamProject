@@ -134,18 +134,21 @@ public class AdminService {
      * 신고된 리뷰 삭제 및 물리 파일 제거
      */
     public void deleteReportedReview(Long reviewId, Long adminId) {
+        // 1. 리뷰 존재 확인
         Review review = reviewRepository.findById(reviewId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.REVIEW_NOT_FOUND));
 
+        // 2. 물리 파일 제거
         if (review.getImageUrl() != null) {
             fileService.deleteFile(review.getImageUrl());
         }
 
-        // 삭제 로직은 전체 신고 처리가 필요하므로 unpaged() 사용
-        List<ReviewReport> reports = reportRepository.findAllByReviewId(reviewId, Pageable.unpaged()).getContent();
-        reports.forEach(ReviewReport::completeReport);
+        // 3. 신고 내역 삭제 (FK 제약 조건 해결)
+        reportRepository.deleteByReviewId(reviewId);
 
+        // 4. 리뷰 삭제
         reviewRepository.delete(review);
+
         log.warn("Admin {} deleted reported review {}", adminId, reviewId);
     }
 
@@ -161,7 +164,7 @@ public class AdminService {
     }
 
     /**
-     * 관리자 권한으로 신고된 커뮤니티 게시글 강제 삭제 + 신고 내역 종결
+     * 관리자 권한으로 신고된 커뮤니티 게시글 강제 삭제
      */
     public void deleteReportedPost(Long postId, Long adminId) {
         Post post = postRepository.findById(postId)
@@ -171,25 +174,25 @@ public class AdminService {
             fileService.deleteFile(post.getImageUrl());
         }
 
-        // 전체 신고 내역 종결을 위해 unpaged() 사용
-        List<CommunityReport> reports = communityReportRepository.findAllByPostId(postId, Pageable.unpaged()).getContent();
-        reports.forEach(CommunityReport::completeReport);
+        // 1. 신고 내역 먼저 삭제 (이게 있어야 postRepository.delete가 성공합니다)
+        communityReportRepository.deleteByPostId(postId);
 
+        // 2. 게시글 삭제
         postRepository.delete(post);
         log.warn("Admin {} forcefully deleted reported post {}", adminId, postId);
     }
 
     /**
-     * 관리자 권한으로 신고된 커뮤니티 댓글 강제 삭제 + 신고 내역 종결
+     * 관리자 권한으로 신고된 커뮤니티 댓글 강제 삭제
      */
     public void deleteReportedComment(Long commentId, Long adminId) {
         Comment comment = commentRepository.findById(commentId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.COMMENT_NOT_FOUND));
 
-        // 전체 신고 내역 종결을 위해 unpaged() 사용
-        List<CommunityReport> reports = communityReportRepository.findAllByCommentId(commentId, Pageable.unpaged()).getContent();
-        reports.forEach(CommunityReport::completeReport);
+        // 1. 신고 내역 먼저 삭제
+        communityReportRepository.deleteByCommentId(commentId);
 
+        // 2. 댓글 삭제
         commentRepository.delete(comment);
         log.warn("Admin {} forcefully deleted reported comment {}", adminId, commentId);
     }
