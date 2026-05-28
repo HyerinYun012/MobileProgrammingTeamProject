@@ -37,7 +37,7 @@ public class Inquiry extends BaseTimeEntity {
     @Lob
     private String reply;
 
-    @ElementCollection
+    @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name = "inquiry_images", joinColumns = @JoinColumn(name = "inquiry_id"))
     @Column(name = "image_url", length = 1000)
     private List<String> imageUrls = new ArrayList<>();
