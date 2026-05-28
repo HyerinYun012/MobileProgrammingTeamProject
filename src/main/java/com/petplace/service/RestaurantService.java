@@ -36,6 +36,15 @@ public class RestaurantService {
     private final FileService fileService;
 
     /**
+     * 💡 [추가] 사장님 승인 여부 검증 헬퍼 메서드
+     */
+    private void validateOwnerVerified(User owner) {
+        if (!owner.isVerified()) { // User 엔티티의 승인 여부 필드 (명칭에 맞게 수정)
+            throw new BusinessException(ErrorCode.UNAUTHORIZED_OWNER); // 승인되지 않은 사장님 예외
+        }
+    }
+
+    /**
      * 내 주변 장소 조회
      */
     public Page<RestaurantResponse> findNearby(double lat, double lng, double radius, Pageable pageable) {
@@ -98,6 +107,8 @@ public class RestaurantService {
             throw new BusinessException(ErrorCode.NO_PERMISSION);
         }
 
+        validateOwnerVerified(owner);
+
         if (restaurantRepository.existsByBusinessNo(req.getBusinessNo())) {
             throw new BusinessException(ErrorCode.DUPLICATE_BUSINESS_NUMBER);
         }
@@ -146,13 +157,14 @@ public class RestaurantService {
      */
     @Transactional(rollbackFor = Exception.class)
     public Long update(Long id, Long ownerId, RestaurantRequest req, List<MultipartFile> newImages) {
-        // 1. 기존 데이터 조회 및 권한 체크 (기존과 동일)
         Restaurant restaurant = restaurantRepository.findById(id)
                 .orElseThrow(() -> new BusinessException(ErrorCode.RESTAURANT_NOT_FOUND));
 
         if (restaurant.getOwner() == null || !Objects.equals(restaurant.getOwner().getId(), ownerId)) {
             throw new BusinessException(ErrorCode.NO_PERMISSION);
         }
+
+        validateOwnerVerified(restaurant.getOwner());
 
         if (restaurantRepository.existsByBusinessNoAndIdNot(req.getBusinessNo(), id)) {
             throw new BusinessException(ErrorCode.DUPLICATE_BUSINESS_NUMBER);

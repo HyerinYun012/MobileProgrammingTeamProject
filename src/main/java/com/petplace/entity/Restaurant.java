@@ -129,7 +129,7 @@ public class Restaurant extends BaseTimeEntity {
     /**
      * 정보 수정을 위한 비즈니스 메서드 (Dirty Checking)
      */
-    public void update(String name, String address, String phone, String businessNo,
+    public void update(String name, String address, String phone, String businessNo, // 1. businessNo 추가
                        List<OperatingHour> newOperatingHours,
                        boolean hasIndoor, boolean hasOutdoor, boolean hasRestroom,
                        boolean allowSmall, boolean allowMedium, boolean allowLarge) {

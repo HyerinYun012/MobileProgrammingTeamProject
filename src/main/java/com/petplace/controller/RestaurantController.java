@@ -106,8 +106,8 @@ public class RestaurantController {
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<ApiResponse<Long>> register(
             @AuthenticationPrincipal Long ownerId,
-            @Valid @RequestPart("request") RestaurantRequest req, // 💡 JSON 분리 데이터 파트 ("request")
-            @RequestPart(value = "images", required = false) List<MultipartFile> images // 💡 다중 파일 파트 ("images")
+            @Valid @RequestPart("data") RestaurantRequest req, // 💡 "request" -> "data"로 변경
+            @RequestPart(value = "images", required = false) List<MultipartFile> images
     ) {
         Long registeredId = restaurantService.register(ownerId, req, images);
         return ResponseEntity.ok(ApiResponse.success("장소 등록이 완료되었습니다.", registeredId));

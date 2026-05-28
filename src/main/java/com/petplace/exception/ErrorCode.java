@@ -17,6 +17,8 @@ public enum ErrorCode {
     INVALID_INPUT_VALUE(HttpStatus.BAD_REQUEST, "올바르지 않은 입력값입니다."),
     DUPLICATE_BUSINESS_NUMBER(HttpStatus.CONFLICT, "이미 등록된 사업자 번호입니다."),
 
+    UNAUTHORIZED_OWNER(HttpStatus.FORBIDDEN, "관리자 승인이 완료되지 않은 사장님 계정입니다."),
+
     // 403 Forbidden
     NO_PERMISSION(HttpStatus.FORBIDDEN, "권한이 없습니다."),
 

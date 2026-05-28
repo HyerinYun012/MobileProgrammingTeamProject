@@ -43,6 +43,17 @@ public class AdminService {
     }
 
     /**
+     * 사장님 승인 거절 (계정 삭제 처리)
+     */
+    public void rejectOwner(Long ownerId, Long adminId) {
+        User owner = userRepository.findById(ownerId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.OWNER_NOT_FOUND));
+        userRepository.delete(owner);
+
+        log.warn("Admin {} rejected and deleted owner account: {}", adminId, ownerId);
+    }
+
+    /**
      * 가입 승인 대기 중인 사장님 목록 조회 (페이징 적용)
      */
     @Transactional(readOnly = true)
@@ -122,15 +133,23 @@ public class AdminService {
     @Transactional(readOnly = true)
     public Page<ReviewReportResponse> getAllReviewReports(Pageable pageable) {
         return reportRepository.findAllBy(pageable)
-                .map(report -> new ReviewReportResponse(
-                        report.getId(),
-                        report.getReview() != null ? report.getReview().getId() : null,
-                        report.getReview() != null ? report.getReview().getContent() : "삭제된 리뷰입니다.",
-                        report.getOwner() != null ? report.getOwner().getName() : "탈퇴한 사장님",
-                        report.getReason(),
-                        report.getStatus() != null ? report.getStatus().name() : "PENDING",
-                        report.getCreatedAt()
-                ));
+                .map(report -> {
+                    Review review = report.getReview();
+
+                    return new ReviewReportResponse(
+                            report.getId(),
+                            review != null ? review.getId() : null,
+                            review != null ? review.getContent() : "삭제된 리뷰입니다.",
+                            report.getOwner() != null ? report.getOwner().getName() : "탈퇴한 사장님",
+                            report.getReason(),
+                            report.getStatus() != null ? report.getStatus().name() : "PENDING",
+                            report.getCreatedAt(),
+
+                            // 🌟 신규 필드 데이터 추가 바인딩 (null 방어 완료)
+                            review != null ? review.getRating() : null,
+                            (review != null && review.getRestaurant() != null) ? review.getRestaurant().getId() : null
+                    );
+                });
     }
 
     /**
@@ -218,7 +237,7 @@ public class AdminService {
     }
 
     /**
-     * 커뮤니티 게시글/댓글 신고 반려 처리 (단순 완료)
+     * 커뮤니티 게시글/댓글 신고 반려 처리
      */
     public void completeCommunityReport(Long reportId, Long adminId) {
         CommunityReport report = communityReportRepository.findById(reportId)

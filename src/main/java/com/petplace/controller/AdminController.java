@@ -224,4 +224,13 @@ public class AdminController {
         adminService.completeCommunityReport(reportId, adminId);
         return ResponseEntity.ok(ApiResponse.success("커뮤니티 신고 내역이 정상적으로 종결되었습니다.", null));
     }
+
+    @DeleteMapping("/owners/{ownerId}/reject")
+    public ResponseEntity<ApiResponse<Void>> rejectOwner(
+            @PathVariable Long ownerId,
+            @AuthenticationPrincipal Long adminId) {
+
+        adminService.rejectOwner(ownerId, adminId);
+        return ResponseEntity.ok(ApiResponse.success("사장님 승인이 반려(계정 삭제)되었습니다.", null));
+    }
 }
