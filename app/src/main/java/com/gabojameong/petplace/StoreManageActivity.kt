@@ -38,12 +38,12 @@ class StoreManageActivity : AppCompatActivity() {
     private var restaurantId: Long = -1L
     private var originalData: RestaurantDetailResponse? = null
 
-    // 이미지 관리를 위한 변수
+    // 이미지 관리 변수
     private var thumbnailUri: Uri? = null
-    private val bannerUriList = mutableListOf<Uri>() // 새로 추가된 이미지들
+    private val bannerUriList = mutableListOf<Uri>()
     private var editIndex: Int = -1
 
-    // 영업시간 상태 관리를 위한 변수
+    // 영업시간 상태 관리
     private var isDailyAdded = false
     private val addedWeeklyDays = mutableSetOf<String>()
 
@@ -119,7 +119,6 @@ class StoreManageActivity : AppCompatActivity() {
         binding.etStoreAddress.setText(data.address)
         binding.etStorePhone.setText(data.phone)
 
-        // 반려동물 및 시설 정보
         binding.cbSmallAnimal.isChecked = data.allowSmall
         binding.cbMediumAnimal.isChecked = data.allowMedium
         binding.cbLargeAnimal.isChecked = data.allowLarge
@@ -130,32 +129,30 @@ class StoreManageActivity : AppCompatActivity() {
         binding.cbIndoor.isChecked = data.hasIndoor
         binding.cbOutdoor.isChecked = data.hasOutdoor
 
-        // 썸네일 로드
         if (!data.imageUrl.isNullOrEmpty()) {
             Glide.with(this).load(data.imageUrl).centerCrop().into(binding.ivThumbnailAdd)
         }
 
-        // 배너 이미지 로드
         data.images?.forEach { img ->
             addBannerImageFromUrl(img.imageUrl)
         }
 
-        // 영업시간 복원
         data.operatingHours?.let { restoreOperatingHours(it) }
     }
 
     private fun restoreOperatingHours(hours: List<OperatingHour>) {
         binding.cgSelectedTimes.removeAllViews()
-        
-        // 서버 데이터를 화면의 Chip 형태로 변환 (간소화된 구현)
+        addedWeeklyDays.clear()
+        isDailyAdded = false
+
         hours.forEach { hour ->
-            val day = when(hour.dayOfWeek) {
+            val dayKor = when(hour.dayOfWeek) {
                 "MON" -> "월" "TUE" -> "화" "WED" -> "수" "THU" -> "목" "FRI" -> "금" "SAT" -> "토" "SUN" -> "일"
                 else -> hour.dayOfWeek
             }
             val timeStr = if (hour.regularHoliday) "휴무" else "${hour.openTime} ~ ${hour.closeTime}"
-            addChipToGroup("$day $timeStr", false, listOf(day))
-            addedWeeklyDays.add(day)
+            addChipToGroup("$dayKor $timeStr", false, listOf(dayKor))
+            addedWeeklyDays.add(dayKor)
         }
     }
 
@@ -169,13 +166,27 @@ class StoreManageActivity : AppCompatActivity() {
             return
         }
 
-        // 영업시간 데이터 생성
+        // --- 영업시간 Chip 데이터 파싱 ---
         val operatingHours = mutableListOf<OperatingHourRequest>()
         for (i in 0 until binding.cgSelectedTimes.childCount) {
             val chip = binding.cgSelectedTimes.getChildAt(i) as Chip
-            val chipText = chip.text.toString()
-            // Chip 텍스트 파싱 로직 (실제로는 더 정교해야 함)
-            // 예: "월, 화 09:00 ~ 18:00" -> OperatingHourRequest 리스트로 변환
+            val text = chip.text.toString()
+
+            val isHoliday = text.contains("휴무")
+            val timePart = if (!isHoliday) text.substringAfterLast(" ") else null
+            val openTime = if (!isHoliday) timePart?.split(" ~ ")?.get(0) else null
+            val closeTime = if (!isHoliday) timePart?.split(" ~ ")?.get(1) else null
+
+            val daysPart = text.substringBefore(if (isHoliday) " 휴무" else " $timePart")
+            val days = if (daysPart == "매일") {
+                listOf("MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN")
+            } else {
+                daysPart.split(", ").map { dayToEng(it) }
+            }
+
+            days.forEach { day ->
+                operatingHours.add(OperatingHourRequest(day, openTime, closeTime, isHoliday))
+            }
         }
 
         val request = RestaurantRequest(
@@ -196,22 +207,19 @@ class StoreManageActivity : AppCompatActivity() {
             allowSmall = binding.cbSmallAnimal.isChecked,
             allowMedium = binding.cbMediumAnimal.isChecked,
             allowLarge = binding.cbLargeAnimal.isChecked,
-            operatingHours = emptyList() // TODO: 파싱된 데이터 넣기
+            operatingHours = operatingHours
         )
 
         val requestBody = gson.toJson(request).toRequestBody("application/json".toMediaTypeOrNull())
-        
-        // 이미지 파트 생성 (썸네일 + 배너)
+
         val imageParts = mutableListOf<MultipartBody.Part>()
         thumbnailUri?.let { uri ->
             val file = getFileFromUri(uri)
-            val body = file.asRequestBody("image/*".toMediaTypeOrNull())
-            imageParts.add(MultipartBody.Part.createFormData("images", file.name, body))
+            imageParts.add(MultipartBody.Part.createFormData("images", file.name, file.asRequestBody("image/*".toMediaTypeOrNull())))
         }
         bannerUriList.forEach { uri ->
             val file = getFileFromUri(uri)
-            val body = file.asRequestBody("image/*".toMediaTypeOrNull())
-            imageParts.add(MultipartBody.Part.createFormData("images", file.name, body))
+            imageParts.add(MultipartBody.Part.createFormData("images", file.name, file.asRequestBody("image/*".toMediaTypeOrNull())))
         }
 
         apiService.updateRestaurant(restaurantId, requestBody, if (imageParts.isEmpty()) null else imageParts)
@@ -226,6 +234,11 @@ class StoreManageActivity : AppCompatActivity() {
                     Toast.makeText(this@StoreManageActivity, "수정 실패", Toast.LENGTH_SHORT).show()
                 }
             })
+    }
+
+    private fun dayToEng(day: String): String = when(day) {
+        "월" -> "MON" "화" -> "TUE" "수" -> "WED" "목" -> "THU" "금" -> "FRI" "토" -> "SAT" "일" -> "SUN"
+        else -> day
     }
 
     private fun getFileFromUri(uri: Uri): File {
@@ -246,9 +259,73 @@ class StoreManageActivity : AppCompatActivity() {
         binding.layoutBannerContainer.addView(newImageView, insertIndex)
     }
 
-    // 기존 헬퍼 함수들 (addBannerImageToLayout, setupSpinner 등은 유지...)
-    private fun setupSpinner() { /* 기존 코드 유지 */ }
-    private fun setupTimePicker() { /* 기존 코드 유지 */ }
+    // --- 영업시간 설정 헬퍼 함수들 ---
+    private fun setupSpinner() {
+        val repeatItems = arrayOf("매일", "매주")
+        val adapter = ArrayAdapter(this, R.layout.item_spinner, repeatItems)
+        adapter.setDropDownViewResource(R.layout.item_spinner)
+        binding.spinnerRepeat.adapter = adapter
+        binding.spinnerRepeat.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+            override fun onItemSelected(p0: AdapterView<*>?, p1: View?, position: Int, p3: Long) {
+                if (repeatItems[position] == "매주") binding.layoutWeeklyDays.visibility = View.VISIBLE
+                else binding.layoutWeeklyDays.visibility = View.GONE
+            }
+            override fun onNothingSelected(p0: AdapterView<*>?) {}
+        }
+    }
+
+    private fun setupTimePicker() {
+        binding.tvStartTime.setOnClickListener {
+            StoreTimeBottomSheet { time ->
+                if (time == "휴무") { binding.tvStartTime.text = "휴무"; binding.tvEndTime.text = "휴무" }
+                else binding.tvStartTime.text = time
+                checkAndCreateTimeChip()
+            }.show(supportFragmentManager, "start")
+        }
+        binding.tvEndTime.setOnClickListener {
+            StoreTimeBottomSheet { time ->
+                if (time == "휴무") { binding.tvStartTime.text = "휴무"; binding.tvEndTime.text = "휴무" }
+                else binding.tvEndTime.text = time
+                checkAndCreateTimeChip()
+            }.show(supportFragmentManager, "end")
+        }
+    }
+
+    private fun checkAndCreateTimeChip() {
+        val start = binding.tvStartTime.text.toString()
+        val end = binding.tvEndTime.text.toString()
+        if (start == "입력" || end == "입력") return
+
+        val isDaily = binding.spinnerRepeat.selectedItem.toString() == "매일"
+        val timeStr = if (start == "휴무") "휴무" else "$start ~ $end"
+
+        if (isDaily) {
+            if (!isDailyAdded) {
+                addChipToGroup("매일 $timeStr", true, emptyList())
+                isDailyAdded = true
+            }
+        } else {
+            val days = getSelectedDays()
+            if (days.isNotEmpty()) {
+                addChipToGroup("${days.joinToString(", ")} $timeStr", false, days)
+                addedWeeklyDays.addAll(days)
+            }
+        }
+        binding.tvStartTime.text = "입력"; binding.tvEndTime.text = "입력"
+    }
+
+    private fun getSelectedDays(): List<String> {
+        val days = mutableListOf<String>()
+        if (binding.cbMon.isChecked) days.add("월")
+        if (binding.cbTue.isChecked) days.add("화")
+        if (binding.cbWed.isChecked) days.add("수")
+        if (binding.cbThu.isChecked) days.add("목")
+        if (binding.cbFri.isChecked) days.add("금")
+        if (binding.cbSat.isChecked) days.add("토")
+        if (binding.cbSun.isChecked) days.add("일")
+        return days
+    }
+
     private fun addChipToGroup(chipText: String, isDaily: Boolean, days: List<String>) {
         val chip = Chip(this).apply {
             text = chipText
@@ -258,7 +335,6 @@ class StoreManageActivity : AppCompatActivity() {
             closeIconTint = ColorStateList.valueOf(Color.parseColor("#FF8A4C"))
             chipStrokeWidth = dpToPx(1).toFloat()
             chipStrokeColor = ColorStateList.valueOf(Color.parseColor("#FF8A4C"))
-
             setOnCloseIconClickListener {
                 binding.cgSelectedTimes.removeView(this)
                 if (isDaily) isDailyAdded = false else addedWeeklyDays.removeAll(days.toSet())
@@ -266,7 +342,9 @@ class StoreManageActivity : AppCompatActivity() {
         }
         binding.cgSelectedTimes.addView(chip)
     }
+
     private fun dpToPx(dp: Int): Int = (dp * resources.displayMetrics.density).toInt()
+
     private fun addBannerImageToLayout(uri: Uri) {
         val newImageView = ImageView(this).apply {
             layoutParams = LinearLayout.LayoutParams(dpToPx(100), dpToPx(100)).apply { marginEnd = dpToPx(10) }

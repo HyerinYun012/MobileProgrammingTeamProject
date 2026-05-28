@@ -1,6 +1,7 @@
 package com.gabojameong.petplace
 
 import android.os.Bundle
+import android.util.Log
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.gabojameong.petplace.databinding.ActivityInquiryDetailBinding
@@ -22,30 +23,63 @@ class InquiryDetailActivity : AppCompatActivity() {
         binding.btnBack.setOnClickListener { finish() }
 
         inquiryId = intent.getLongExtra("INQUIRY_ID", -1L)
-        val category = intent.getStringExtra("CATEGORY") ?: "분류 없음"
-       // val email = intent.getStringExtra("EMAIL") ?: "이메일 없음"
-        val content = intent.getStringExtra("CONTENT") ?: "내용 없음"
-
-        binding.tvInquiryCategory.text = category
-       // binding.tvInquiryEmail.text = email
-        binding.tvInquiryContent.text = content
+        
+        if (inquiryId != -1L) {
+            loadInquiryDetail()
+        } else {
+            Toast.makeText(this, "잘못된 접근입니다.", Toast.LENGTH_SHORT).show()
+            finish()
+        }
 
         binding.btnCompleteInquiry.setOnClickListener {
-            if (inquiryId != -1L) {
-                completeInquiry(inquiryId)
+            val answer = binding.editTextAnswer.text.toString().trim()
+            if (answer.isEmpty()) {
+                Toast.makeText(this, "답변 내용을 입력해주세요.", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
             }
+            completeInquiry(inquiryId, answer)
         }
     }
 
-    private fun completeInquiry(id: Long) {
-        apiService.completeInquiry(id).enqueue(object : Callback<ApiResponse<Any>> {
-            override fun onResponse(call: Call<ApiResponse<Any>>, response: Response<ApiResponse<Any>>) {
+    private fun loadInquiryDetail() {
+        apiService.getAdminInquiryDetail(inquiryId).enqueue(object : Callback<ApiResponse<InquiryResponse>> {
+            override fun onResponse(call: Call<ApiResponse<InquiryResponse>>, response: Response<ApiResponse<InquiryResponse>>) {
                 if (response.isSuccessful) {
-                    Toast.makeText(applicationContext, "처리 완료되었습니다.", Toast.LENGTH_SHORT).show()
-                    finish()
+                    val inquiry = response.body()?.data
+                    inquiry?.let {
+                        binding.tvInquiryCategory.text = if (!it.title.isNullOrEmpty()) it.title else (it.category ?: "문의")
+                        binding.tvInquiryContent.text = it.content ?: "내용 없음"
+                        
+                        // 이미 답변이 있는 경우 표시4
+                        if (!it.reply.isNullOrEmpty()) {
+                            binding.editTextAnswer.setText(it.reply)
+                        }
+                    }
+                } else {
+                    Toast.makeText(this@InquiryDetailActivity, "내역을 불러오지 못했습니다.", Toast.LENGTH_SHORT).show()
                 }
             }
-            override fun onFailure(call: Call<ApiResponse<Any>>, t: Throwable) {}
+
+            override fun onFailure(call: Call<ApiResponse<InquiryResponse>>, t: Throwable) {
+                Log.e("InquiryDetail", "Error loading detail", t)
+            }
+        })
+    }
+
+    private fun completeInquiry(id: Long, replyText: String) {
+        val body = mapOf("reply" to replyText)
+        apiService.completeInquiry(id, body).enqueue(object : Callback<ApiResponse<Any>> {
+            override fun onResponse(call: Call<ApiResponse<Any>>, response: Response<ApiResponse<Any>>) {
+                if (response.isSuccessful) {
+                    Toast.makeText(applicationContext, "답변이 등록되었습니다.", Toast.LENGTH_SHORT).show()
+                    finish()
+                } else {
+                    Toast.makeText(applicationContext, "답변 등록에 실패했습니다.", Toast.LENGTH_SHORT).show()
+                }
+            }
+            override fun onFailure(call: Call<ApiResponse<Any>>, t: Throwable) {
+                Log.e("InquiryDetail", "Error completing inquiry", t)
+            }
         })
     }
 }

@@ -190,6 +190,11 @@ data class RestaurantDetailResponse(
 data class MenuResponse(val id: Long, val name: String, val price: Int, val description: String?, val imageUrl: String?) : Serializable
 
 // --- 5. Review / Notice / Pet / Community ---
+data class ReviewRequest(
+    val rating: Int,
+    val content: String
+) : Serializable
+
 data class ReviewResponse(
     val id: Long,
     val rating: Int,
@@ -250,8 +255,19 @@ data class PostDetailResponse(
 // --- 6. MyPage & Inquiry DTOs ---
 data class BookmarkResponse(val restaurantId: Long, val restaurantName: String, val category: String, val address: String, val imageUrl: String?) : Serializable
 data class RecentViewResponse(val restaurantId: Long, val restaurantName: String, val category: String, val imageUrl: String?, val createdAt: String) : Serializable
-data class InquiryRequest(val category: String, val email: String, val content: String, val imageUrl: String? = null)
-data class InquiryResponse(val id: Long, val userName: String,  val email: String,val category: String, val content: String, val status: String, val createdAt: String) : Serializable
+data class InquiryRequest(val title: String, val category: String, val email: String, val content: String, val imageUrl: String? = null)
+data class InquiryResponse(
+    val id: Long,
+    val userName: String? = null,
+    val email: String? = null,
+    val title: String? = null,
+    val category: String? = null,
+    val content: String? = null,
+    val imageUrl: String? = null,
+    val reply: String? = null,
+    val status: String,
+    val createdAt: String
+) : Serializable
 
 // --- 7. Admin DTOs ---
 data class ReviewReportItem(
@@ -345,7 +361,7 @@ interface ApiService {
     @DELETE("api/restaurants/{restaurantId}/menus/{menuId}") fun deleteMenu(@Path("restaurantId") restaurantId: Long, @Path("menuId") menuId: Long): Call<ApiResponse<Any>>
 
     @GET("api/reviews/restaurant/{restaurantId}") fun getReviews(@Path("restaurantId") restaurantId: Long, @QueryMap pageable: Map<String, String>): Call<ApiResponse<PageResponse<ReviewResponse>>>
-    @Multipart @POST("api/reviews/restaurant/{restaurantId}") fun writeReview(@Path("restaurantId") restaurantId: Long, @Part("rating") rating: RequestBody, @Part("content") content: RequestBody, @Part imageFile: MultipartBody.Part?): Call<ApiResponse<Any>>
+    @Multipart @POST("api/reviews/restaurant/{restaurantId}") fun writeReview(@Path("restaurantId") restaurantId: Long, @Part("request") request: RequestBody, @Part imageFile: MultipartBody.Part?): Call<ApiResponse<Any>>
     @DELETE("api/reviews/{reviewId}") fun deleteReview(@Path("reviewId") reviewId: Long): Call<ApiResponse<Any>>
     @POST("api/reviews/{reviewId}/report") fun reportReview(@Path("reviewId") reviewId: Long, @Body reason: Map<String, String>): Call<ApiResponse<Any>>
 
@@ -354,13 +370,14 @@ interface ApiService {
 
     @PATCH("api/admin/reports/{reportId}/complete") fun completeReviewReport(@Path("reportId") reportId: Long): Call<ApiResponse<Any>>
     @PATCH("api/admin/owners/{ownerId}/verify") fun verifyOwner(@Path("ownerId") ownerId: Long): Call<ApiResponse<Any>>
-    @PATCH("api/admin/inquiries/{inquiryId}/complete") fun completeInquiry(@Path("inquiryId") inquiryId: Long): Call<ApiResponse<Any>>
+    @PATCH("api/admin/inquiries/{inquiryId}/complete") fun completeInquiry(@Path("inquiryId") inquiryId: Long, @Body reply: Map<String, String>): Call<ApiResponse<Any>>
     @PATCH("api/admin/community/reports/{reportId}/complete") fun completeCommunityReport(@Path("reportId") reportId: Long): Call<ApiResponse<Any>>
     @GET("api/admin/reports/reviews") fun getReviewReports(@Query("page") page: Int, @Query("size") size: Int): Call<ApiResponse<PageResponse<ReviewReportItem>>>
     @GET("api/admin/reports/community") fun getCommunityReports(): Call<ApiResponse<List<Any>>>
     @GET("api/admin/owners/{ownerId}/business-info") fun getOwnerBusinessInfo(@Path("ownerId") ownerId: Long): Call<ApiResponse<OwnerBusinessInfoResponse>>
     @GET("api/admin/owners/pending") fun getPendingOwners(@QueryMap pageable: Map<String, String>): Call<ApiResponse<PageResponse<PendingOwnerItem>>>
     @GET("api/admin/inquiries") fun getAdminInquiries(@QueryMap pageable: Map<String, String>): Call<ApiResponse<PageResponse<InquiryResponse>>>
+    @GET("api/admin/inquiries/{inquiryId}") fun getAdminInquiryDetail(@Path("inquiryId") inquiryId: Long): Call<ApiResponse<InquiryResponse>>
     @DELETE("api/admin/reports/reviews/{reviewId}") fun adminDeleteReview(@Path("reviewId") reviewId: Long): Call<ApiResponse<Any>>
     @DELETE("api/admin/community/posts/{postId}") fun adminDeleteCommunityPost(@Path("postId") postId: Long): Call<ApiResponse<Any>>
     @DELETE("api/admin/community/comments/{commentId}") fun adminDeleteCommunityComment(@Path("commentId") commentId: Long): Call<ApiResponse<Any>>
