@@ -19,6 +19,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import java.util.List;
 
 @Tag(name = "고객 문의(Inquiry) API", description = "1:1 문의하기 및 고객 지원 관련 API")
 @RestController
@@ -40,9 +41,9 @@ public class InquiryController {
     public ResponseEntity<ApiResponse<Void>> submit(
             @Parameter(hidden = true) @AuthenticationPrincipal Long userId,
             @Valid @RequestPart("data") InquiryRequest req,
-            @RequestPart(value = "image", required = false) MultipartFile image
+            @RequestPart(value = "images", required = false) List<MultipartFile> images
     ) {
-        inquiryService.submitInquiry(userId, req, image);
+        inquiryService.submitInquiry(userId, req, images);
         return ResponseEntity.ok(ApiResponse.success("문의가 성공적으로 접수되었습니다.", null));
     }
 

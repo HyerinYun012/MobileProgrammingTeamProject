@@ -42,8 +42,8 @@ public record InquiryDetailResponse(
                 ? inquiry.getRestaurant().getName()
                 : null;
 
-        List<String> imageUrls = inquiry.getImageUrl() != null
-                ? List.of(inquiry.getImageUrl())
+        List<String> imageUrls = inquiry.getImageUrls() != null
+                ? inquiry.getImageUrls()
                 : List.of();
 
         return new InquiryDetailResponse(

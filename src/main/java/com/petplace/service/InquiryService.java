@@ -17,6 +17,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
+import java.util.ArrayList;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -29,7 +31,7 @@ public class InquiryService {
     private final FileService fileService;
 
     @Transactional
-    public void submitInquiry(Long userId, InquiryRequest req, MultipartFile image) {
+    public void submitInquiry(Long userId, InquiryRequest req, List<MultipartFile> images) {
 
         if (req.getCategory() == Inquiry.Category.GENERAL && req.getRestaurantId() == null) {
             throw new BusinessException(ErrorCode.INVALID_INPUT_VALUE);
@@ -46,7 +48,13 @@ public class InquiryService {
 
         Inquiry.Category category = req.getCategory() != null ? req.getCategory() : Inquiry.Category.GENERAL;
 
-        String imageUrl = fileService.uploadFile(image);
+        List<String> imageUrls = new ArrayList<>();
+        if (images != null) {
+            for (MultipartFile image : images) {
+                String url = fileService.uploadFile(image);
+                if (url != null) imageUrls.add(url);
+            }
+        }
 
         Inquiry inquiry = Inquiry.createInquiry(
                 user,
@@ -54,7 +62,7 @@ public class InquiryService {
                 category,
                 req.getTitle(),
                 req.getContent(),
-                imageUrl
+                imageUrls
         );
 
         inquiryRepo.save(inquiry);

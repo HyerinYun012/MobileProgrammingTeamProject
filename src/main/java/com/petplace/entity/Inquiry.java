@@ -2,6 +2,8 @@ package com.petplace.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "inquiries")
@@ -35,26 +37,27 @@ public class Inquiry extends BaseTimeEntity {
     @Lob
     private String reply;
 
-    @Column(length = 500)
-    private String imageUrl;
+    @ElementCollection
+    @CollectionTable(name = "inquiry_images", joinColumns = @JoinColumn(name = "inquiry_id"))
+    @Column(name = "image_url", length = 1000)
+    private List<String> imageUrls = new ArrayList<>();
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private Status status;
 
-    public static Inquiry createInquiry(User user, Restaurant restaurant, Category category, String title, String content, String imageUrl) {
+    public static Inquiry createInquiry(User user, Restaurant restaurant, Category category, String title, String content, List<String> imageUrls) {
         Inquiry inquiry = new Inquiry();
         inquiry.user = user;
         inquiry.restaurant = restaurant;
         inquiry.category = category;
         inquiry.title = title;
         inquiry.content = content;
-        inquiry.imageUrl = imageUrl;
+        inquiry.imageUrls = imageUrls != null ? new ArrayList<>(imageUrls) : new ArrayList<>();
         inquiry.status = Status.PENDING;
         return inquiry;
     }
 
-    // 💡 답변과 함께 처리 상태를 완료로 변경
     public void completeInquiry(String reply) {
         this.reply = reply;
         this.status = Status.COMPLETED;
