@@ -9,13 +9,16 @@ import com.petplace.entity.User;
 import com.petplace.exception.BusinessException;
 import com.petplace.exception.ErrorCode;
 import com.petplace.repository.InquiryRepository;
-import com.petplace.repository.RestaurantRepository; // 💡 [신규 추가] 레포지토리 임포트
+import com.petplace.repository.RestaurantRepository;
 import com.petplace.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
+import java.util.ArrayList;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -25,12 +28,13 @@ public class InquiryService {
     private final InquiryRepository inquiryRepo;
     private final UserRepository userRepo;
     private final RestaurantRepository restaurantRepo;
+    private final FileService fileService;
 
     @Transactional
-    public void submitInquiry(Long userId, InquiryRequest req) {
+    public void submitInquiry(Long userId, InquiryRequest req, List<MultipartFile> images) {
 
         if (req.getCategory() == Inquiry.Category.GENERAL && req.getRestaurantId() == null) {
-            throw new BusinessException(ErrorCode.INVALID_INPUT_VALUE); // "일반 문의는 대상 식당을 선택해야 합니다."
+            throw new BusinessException(ErrorCode.INVALID_INPUT_VALUE);
         }
 
         User user = userRepo.findById(userId)
@@ -44,13 +48,21 @@ public class InquiryService {
 
         Inquiry.Category category = req.getCategory() != null ? req.getCategory() : Inquiry.Category.GENERAL;
 
+        List<String> imageUrls = new ArrayList<>();
+        if (images != null) {
+            for (MultipartFile image : images) {
+                String url = fileService.uploadFile(image);
+                if (url != null) imageUrls.add(url);
+            }
+        }
+
         Inquiry inquiry = Inquiry.createInquiry(
                 user,
                 restaurant,
                 category,
                 req.getTitle(),
                 req.getContent(),
-                req.getImageUrl()
+                imageUrls
         );
 
         inquiryRepo.save(inquiry);
