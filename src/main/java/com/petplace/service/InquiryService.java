@@ -63,7 +63,6 @@ public class InquiryService {
         Inquiry inquiry = inquiryRepo.findByIdWithUserAndRestaurant(inquiryId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.INQUIRY_NOT_FOUND));
 
-        // 🛡️ 보안 검증: 현재 로그인한 사용자가 본인이 작성한 문의글이 맞는지 확인
         if (!inquiry.getUser().getId().equals(userId)) {
             throw new BusinessException(ErrorCode.UNAUTHORIZED_INQUIRY_ACCESS);
         }

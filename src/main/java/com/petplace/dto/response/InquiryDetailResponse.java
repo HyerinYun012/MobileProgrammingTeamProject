@@ -31,9 +31,20 @@ public record InquiryDetailResponse(
         String status,
 
         @Schema(description = "작성일")
-        LocalDateTime createdAt
+        LocalDateTime createdAt,
+
+        @Schema(description = "문의 대상 식당 ID (GENERAL 카테고리인 경우)", example = "5")
+        Long restaurantId,
+
+        @Schema(description = "문의 대상 식당 이름 (GENERAL 카테고리인 경우)", example = "멍멍카페 홍대점")
+        String restaurantName
 ) {
     public static InquiryDetailResponse from(Inquiry inquiry) {
+        // GENERAL 카테고리이고 식당 정보가 존재하는지 확인
+        boolean isGeneral = inquiry.getCategory() == Inquiry.Category.GENERAL;
+        Long resId = (isGeneral && inquiry.getRestaurant() != null) ? inquiry.getRestaurant().getId() : null;
+        String resName = (isGeneral && inquiry.getRestaurant() != null) ? inquiry.getRestaurant().getName() : null;
+
         return new InquiryDetailResponse(
                 inquiry.getId(),
                 inquiry.getUser() != null ? inquiry.getUser().getNickname() : "알 수 없음",
@@ -43,7 +54,9 @@ public record InquiryDetailResponse(
                 inquiry.getImageUrl(),
                 inquiry.getReply(),
                 inquiry.getStatus() != null ? inquiry.getStatus().name() : null,
-                inquiry.getCreatedAt()
+                inquiry.getCreatedAt(),
+                resId,
+                resName
         );
     }
 }

@@ -54,7 +54,6 @@ public class Inquiry extends BaseTimeEntity {
         return inquiry;
     }
 
-    // 💡 답변과 함께 처리 상태를 완료로 변경
     public void completeInquiry(String reply) {
         this.reply = reply;
         this.status = Status.COMPLETED;

@@ -143,33 +143,35 @@ public class RestaurantService {
      */
     @Transactional(rollbackFor = Exception.class)
     public Long update(Long id, Long ownerId, RestaurantRequest req, List<MultipartFile> newImages) {
+        // 1. 기존 데이터 조회
         Restaurant restaurant = restaurantRepository.findById(id)
                 .orElseThrow(() -> new BusinessException(ErrorCode.RESTAURANT_NOT_FOUND));
 
+        // 2. 권한 체크
         if (restaurant.getOwner() == null || !Objects.equals(restaurant.getOwner().getId(), ownerId)) {
             throw new BusinessException(ErrorCode.NO_PERMISSION);
         }
 
+        if (restaurantRepository.existsByBusinessNoAndIdNot(req.getBusinessNo(), id)) {
+            throw new BusinessException(ErrorCode.DUPLICATE_BUSINESS_NUMBER);
+        }
+
         restaurant.update(
-                req.getName(), req.getAddress(), req.getPhone(), req.toOperatingHourEntities(),
+                req.getName(), req.getAddress(), req.getPhone(), req.getBusinessNo(),
+                req.toOperatingHourEntities(),
                 req.isHasIndoor(), req.isHasOutdoor(), req.isHasRestroom(),
                 req.isAllowSmall(), req.isAllowMedium(), req.isAllowLarge()
         );
 
-        // 2. 새로운 이미지 리스트 교체
+        // 5. 이미지 교체 로직
         if (newImages != null && !newImages.isEmpty()) {
-            // [정합성 개선] 삭제할 이미지 URL 리스트를 먼저 메모리에 확보
             List<String> oldImageUrls = restaurant.getImages().stream()
                     .map(RestaurantImage::getImageUrl)
                     .collect(Collectors.toList());
 
-            // 신규 엔티티 생성 및 연관관계 설정
             uploadFilesAndCreateEntities(restaurant, newImages);
-
-            // 이미지 교체 로직
             restaurant.updateImages(restaurant.getImages());
 
-            // 🚀 트랜잭션 성공 후 커밋된 이후에만 S3 파일 삭제를 진행
             TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
                 @Override
                 public void afterCommit() {

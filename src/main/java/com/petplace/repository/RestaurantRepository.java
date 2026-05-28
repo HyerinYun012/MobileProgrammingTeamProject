@@ -20,10 +20,14 @@ public interface RestaurantRepository extends JpaRepository<Restaurant, Long>, R
     List<Restaurant> findAllByOwnerId(Long ownerId);
 
     /**
-     * 사업자 번호 중복 여부 확인
-     * (단일 결과 반환이므로 페이징 불필요)
+     * 사업자 번호 중복 여부 확인 (신규 등록용)
      */
     boolean existsByBusinessNo(String businessNo);
+
+    /**
+     * [수정용] 자기 자신을 제외하고 사업자 번호 중복 확인
+     */
+    boolean existsByBusinessNoAndIdNot(String businessNo, Long id);
 
     /**
      * [페이징 적용] 이름 기반 검색 (대소문자 무시)

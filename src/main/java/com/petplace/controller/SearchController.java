@@ -21,9 +21,13 @@ import java.util.List;
 @RequestMapping("/api/search")
 @RequiredArgsConstructor
 public class SearchController {
+
     private final SearchService service;
 
-    @Operation(summary = "통합 검색 실행", description = "키워드로 식당을 검색합니다. 로그인 시 북마크 여부가 포함되며 비로그인 사용자도 정상 검색 가능합니다.")
+    /**
+     * 💡 통합 검색 실행
+     */
+    @Operation(summary = "통합 검색 실행", description = "키워드로 식당을 검색합니다. 검색 로그가 저장되며 로그인 시 북마크 여부 포함 및 최근 검색어에 반영됩니다. 비로그인 사용자도 검색이 가능합니다.")
     @GetMapping("/search")
     public ResponseEntity<ApiResponse<Page<RestaurantResponse>>> search(
             @RequestParam String keyword,

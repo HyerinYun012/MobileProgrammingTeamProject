@@ -46,6 +46,7 @@ public class RestaurantRequest {
     @NotNull(message = "경도 좌표는 필수입니다.")
     private BigDecimal longitude;
 
+    // --- 시설 및 옵션 정보 ---
     @Schema(description = "안전 펜스 울타리 설치 여부", example = "true")
     private boolean hasFence;
 
@@ -79,11 +80,8 @@ public class RestaurantRequest {
     @Schema(description = "대형견(25kg 초과) 입장 가능 여부", example = "false")
     private boolean allowLarge;
 
-    @Schema(description = "매장 시그니처 메뉴 등록 정보 목록 리스트")
-    private List<MenuRequest> menus;
-
     @Schema(description = "요일별 영업시간 설정 리스트")
-    private List<OperatingHourRequest> operatingHours; // 🌟 별도 클래스 사용
+    private List<OperatingHourRequest> operatingHours;
 
     public List<OperatingHour> toOperatingHourEntities() {
         if (this.operatingHours == null) return new ArrayList<>();
@@ -92,10 +90,6 @@ public class RestaurantRequest {
                 .collect(Collectors.toList());
     }
 
-    /**
-     * 🌟 [리팩토링 완료] 임의의 Setter 호출 대신 고도화된 전용 비즈니스 생성자를 체택하여
-     * 원자적이고 일관성 있는 비즈니스 엔티티 객체를 조립해 반환합니다.
-     */
     public Restaurant toEntity() {
         return new Restaurant(
                 this.name,

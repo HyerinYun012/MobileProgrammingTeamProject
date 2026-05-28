@@ -5,7 +5,6 @@ import com.petplace.dto.request.RestaurantRequest;
 import com.petplace.dto.response.ApiResponse;
 import com.petplace.dto.response.RestaurantResponse;
 import com.petplace.service.RestaurantService;
-import com.petplace.service.SearchService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -31,8 +30,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class RestaurantController {
 
-    private final RestaurantService restaurantService;
-    private final SearchService searchService;
+    private final RestaurantService restaurantService; // 💡 SearchService 주입 제거
 
     private interface MultipartRequestSpec {
         @Schema(description = "가게 등록/수정 정보 (JSON)", implementation = RestaurantRequest.class)
@@ -59,38 +57,14 @@ public class RestaurantController {
         return ResponseEntity.ok(ApiResponse.success(restaurantService.findNearby(lat, lng, radius, plainPageable)));
     }
 
-    @Operation(summary = "장소 키워드 검색", description = "검색 로그를 저장하며, 로그인한 경우 최근 검색어에 반영됩니다.")
-    @GetMapping("/search")
-    public ResponseEntity<ApiResponse<Page<RestaurantResponse>>> search(
-            @RequestParam String keyword,
-            @AuthenticationPrincipal Long userId,
-            // 💡 @ParameterObject 추가 및 기본값 세팅 (page=0, size=1, createdAt,desc)
-            @org.springdoc.core.annotations.ParameterObject
-            @PageableDefault(page = 0, size = 1, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable
-    ) {
-        // 💡 "string" 방어 코드 추가
-        if (pageable.getSort().stream().anyMatch(order -> "string".equals(order.getProperty()))) {
-            pageable = org.springframework.data.domain.PageRequest.of(
-                    pageable.getPageNumber(),
-                    pageable.getPageSize(),
-                    org.springframework.data.domain.Sort.by("createdAt").descending()
-            );
-        }
-
-        Page<RestaurantResponse> response = searchService.search(keyword, userId, pageable);
-        return ResponseEntity.ok(ApiResponse.success("검색이 완료되었습니다.", response));
-    }
-
     @Operation(summary = "조건 필터링 검색", description = "다중 조건으로 장소를 페이징 검색합니다. 로그인 시 북마크 여부가 포함됩니다.")
     @GetMapping("/filter")
     public ResponseEntity<ApiResponse<Page<RestaurantResponse>>> filter(
             @AuthenticationPrincipal Long userId,
             @Valid @ModelAttribute RestaurantFilterRequest condition,
-            // 💡 @ParameterObject 추가 및 기본값 세팅 (page=0, size=1, createdAt,desc)
             @org.springdoc.core.annotations.ParameterObject
             @PageableDefault(page = 0, size = 1, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable
     ) {
-        // 💡 "string" 방어 코드 추가
         if (pageable.getSort().stream().anyMatch(order -> "string".equals(order.getProperty()))) {
             pageable = org.springframework.data.domain.PageRequest.of(
                     pageable.getPageNumber(),
@@ -109,7 +83,7 @@ public class RestaurantController {
     @GetMapping("/{id}")
     public ResponseEntity<ApiResponse<RestaurantResponse>> getDetail(
             @Parameter(description = "장소 ID") @PathVariable Long id,
-            @AuthenticationPrincipal Long userId // 로그인하지 않은 경우 null로 자동 할당
+            @AuthenticationPrincipal Long userId
     ) {
         RestaurantResponse response = restaurantService.getRestaurantDetail(id, userId);
         return ResponseEntity.ok(ApiResponse.success("장소 상세 정보가 성공적으로 조회되었습니다.", response));
@@ -134,7 +108,6 @@ public class RestaurantController {
             @Valid @RequestPart("request") RestaurantRequest req,
             @RequestPart(value = "images", required = false) List<MultipartFile> images
     ) {
-
         Long registeredId = restaurantService.register(ownerId, req, images);
         return ResponseEntity.ok(ApiResponse.success("장소 등록이 완료되었습니다.", registeredId));
     }
@@ -159,7 +132,6 @@ public class RestaurantController {
             @Valid @RequestPart("request") RestaurantRequest req,
             @RequestPart(value = "images", required = false) List<MultipartFile> images
     ) {
-
         Long updatedId = restaurantService.update(id, ownerId, req, images);
         return ResponseEntity.ok(ApiResponse.success("장소 정보가 수정되었습니다.", updatedId));
     }
