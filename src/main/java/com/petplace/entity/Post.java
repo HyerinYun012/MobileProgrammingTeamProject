@@ -28,17 +28,23 @@ public class Post extends BaseTimeEntity {
     @Column(nullable = false)
     private String content;
 
-    @Column(length = 500)
-    private String imageUrl;
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(name = "post_images", joinColumns = @JoinColumn(name = "post_id"))
+    @Column(name = "image_url", length = 1000)
+    @Builder.Default
+    private List<String> imageUrls = new ArrayList<>();
 
     @Builder.Default
     @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<Comment> comments = new ArrayList<>();
 
-    // 도메인 비즈니스 수정을 위한 전용 메서드
-    public void updateContent(String title, String content, String imageUrl) {
+    // 도메인 비즈니스 수정을 위한 전용 메서드 (newImageUrls == null 이면 기존 사진 유지)
+    public void updateContent(String title, String content, List<String> newImageUrls) {
         this.title = title;
         this.content = content;
-        this.imageUrl = imageUrl;
+        if (newImageUrls != null) {
+            this.imageUrls.clear();
+            this.imageUrls.addAll(newImageUrls);
+        }
     }
 }

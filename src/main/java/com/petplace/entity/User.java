@@ -74,7 +74,8 @@ public class User extends BaseTimeEntity {
     /**
      * [도메인 비즈니스 메서드] 마이페이지 프로필 통합 수정
      */
-    public void updateProfileInfo(String nickname, String email, String phone, String profileUrl) {
+    public void updateProfileInfo(String name, String nickname, String email, String phone, String profileUrl) {
+        if (name != null && !name.isBlank()) this.name = name;
         this.nickname = nickname;
         this.email = email;
         this.phone = phone;

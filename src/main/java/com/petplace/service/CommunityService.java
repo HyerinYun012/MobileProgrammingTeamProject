@@ -14,6 +14,9 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
@@ -26,7 +29,7 @@ public class CommunityService {
     private final CommunityReportRepository communityReportRepository;
 
     @Transactional
-    public void writePost(Long userId, String title, String content, String imageUrl) {
+    public void writePost(Long userId, String title, String content, List<String> imageUrls) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
 
@@ -34,14 +37,15 @@ public class CommunityService {
                 .user(user)
                 .title(title)
                 .content(content)
-                .imageUrl(imageUrl)
+                .imageUrls(imageUrls != null ? imageUrls : new ArrayList<>())
                 .build();
 
         postRepository.save(post);
     }
 
+    // newImageUrls == null 이면 기존 사진 유지, 비어있지 않은 리스트이면 교체
     @Transactional
-    public void updatePost(Long userId, Long postId, String title, String content, String newImageUrl) {
+    public void updatePost(Long userId, Long postId, String title, String content, List<String> newImageUrls) {
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.POST_NOT_FOUND));
 
@@ -49,14 +53,15 @@ public class CommunityService {
             throw new BusinessException(ErrorCode.NO_PERMISSION);
         }
 
-        String oldImageUrl = post.getImageUrl();
-        post.updateContent(title, content, newImageUrl);
+        List<String> oldImageUrls = new ArrayList<>(post.getImageUrls());
+        post.updateContent(title, content, newImageUrls); // null 이면 기존 유지
 
-        if (oldImageUrl != null && !oldImageUrl.equals(newImageUrl)) {
+        // 새 이미지로 교체된 경우 기존 파일 삭제
+        if (newImageUrls != null && !oldImageUrls.isEmpty()) {
             TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
                 @Override
                 public void afterCommit() {
-                    fileService.deleteFile(oldImageUrl);
+                    oldImageUrls.forEach(fileService::deleteFile);
                 }
             });
         }
@@ -71,14 +76,14 @@ public class CommunityService {
             throw new BusinessException(ErrorCode.NO_PERMISSION);
         }
 
-        String imageUrl = post.getImageUrl();
+        List<String> imageUrls = new ArrayList<>(post.getImageUrls());
         postRepository.delete(post);
 
-        if (imageUrl != null) {
+        if (!imageUrls.isEmpty()) {
             TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
                 @Override
                 public void afterCommit() {
-                    fileService.deleteFile(imageUrl);
+                    imageUrls.forEach(fileService::deleteFile);
                 }
             });
         }
@@ -126,15 +131,12 @@ public class CommunityService {
         commentRepository.delete(comment);
     }
 
-    // 1. 게시글 상세 조회 (댓글 제외)
     public PostDetailResponse getPostDetail(Long postId) {
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.POST_NOT_FOUND));
-
         return toDetailResponse(post);
     }
 
-    // 2. 댓글 목록 조회 (페이징 적용)
     public Page<CommentResponse> getCommentsByPost(Long postId, Long userId, Pageable pageable) {
         Page<Comment> commentPage = commentRepository.findByPostId(postId, pageable);
         return commentPage.map(c -> CommentResponse.from(c, userId));
@@ -154,7 +156,7 @@ public class CommunityService {
                 .writerRole(post.getUser().getRole() != null ? post.getUser().getRole().name() : "CUSTOMER")
                 .title(post.getTitle())
                 .content(post.getContent())
-                .imageUrl(post.getImageUrl())
+                .imageUrls(post.getImageUrls())
                 .createdAt(post.getCreatedAt())
                 .build();
     }

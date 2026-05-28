@@ -20,6 +20,9 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Tag(name = "2. Community API", description = "사용자 커뮤니티 게시글, 댓글 관리 및 신고 API")
 @RestController
 @RequestMapping("/api/community")
@@ -42,7 +45,6 @@ public class CommunityController {
                     org.springframework.data.domain.Sort.by("createdAt").descending()
             );
         }
-
         return ResponseEntity.ok(ApiResponse.success("조회 성공", communityService.getAllPostsDesc(pageable)));
     }
 
@@ -54,24 +56,27 @@ public class CommunityController {
         return ResponseEntity.ok(ApiResponse.success("조회 성공", communityService.getPostDetail(postId)));
     }
 
-    @Operation(summary = "커뮤니티 게시글 작성", description = "텍스트(data 파트, JSON)와 이미지 파일(image 파트)을 분리하여 전송합니다.")
+    @Operation(summary = "커뮤니티 게시글 작성", description = "텍스트(data 파트, JSON)와 이미지 파일(images 파트, 여러 장 가능)을 분리하여 전송합니다.")
     @PostMapping(value = "/posts", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<ApiResponse<Void>> writePost(
             @AuthenticationPrincipal Long currentUserId,
             @Valid @RequestPart("data") PostRequest req,
-            @RequestPart(value = "image", required = false) MultipartFile image) {
-        communityService.writePost(currentUserId, req.title(), req.content(), uploadIfPresent(image));
+            @RequestPart(value = "images", required = false) List<MultipartFile> images) {
+        List<String> imageUrls = uploadImages(images);
+        communityService.writePost(currentUserId, req.title(), req.content(), imageUrls);
         return ResponseEntity.ok(ApiResponse.success("작성 성공", null));
     }
 
-    @Operation(summary = "커뮤니티 게시글 수정", description = "본인이 작성한 글을 수정합니다. 텍스트(data 파트, JSON)와 이미지 파일(image 파트)을 분리하여 전송합니다.")
+    @Operation(summary = "커뮤니티 게시글 수정", description = "images 파트를 보내지 않으면 기존 사진이 유지됩니다.")
     @PutMapping(value = "/posts/{postId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<ApiResponse<Void>> updatePost(
             @PathVariable Long postId,
             @AuthenticationPrincipal Long currentUserId,
             @Valid @RequestPart("data") PostRequest req,
-            @RequestPart(value = "image", required = false) MultipartFile image) {
-        communityService.updatePost(currentUserId, postId, req.title(), req.content(), uploadIfPresent(image));
+            @RequestPart(value = "images", required = false) List<MultipartFile> images) {
+        // images 파트가 없거나 비어있으면 null → 서비스에서 기존 사진 유지
+        List<String> newImageUrls = (images != null && !images.isEmpty()) ? uploadImages(images) : null;
+        communityService.updatePost(currentUserId, postId, req.title(), req.content(), newImageUrls);
         return ResponseEntity.ok(ApiResponse.success("수정 성공", null));
     }
 
@@ -84,7 +89,7 @@ public class CommunityController {
         return ResponseEntity.ok(ApiResponse.success("삭제 성공", null));
     }
 
-    @Operation(summary = "댓글 및 대댓글 작성", description = "댓글을 등록합니다.")
+    @Operation(summary = "댓글 및 대댓글 작성")
     @PostMapping("/posts/{postId}/comments")
     public ResponseEntity<ApiResponse<Void>> writeComment(
             @PathVariable Long postId,
@@ -94,7 +99,7 @@ public class CommunityController {
         return ResponseEntity.ok(ApiResponse.success("댓글 등록 성공", null));
     }
 
-    @Operation(summary = "댓글 수정", description = "댓글 내용을 수정합니다.")
+    @Operation(summary = "댓글 수정")
     @PutMapping("/comments/{commentId}")
     public ResponseEntity<ApiResponse<Void>> updateComment(
             @PathVariable Long commentId,
@@ -128,21 +133,20 @@ public class CommunityController {
                     org.springframework.data.domain.Sort.by("createdAt").descending()
             );
         }
-
         return ResponseEntity.ok(ApiResponse.success("조회 성공", communityService.getCommentsByPost(postId, currentUserId, pageable)));
     }
 
-    @Operation(summary = "커뮤니티 게시글 신고", description = "사유를 기반으로 게시글을 신고합니다.")
+    @Operation(summary = "커뮤니티 게시글 신고")
     @PostMapping("/posts/{postId}/report")
     public ResponseEntity<ApiResponse<Void>> reportPost(
             @PathVariable Long postId,
             @AuthenticationPrincipal Long currentUserId,
-            @Valid @RequestBody CommunityReportRequest req) { // 💡 신고 규격도 @RequestBody JSON으로 변경
+            @Valid @RequestBody CommunityReportRequest req) {
         communityService.reportPost(currentUserId, postId, req.reason());
         return ResponseEntity.ok(ApiResponse.success("신고 성공", null));
     }
 
-    @Operation(summary = "커뮤니티 댓글 신고", description = "사유를 기반으로 댓글을 신고합니다.")
+    @Operation(summary = "커뮤니티 댓글 신고")
     @PostMapping("/comments/{commentId}/report")
     public ResponseEntity<ApiResponse<Void>> reportComment(
             @PathVariable Long commentId,
@@ -152,11 +156,17 @@ public class CommunityController {
         return ResponseEntity.ok(ApiResponse.success("신고 성공", null));
     }
 
-    private String uploadIfPresent(MultipartFile file) {
-        if (file == null || file.isEmpty()) return null;
-        if (file.getContentType() == null || !file.getContentType().startsWith("image/")) {
-            throw new IllegalArgumentException("이미지 파일만 가능합니다.");
+    private List<String> uploadImages(List<MultipartFile> files) {
+        if (files == null || files.isEmpty()) return new ArrayList<>();
+        List<String> urls = new ArrayList<>();
+        for (MultipartFile file : files) {
+            if (file == null || file.isEmpty()) continue;
+            if (file.getContentType() == null || !file.getContentType().startsWith("image/")) {
+                throw new IllegalArgumentException("이미지 파일만 가능합니다.");
+            }
+            String url = fileService.uploadFile(file);
+            if (url != null) urls.add(url);
         }
-        return fileService.uploadFile(file);
+        return urls;
     }
 }
