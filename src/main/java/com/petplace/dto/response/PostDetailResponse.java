@@ -33,6 +33,9 @@ public class PostDetailResponse {
     @Schema(description = "작성자 프로필 이미지 URL", example = "/images/profiles/choco.png")
     private String writerProfileUrl;
 
+    @Schema(description = "작성자 역할 (CUSTOMER / OWNER)", example = "CUSTOMER")
+    private String writerRole;
+
     @Schema(description = "생성 시간", example = "2026-05-17T15:30:00")
     private LocalDateTime createdAt;
 

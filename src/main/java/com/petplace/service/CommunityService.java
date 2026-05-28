@@ -131,16 +131,7 @@ public class CommunityService {
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.POST_NOT_FOUND));
 
-        return PostDetailResponse.builder()
-                .id(post.getId())
-                .userId(post.getUser().getId())
-                .writerNickname(post.getUser().getNickname())
-                .writerProfileUrl(post.getUser().getProfileUrl())
-                .title(post.getTitle())
-                .content(post.getContent())
-                .imageUrl(post.getImageUrl())
-                .createdAt(post.getCreatedAt())
-                .build();
+        return toDetailResponse(post);
     }
 
     // 2. 댓글 목록 조회 (페이징 적용)
@@ -149,8 +140,23 @@ public class CommunityService {
         return commentPage.map(c -> CommentResponse.from(c, userId));
     }
 
-    public Page<Post> getAllPostsDesc(Pageable pageable) {
-        return postRepository.findAllByOrderByCreatedAtDesc(pageable);
+    public Page<PostDetailResponse> getAllPostsDesc(Pageable pageable) {
+        return postRepository.findAllByOrderByCreatedAtDesc(pageable)
+                .map(this::toDetailResponse);
+    }
+
+    private PostDetailResponse toDetailResponse(Post post) {
+        return PostDetailResponse.builder()
+                .id(post.getId())
+                .userId(post.getUser().getId())
+                .writerNickname(post.getUser().getNickname())
+                .writerProfileUrl(post.getUser().getProfileUrl())
+                .writerRole(post.getUser().getRole() != null ? post.getUser().getRole().name() : "CUSTOMER")
+                .title(post.getTitle())
+                .content(post.getContent())
+                .imageUrl(post.getImageUrl())
+                .createdAt(post.getCreatedAt())
+                .build();
     }
 
     @Transactional

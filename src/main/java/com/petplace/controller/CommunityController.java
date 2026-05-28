@@ -4,7 +4,6 @@ import com.petplace.dto.request.*;
 import com.petplace.dto.response.ApiResponse;
 import com.petplace.dto.response.CommentResponse;
 import com.petplace.dto.response.PostDetailResponse;
-import com.petplace.entity.Post;
 import com.petplace.service.CommunityService;
 import com.petplace.service.FileService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -32,7 +31,7 @@ public class CommunityController {
 
     @Operation(summary = "커뮤니티 전체 게시글 최신순 조회")
     @GetMapping("/posts")
-    public ResponseEntity<ApiResponse<Page<Post>>> getAllPosts(
+    public ResponseEntity<ApiResponse<Page<PostDetailResponse>>> getAllPosts(
             @org.springdoc.core.annotations.ParameterObject
             @PageableDefault(page = 0, size = 1, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
 
