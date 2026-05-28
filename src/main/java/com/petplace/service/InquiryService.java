@@ -135,6 +135,25 @@ public class InquiryService {
         inquiry.completeInquiry(reply);
     }
 
+    /**
+     * 사장님이 본인 가게의 일반 문의를 신고
+     */
+    @Transactional
+    public void reportInquiryByOwner(Long inquiryId, Long ownerId) {
+        Inquiry inquiry = inquiryRepo.findByIdWithUserAndRestaurant(inquiryId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.INQUIRY_NOT_FOUND));
+
+        if (inquiry.getCategory() != Inquiry.Category.GENERAL) {
+            throw new BusinessException(ErrorCode.UNAUTHORIZED_INQUIRY_ACCESS);
+        }
+
+        if (inquiry.getRestaurant() == null || !inquiry.getRestaurant().getOwner().getId().equals(ownerId)) {
+            throw new BusinessException(ErrorCode.UNAUTHORIZED_INQUIRY_ACCESS);
+        }
+
+        inquiry.reportByOwner();
+    }
+
     public Page<InquiryResponse> getMyInquiries(Long userId, Pageable pageable) {
         // 1. 유저 존재 여부 확인
         if (!userRepo.existsById(userId)) {

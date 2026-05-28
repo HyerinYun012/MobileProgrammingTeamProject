@@ -62,6 +62,15 @@ public class OwnerInquiryController {
         return ResponseEntity.ok(ApiResponse.success("일반 문의 상세 내역이 성공적으로 조회되었습니다.", response));
     }
 
+    @Operation(summary = "문의 신고", description = "사장님이 본인 가게에 접수된 일반(GENERAL) 문의를 신고합니다.")
+    @PostMapping("/{inquiryId}/report")
+    public ResponseEntity<ApiResponse<Void>> reportInquiry(
+            @Parameter(hidden = true) @AuthenticationPrincipal Long ownerId,
+            @Parameter(description = "신고할 문의 ID", example = "1") @PathVariable Long inquiryId) {
+        inquiryService.reportInquiryByOwner(inquiryId, ownerId);
+        return ResponseEntity.ok(ApiResponse.success("신고가 접수되었습니다.", null));
+    }
+
     @Operation(summary = "일반 문의 처리 완료", description = "사용자의 일반 문의 사항에 답변을 달고 처리 상태를 '처리완료'로 변경합니다.")
     @PatchMapping("/{inquiryId}/complete")
     public ResponseEntity<ApiResponse<Void>> completeInquiry(

@@ -46,6 +46,9 @@ public class Inquiry extends BaseTimeEntity {
     @Column(nullable = false)
     private Status status;
 
+    @Column(nullable = false)
+    private boolean reportedByOwner = false;
+
     public static Inquiry createInquiry(User user, Restaurant restaurant, Category category, String title, String content, List<String> imageUrls) {
         Inquiry inquiry = new Inquiry();
         inquiry.user = user;
@@ -61,6 +64,10 @@ public class Inquiry extends BaseTimeEntity {
     public void completeInquiry(String reply) {
         this.reply = reply;
         this.status = Status.COMPLETED;
+    }
+
+    public void reportByOwner() {
+        this.reportedByOwner = true;
     }
 
     public enum Category { GENERAL, BUSINESS, ERROR }
