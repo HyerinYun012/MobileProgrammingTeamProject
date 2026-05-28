@@ -20,7 +20,6 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.util.Set;
 
 @Tag(name = "마이페이지(MyPage) API", description = "사용자 프로필, 북마크, 최근 본 장소 관리 API")
 @RestController
@@ -105,10 +104,6 @@ public class MyPageController {
 
         Page<RecentViewResponse> response = recentViewService.getRecentViews(userId, pageable);
 
-        Set<Long> bookmarkedRestaurantIds = bookmarkService.getBookmarkedRestaurantIds(userId);
-
-        response.forEach(recentView -> {
-            boolean isBookmarked = bookmarkedRestaurantIds.contains(recentView.getRestaurantId());
             recentView.setBookmarked(isBookmarked);
         });
 

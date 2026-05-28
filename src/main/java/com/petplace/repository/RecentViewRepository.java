@@ -18,9 +18,9 @@ public interface RecentViewRepository extends JpaRepository<RecentView, Long> {
     Page<RecentView> findByUserId(Long userId, Pageable pageable);
 
     @Modifying
-    @Query(value = "INSERT INTO recent_views (user_id, restaurant_id, created_at) " +
-            "VALUES (:userId, :restaurantId, NOW()) " +
-            "ON DUPLICATE KEY UPDATE created_at = NOW()", nativeQuery = true)
+    @Query(value = "INSERT INTO recent_views (user_id, restaurant_id, created_at, updated_at) " +
+            "VALUES (:userId, :restaurantId, NOW(), NOW()) " +
+            "ON DUPLICATE KEY UPDATE created_at = NOW(), updated_at = NOW()", nativeQuery = true)
     void upsert(@Param("userId") Long userId, @Param("restaurantId") Long restaurantId);
 
     @Modifying
