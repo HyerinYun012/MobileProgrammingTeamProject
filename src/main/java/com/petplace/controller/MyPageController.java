@@ -20,7 +20,6 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-
 @Tag(name = "마이페이지(MyPage) API", description = "사용자 프로필, 북마크, 최근 본 장소 관리 API")
 @RestController
 @RequestMapping("/api/my")
@@ -103,9 +102,6 @@ public class MyPageController {
         }
 
         Page<RecentViewResponse> response = recentViewService.getRecentViews(userId, pageable);
-
-            recentView.setBookmarked(isBookmarked);
-        });
 
         return ResponseEntity.ok(ApiResponse.success("최근 본 장소 목록이 성공적으로 조회되었습니다.", response));
     }
