@@ -74,20 +74,14 @@
         android:fontFamily="@font/nanum_gothic_regular"
         android:layout_marginBottom="16dp" />
 
-    <androidx.viewpager2.widget.ViewPager2
-        android:id="@+id/vp_review_photos"
+    <ImageView
+        android:id="@+id/iv_review_photo"
         android:layout_width="match_parent"
         android:layout_height="200dp"
         android:layout_marginTop="16dp"
-        android:visibility="gone" />
-
-    <LinearLayout
-        android:id="@+id/indicator_layout"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:gravity="center"
-        android:layout_marginTop="8dp"
+        android:scaleType="centerCrop"
+        android:background="@drawable/bg_rounded_border"
+        android:clipToOutline="true"
         android:visibility="gone" />
 
     <View
@@ -95,4 +89,5 @@
         android:layout_height="1dp"
         android:background="#E0E0E0"
         android:layout_marginTop="24dp" />
+
 </LinearLayout>

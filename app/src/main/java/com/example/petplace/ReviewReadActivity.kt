@@ -1,120 +1,145 @@
-package com.example.petplace
+package com.example.petplace // 본인 패키지명 꼭 확인!
 
 import android.content.Intent
-import android.graphics.Color
-import android.graphics.drawable.GradientDrawable
+import android.graphics.drawable.Drawable
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.ImageView
-import android.widget.LinearLayout
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.RecyclerView
-import androidx.viewpager2.widget.ViewPager2
+import com.bumptech.glide.Glide
+import com.bumptech.glide.load.DataSource
+import com.bumptech.glide.load.engine.GlideException
+import com.bumptech.glide.request.target.Target
 import com.example.petplace.databinding.ActivityReviewReadBinding
 import com.example.petplace.databinding.ItemReviewReadBinding
+import com.example.petplace.network.RetrofitClient
+import com.example.petplace.network.ApiResponse
+import com.example.petplace.network.PageResponse
+import com.example.petplace.network.ReviewResponse // 팀원분이 만들어둔 모델!
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
 
 class ReviewReadActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityReviewReadBinding
-    private lateinit var dbHelper: DatabaseHelper
+
+    // 🔥 이전 화면(식당 상세 화면)에서 넘겨받아야 할 식당 아이디! (임시로 1L 지정)
+    private var targetRestaurantId: Long = 1L
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityReviewReadBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        dbHelper = DatabaseHelper(this)
+        // 만약 식당 상세화면에서 intent.putExtra("RESTAURANT_ID", 식당번호) 로 넘겨준다면 여기서 받음!
+        targetRestaurantId = intent.getLongExtra("RESTAURANT_ID", 1L)
 
         binding.btnBack.setOnClickListener { finish() }
 
+        // 리뷰 쓰기 버튼 클릭 시
         binding.btnWriteReview.setOnClickListener {
             val intent = Intent(this, ReviewWriteActivity::class.java)
+            // 쓰기 화면으로 넘어갈 때도 식당 아이디를 넘겨줘야 저장할 때 써먹을 수 있음!
+            intent.putExtra("RESTAURANT_ID", targetRestaurantId)
             startActivity(intent)
         }
     }
 
     override fun onResume() {
         super.onResume()
-        // 화면 재활성화 시 최신 리뷰 데이터 로드 및 어댑터 연결
-        val reviewList = dbHelper.getAllReviews()
-        binding.rvReviews.adapter = ReviewAdapter(reviewList)
+        // 화면 재활성화 시 최신 리뷰 데이터 서버에서 긁어오기!
+        fetchRestaurantReviews()
     }
 
-    // 리뷰 목록 RecyclerView 어댑터
-    inner class ReviewAdapter(private val reviews: List<ReviewData>) : RecyclerView.Adapter<ReviewAdapter.ViewHolder>() {
+    // =========================================================================
+    // 🌐 특정 식당의 리뷰 목록 서버에서 가져오기 (GET)
+    // =========================================================================
+    private fun fetchRestaurantReviews() {
+        val pageableMap = mapOf(
+            "page" to "0",
+            "size" to "20",
+            "sort" to "createdAt,DESC"
+        )
+
+        RetrofitClient.apiService.getReviews(targetRestaurantId, pageableMap)
+            .enqueue(object : Callback<ApiResponse<PageResponse<ReviewResponse>>> {
+                override fun onResponse(
+                    call: Call<ApiResponse<PageResponse<ReviewResponse>>>,
+                    response: Response<ApiResponse<PageResponse<ReviewResponse>>>
+                ) {
+                    if (response.isSuccessful && response.body()?.success == true) {
+                        val reviewList = response.body()?.data?.content ?: emptyList()
+                        // 어댑터 연결!
+                        binding.rvReviews.adapter = ReviewAdapter(reviewList)
+                    }  else {
+                    Log.e("ReviewReadActivity", "리뷰 조회 실패! 에러코드: ${response.code()} / 이유: ${response.message()}")
+                    Toast.makeText(this@ReviewReadActivity, "리뷰를 불러오지 못했습니다.", Toast.LENGTH_SHORT).show()
+                    }
+                }
+
+                override fun onFailure(call: Call<ApiResponse<PageResponse<ReviewResponse>>>, t: Throwable) {
+                    Log.e("ReviewReadActivity", "통신 에러", t)
+                    Toast.makeText(this@ReviewReadActivity, "네트워크 연결을 확인해주세요.", Toast.LENGTH_SHORT).show()
+                }
+            })
+    }
+
+    // =========================================================================
+    // 🎨 서버 데이터(ReviewResponse) 전용 리뷰 목록 어댑터
+    // =========================================================================
+    inner class ReviewAdapter(private val reviews: List<ReviewResponse>) : RecyclerView.Adapter<ReviewAdapter.ViewHolder>() {
 
         inner class ViewHolder(private val itemBinding: ItemReviewReadBinding) : RecyclerView.ViewHolder(itemBinding.root) {
 
-            fun bind(review: ReviewData) {
-                // 텍스트 및 평점 데이터 바인딩
-                itemBinding.itemRatingBar.rating = review.rating
+            fun bind(review: ReviewResponse) {
+                // 텍스트, 평점, 작성자 이름 바인딩 (명세서 보니까 writerName 이 있네!)
+                itemBinding.itemRatingBar.rating = review.rating.toFloat()
                 itemBinding.tvReviewContent.text = review.content
+                itemBinding.tvNickname.text = review.writerName
 
-                // 다중 이미지 데이터 존재 시 슬라이더 구성
-                if (!review.imageUri.isNullOrEmpty()) {
-                    val imageList = review.imageUri.split(",")
+                // 📸 단일 이미지 처리 로직
+                if (!review.imageUrl.isNullOrEmpty()) {
+                    itemBinding.ivReviewPhoto.visibility = View.VISIBLE
 
-                    // ViewPager2 및 인디케이터 레이아웃 가시화
-                    itemBinding.vpReviewPhotos.visibility = View.VISIBLE
-                    itemBinding.indicatorLayout.visibility = View.VISIBLE
+                    // 1. 일단 서버에서 넘어온 주소가 정상인지부터 로그로 찍어봄!
+                    Log.d("GlideDebug", "🎯 서버에서 받은 이미지 주소: ${review.imageUrl}")
 
-                    // 어댑터 연결
-                    val sliderAdapter = ReadImageSliderAdapter(imageList)
-                    itemBinding.vpReviewPhotos.adapter = sliderAdapter
+                    // 2. Glide 청문회 시작
+                    Glide.with(itemBinding.root.context)
+                        .load(review.imageUrl)
+                        .centerCrop()
+                        .listener(object : com.bumptech.glide.request.RequestListener<android.graphics.drawable.Drawable> {
+                            // 🔥 여기 안쪽을 텅 비우기!
+                            override fun onLoadFailed(
+                                p0: GlideException?,
+                                p1: Any?,
+                                p2: Target<Drawable?>,
+                                p3: Boolean
+                            ): Boolean {
+                                Log.e("GlideDebug", "🚨 Glide 사진 로드 실패!! 원인: ${p0?.message}")
+                                return false // 꼭 false 리턴!
+                            }
 
-                    // 인디케이터 초기 생성 및 설정 (사진이 2장 이상일 때만 표시)
-                    if (imageList.size > 1) {
-                        setupIndicators(imageList.size, itemBinding.indicatorLayout)
-                    } else {
-                        itemBinding.indicatorLayout.removeAllViews()
-                    }
-
-                    // 페이지 변경 시 인디케이터 상태 갱신 콜백 등록
-                    itemBinding.vpReviewPhotos.registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback() {
-                        override fun onPageSelected(position: Int) {
-                            super.onPageSelected(position)
-                            updateIndicators(position, itemBinding.indicatorLayout)
-                        }
-                    })
+                            override fun onResourceReady(
+                                p0: Drawable,
+                                p1: Any,
+                                p2: Target<Drawable?>?,
+                                p3: DataSource,
+                                p4: Boolean
+                            ): Boolean {
+                                Log.d("GlideDebug", "✅ Glide 사진 띄우기 대성공!")
+                                return false // 꼭 false 리턴!
+                            }
+                        })
+                        .into(itemBinding.ivReviewPhoto)
                 } else {
-                    // 이미지가 없는 경우 관련 뷰 숨김 처리
-                    itemBinding.vpReviewPhotos.visibility = View.GONE
-                    itemBinding.indicatorLayout.visibility = View.GONE
-                }
-            }
-
-            // 인디케이터(원형 점) UI 동적 생성 메서드
-            private fun setupIndicators(count: Int, container: LinearLayout) {
-                container.removeAllViews()
-                val layoutParams = LinearLayout.LayoutParams(
-                    ViewGroup.LayoutParams.WRAP_CONTENT,
-                    ViewGroup.LayoutParams.WRAP_CONTENT
-                ).apply { setMargins(8, 0, 8, 0) } // 점 사이 간격 설정
-
-                for (i in 0 until count) {
-                    val indicator = ImageView(container.context)
-                    indicator.setImageDrawable(getIndicatorDrawable(i == 0)) // 첫 번째 점 활성화
-                    indicator.layoutParams = layoutParams
-                    container.addView(indicator)
-                }
-            }
-
-            // 인디케이터 활성 상태 업데이트 메서드
-            private fun updateIndicators(position: Int, container: LinearLayout) {
-                for (i in 0 until container.childCount) {
-                    val imageView = container.getChildAt(i) as ImageView
-                    imageView.setImageDrawable(getIndicatorDrawable(i == position))
-                }
-            }
-
-            // 원형 점 Drawable 생성 메서드 (true: 주황색, false: 회색)
-            private fun getIndicatorDrawable(isActive: Boolean): GradientDrawable {
-                return GradientDrawable().apply {
-                    shape = GradientDrawable.OVAL
-                    setSize(20, 20) // 점 크기 설정
-                    setColor(if (isActive) Color.parseColor("#FF8A4C") else Color.parseColor("#E0E0E0"))
+                    itemBinding.ivReviewPhoto.visibility = View.GONE
+                    Log.d("GlideDebug", "⚠️ 이 리뷰는 사진이 없음 (imageUrl이 비어있음)")
                 }
             }
         }

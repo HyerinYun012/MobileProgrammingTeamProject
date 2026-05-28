@@ -1,90 +1,100 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:orientation="vertical"
-    android:layout_marginBottom="32dp">
+    android:background="#FFFFFF"
+    android:paddingHorizontal="20dp"
+    android:paddingVertical="16dp">
 
-    <androidx.constraintlayout.widget.ConstraintLayout
-        android:layout_width="match_parent"
+    <LinearLayout
+        android:id="@+id/layout_restaurant_link"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="8dp">
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:clickable="true"
+        android:focusable="true"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent">
 
         <TextView
-            android:id="@+id/tv_store_name"
+            android:id="@+id/tv_restaurant_name"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="가게 이름"
+            tools:text="해그린 베이커리 카페"
             android:textColor="#000000"
-            android:textSize="18sp"
-            android:fontFamily="@font/nanum_gothic_bold"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintBottom_toBottomOf="parent"/>
-
-        <ImageView
-            android:id="@+id/ic_arrow_right"
-            android:layout_width="16dp"
-            android:layout_height="16dp"
-            android:layout_marginStart="8dp"
-            android:src="@drawable/ic_arrow_right"
-            app:layout_constraintStart_toEndOf="@id/tv_store_name"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintBottom_toBottomOf="parent" />
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:fontFamily="@font/nanum_gothic_extrabold" />
 
         <TextView
-            android:id="@+id/btn_delete_review"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:background="@drawable/bg_button_delete"
-            android:paddingHorizontal="12dp"
-            android:paddingVertical="4dp"
-            android:text="삭제"
-            android:textColor="#FFFFFF"
-            android:textSize="14sp"
-            android:fontFamily="@font/nanum_gothic_bold"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintBottom_toBottomOf="parent" />
-    </androidx.constraintlayout.widget.ConstraintLayout>
+            android:text=" >"
+            android:textColor="#000000"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:layout_marginStart="4dp"/>
+    </LinearLayout>
+
+    <ImageView
+        android:id="@+id/btn_delete_review"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:padding="8dp"
+        android:src="@drawable/ic_delete"
+        android:clickable="true"
+        android:focusable="true"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintBottom_toBottomOf="@+id/layout_restaurant_link"/>
 
     <RatingBar
         android:id="@+id/item_rating_bar"
         style="?android:attr/ratingBarStyleSmall"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="12dp"
+        android:layout_marginTop="8dp"
         android:numStars="5"
-        android:stepSize="0.5"
+        android:stepSize="1.0"
+        tools:rating="5"
         android:progressTint="#FFC107"
-        android:progressBackgroundTint="#E0E0E0"
-        android:secondaryProgressTint="#FFC107" />
+        app:layout_constraintTop_toBottomOf="@id/layout_restaurant_link"
+        app:layout_constraintStart_toStartOf="parent" />
 
     <TextView
         android:id="@+id/tv_review_content"
-        android:layout_width="match_parent"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:textColor="#000000"
-        android:textSize="16sp"
-        android:lineSpacingExtra="6dp"
-        android:fontFamily="@font/nanum_gothic_regular"
-        android:layout_marginBottom="16dp" />
-
-    <androidx.viewpager2.widget.ViewPager2
-        android:id="@+id/vp_review_photos"
-        android:layout_width="match_parent"
-        android:layout_height="200dp"
-        android:layout_marginTop="16dp"
-        android:visibility="gone" />
-
-    <LinearLayout
-        android:id="@+id/indicator_layout"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:gravity="center"
         android:layout_marginTop="8dp"
-        android:visibility="gone" />
+        tools:text="강아지랑 오기 정말 좋은 곳 같아요~"
+        android:textColor="#333333"
+        android:textSize="15sp"
+        android:lineSpacingExtra="4dp"
+        android:fontFamily="@font/nanum_gothic_regular"
+        app:layout_constraintTop_toBottomOf="@id/item_rating_bar"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
 
-</LinearLayout>
+    <ImageView
+        android:id="@+id/iv_review_photo"
+        android:layout_width="0dp"
+        android:layout_height="150dp" android:layout_marginTop="12dp"
+        android:scaleType="centerCrop"
+        android:background="@drawable/bg_rounded_border"
+        android:clipToOutline="true"
+        app:layout_constraintTop_toBottomOf="@id/tv_review_content"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_marginTop="20dp"
+        android:background="#F0F0F0"
+        app:layout_constraintTop_toBottomOf="@id/iv_review_photo"
+        app:layout_constraintBottom_toBottomOf="parent" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

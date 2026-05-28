@@ -124,28 +124,56 @@
                     android:textSize="18sp"
                     android:fontFamily="@font/nanum_gothic_extrabold" />
 
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="4dp"
-                    android:text="(최대 5개 등록 가능)"
-                    android:textColor="#FF8A4C"
-                    android:textSize="14sp"
-                    android:fontFamily="@font/nanum_gothic_bold" />
             </LinearLayout>
 
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal">
+            <FrameLayout
+                android:layout_width="100dp"
+                android:layout_height="100dp"
+                android:layout_marginTop="12dp">
 
-                <androidx.recyclerview.widget.RecyclerView
-                    android:id="@+id/rv_review_photos"
+                <ImageView
+                    android:id="@+id/btn_add_photo"
                     android:layout_width="match_parent"
-                    android:layout_height="100dp"
-                    android:orientation="horizontal"
-                    app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager" />
-            </LinearLayout>
+                    android:layout_height="match_parent"
+                    android:src="@drawable/ic_add_photo" android:scaleType="fitCenter"
+                    android:clickable="true"
+                    android:focusable="true" />
+
+                <androidx.constraintlayout.widget.ConstraintLayout
+                    android:id="@+id/layout_selected_photo"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:visibility="gone">
+
+                    <ImageView
+                        android:id="@+id/iv_selected_photo"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:scaleType="centerCrop"
+                        android:background="@drawable/bg_rounded_border"
+                        android:clickable="true"
+                        android:focusable="true"
+                        app:layout_constraintTop_toTopOf="parent"
+                        app:layout_constraintBottom_toBottomOf="parent"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintEnd_toEndOf="parent" />
+
+                    <TextView
+                        android:id="@+id/btn_delete_selected_photo"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="6dp"
+                        android:layout_marginEnd="8dp"
+                        android:text="X"
+                        android:textColor="#FF8A4C"
+                        android:textSize="18sp"
+                        android:fontFamily="@font/nanum_gothic_extrabold"
+                        android:clickable="true"
+                        android:focusable="true"
+                        app:layout_constraintTop_toTopOf="parent"
+                        app:layout_constraintEnd_toEndOf="parent" />
+                </androidx.constraintlayout.widget.ConstraintLayout>
+            </FrameLayout>
         </LinearLayout>
     </ScrollView>
 

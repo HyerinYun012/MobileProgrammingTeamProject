@@ -4,6 +4,7 @@ import android.content.Intent
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import com.example.petplace.databinding.ActivityTempTestBinding
+import com.example.petplace.network.RetrofitClient
 
 class TempTestActivity : AppCompatActivity() {
 
@@ -15,6 +16,8 @@ class TempTestActivity : AppCompatActivity() {
         // 레이아웃 인플레이트 및 뷰 바인딩 초기화
         binding = ActivityTempTestBinding.inflate(layoutInflater)
         setContentView(binding.root)
+
+        RetrofitClient.setToken("eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiIxNSIsInJvbGUiOiJDVVNUT01FUiIsImlhdCI6MTc3OTk2OTEzOCwiZXhwIjoxNzgwMDU1NTM4fQ.b1Za_-5teodSgAc8OpY5W1HdiiUuR3IznISS30kSBMyNeWeoyIdkeCVkgycJTGkR40ij5NZ-CY2JRA7ZXinuQA")
 
         // 리뷰 읽기/쓰기 화면 이동
         binding.btnTestReviewRead.setOnClickListener {
