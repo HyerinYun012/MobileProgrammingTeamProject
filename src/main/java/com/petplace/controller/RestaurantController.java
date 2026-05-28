@@ -32,13 +32,24 @@ public class RestaurantController {
 
     private final RestaurantService restaurantService;
 
-    // 💡 3. 컨트롤러 레이어 변경: Swagger UI에서 실제 @RequestPart("request") 바인딩 Key와 완전히 일치하도록 선언문 수정
-    private interface MultipartRequestSpec {
-        @Schema(description = "가게 등록/수정 정보 (JSON)", implementation = RestaurantRequest.class)
-        RestaurantRequest getRequest(); // Swagger는 Getter 규칙(getRequest -> request)을 따라 파트명을 매핑합니다.
+    @lombok.Getter
+    @io.swagger.v3.oas.annotations.media.Schema(description = "장소 등록 폼 데이터")
+    public static class RestaurantRegisterForm {
+        @Schema(description = "가게 등록 정보 (JSON)", implementation = RestaurantRequest.class)
+        public RestaurantRequest data;
 
         @Schema(description = "장소 이미지 파일 리스트", type = "array", implementation = MultipartFile.class)
-        List<MultipartFile> getImages();
+        public List<MultipartFile> imageFile;
+    }
+
+    @lombok.Getter
+    @io.swagger.v3.oas.annotations.media.Schema(description = "장소 수정 폼 데이터")
+    public static class RestaurantUpdateForm {
+        @Schema(description = "가게 수정 정보 (JSON)", implementation = RestaurantRequest.class)
+        public RestaurantRequest data;
+
+        @Schema(description = "장소 이미지 파일 리스트", type = "array", implementation = MultipartFile.class)
+        public List<MultipartFile> imageFile;
     }
 
     @Operation(summary = "내 주변 장소 조회", description = "위도/경도 기준으로 반경 내 장소를 거리순으로 페이징 조회합니다.")
@@ -99,7 +110,7 @@ public class RestaurantController {
             requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
                     content = @Content(
                             mediaType = MediaType.MULTIPART_FORM_DATA_VALUE,
-                            schema = @Schema(implementation = MultipartRequestSpec.class)
+                            schema = @Schema(implementation = RestaurantRegisterForm.class)
                     )
             )
     )
@@ -122,7 +133,7 @@ public class RestaurantController {
             requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
                     content = @Content(
                             mediaType = MediaType.MULTIPART_FORM_DATA_VALUE,
-                            schema = @Schema(implementation = MultipartRequestSpec.class)
+                            schema = @Schema(implementation = RestaurantUpdateForm.class)
                     )
             )
     )
@@ -130,8 +141,8 @@ public class RestaurantController {
     public ResponseEntity<ApiResponse<Long>> update(
             @AuthenticationPrincipal Long ownerId,
             @Parameter(description = "장소 ID") @PathVariable Long id,
-            @Valid @RequestPart("request") RestaurantRequest req, // 💡 JSON 분리 데이터 파트 ("request")
-            @RequestPart(value = "images", required = false) List<MultipartFile> images // 💡 다중 파일 파트 ("images")
+            @Valid @RequestPart("data") RestaurantRequest req,
+            @RequestPart(value = "imageFile", required = false) List<MultipartFile> images
     ) {
         Long updatedId = restaurantService.update(id, ownerId, req, images);
         return ResponseEntity.ok(ApiResponse.success("장소 정보가 수정되었습니다.", updatedId));

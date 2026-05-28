@@ -4,7 +4,7 @@ import com.petplace.dto.response.NoticeResponse;
 import com.petplace.entity.Notice;
 import com.petplace.entity.Restaurant;
 import com.petplace.exception.BusinessException;
-import com.petplace.exception.ErrorCode; // 💡 ErrorCode import 추가
+import com.petplace.exception.ErrorCode;
 import com.petplace.repository.NoticeRepository;
 import com.petplace.repository.RestaurantRepository;
 import lombok.RequiredArgsConstructor;
@@ -27,17 +27,20 @@ public class NoticeService {
     private final FileService fileService;
 
     /**
-     * 공지사항 작성 (해당 가게 사장님만 가능)
+     * 공지사항 작성
      */
     @Transactional
     public void createNotice(Long restaurantId, Long ownerId, String title, String content, String thumbUrl, String descImgUrl) {
-        // 💡 ErrorCode 적용
         Restaurant restaurant = restaurantRepository.findById(restaurantId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.RESTAURANT_NOT_FOUND));
 
         if (restaurant.getOwner() == null || !Objects.equals(restaurant.getOwner().getId(), ownerId)) {
-            // 💡 ErrorCode 적용
             throw new BusinessException(ErrorCode.NO_PERMISSION);
+        }
+
+        // 💡 [추가] 사장님 계정 승인 여부 검증
+        if (!restaurant.getOwner().isVerified()) {
+            throw new BusinessException(ErrorCode.UNAUTHORIZED_OWNER);
         }
 
         Notice notice = Notice.createNotice(
@@ -52,24 +55,25 @@ public class NoticeService {
     }
 
     /**
-     * 공지사항 수정 (공지를 올린 사장님만 가능 + S3 파일 롤백 방어 적용)
+     * 공지사항 수정
      */
     @Transactional
     public void updateNotice(Long noticeId, Long ownerId, String title, String content, String newThumbUrl, String newDescImgUrl) {
-        // 💡 ErrorCode 적용
         Notice notice = noticeRepository.findById(noticeId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.NOTICE_NOT_FOUND));
 
         if (notice.getRestaurant() == null || notice.getRestaurant().getOwner() == null ||
                 !Objects.equals(notice.getRestaurant().getOwner().getId(), ownerId)) {
-            // 💡 ErrorCode 적용
             throw new BusinessException(ErrorCode.NO_PERMISSION);
         }
 
-        // 1. 썸네일 이미지가 변경된 경우
+        // 💡 [추가] 사장님 계정 승인 여부 검증
+        if (!notice.getRestaurant().getOwner().isVerified()) {
+            throw new BusinessException(ErrorCode.UNAUTHORIZED_OWNER);
+        }
+
         if (notice.getThumbnailUrl() != null && !notice.getThumbnailUrl().isEmpty() &&
                 !Objects.equals(notice.getThumbnailUrl(), newThumbUrl)) {
-
             String oldThumb = notice.getThumbnailUrl();
             TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
                 @Override
@@ -79,10 +83,8 @@ public class NoticeService {
             });
         }
 
-        // 2. 본문 상세 이미지가 변경된 경우
         if (notice.getDescriptionImageUrl() != null && !notice.getDescriptionImageUrl().isEmpty() &&
                 !Objects.equals(notice.getDescriptionImageUrl(), newDescImgUrl)) {
-
             String oldDescImg = notice.getDescriptionImageUrl();
             TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
                 @Override
@@ -96,18 +98,21 @@ public class NoticeService {
     }
 
     /**
-     * 공지사항 삭제 (공지를 올린 사장님만 가능 + S3 파일 연쇄 삭제)
+     * 공지사항 삭제
      */
     @Transactional
     public void deleteNotice(Long noticeId, Long ownerId) {
-        // 💡 ErrorCode 적용
         Notice notice = noticeRepository.findById(noticeId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.NOTICE_NOT_FOUND));
 
         if (notice.getRestaurant() == null || notice.getRestaurant().getOwner() == null ||
                 !Objects.equals(notice.getRestaurant().getOwner().getId(), ownerId)) {
-            // 💡 ErrorCode 적용
             throw new BusinessException(ErrorCode.NO_PERMISSION);
+        }
+
+        // 💡 [추가] 사장님 계정 승인 여부 검증
+        if (!notice.getRestaurant().getOwner().isVerified()) {
+            throw new BusinessException(ErrorCode.UNAUTHORIZED_OWNER);
         }
 
         TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
@@ -129,7 +134,6 @@ public class NoticeService {
      * 특정 식당의 공지사항 목록 최신순 페이징 조회
      */
     public Page<NoticeResponse> getNoticesByRestaurant(Long restaurantId, Pageable pageable) {
-        // 1. 식당 존재 여부 확인
         restaurantRepository.findById(restaurantId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.RESTAURANT_NOT_FOUND));
 
