@@ -7,6 +7,8 @@ import com.petplace.dto.response.ReviewResponse;
 import com.petplace.service.ReviewService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -27,6 +29,15 @@ import org.springframework.web.multipart.MultipartFile;
 public class ReviewController {
 
     private final ReviewService service;
+
+    // 💡 Swagger UI에서 파일(imageFile)과 JSON(request)이 하나의 폼 데이터로 묶이도록 명세 정의
+    private interface MultipartRequestSpec {
+        @Schema(description = "리뷰 작성/수정 정보 (JSON)", implementation = ReviewRequest.class)
+        ReviewRequest getRequest();
+
+        @Schema(description = "리뷰 이미지 파일", type = "string", format = "binary")
+        MultipartFile getImageFile();
+    }
 
     /**
      * 식당 리뷰 목록 조회
@@ -53,16 +64,24 @@ public class ReviewController {
     /**
      * 리뷰 작성
      */
-    @Operation(summary = "리뷰 작성", description = "텍스트 데이터(data 파트, JSON)와 리뷰 이미지 파일(imageFile 파트)을 정교하게 분리하여 전송합니다.")
+    @Operation(
+            summary = "리뷰 작성",
+            description = "텍스트 데이터(request 파트, JSON)와 리뷰 이미지 파일(imageFile 파트)을 분리하여 전송합니다.",
+            requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
+                    content = @Content(
+                            mediaType = MediaType.MULTIPART_FORM_DATA_VALUE,
+                            schema = @Schema(implementation = MultipartRequestSpec.class)
+                    )
+            )
+    )
     @PostMapping(value = "/restaurant/{restaurantId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<ApiResponse<?>> write(
             @Parameter(hidden = true) @AuthenticationPrincipal Long userId,
             @Parameter(description = "장소(식당) ID", example = "1") @PathVariable Long restaurantId,
-            // 💡 뭉뚱그려 받던 구조를 깔끔하게 분리 독립 완료
-            @Valid @RequestPart("data") ReviewRequest req,
+            // 💡 표준화: "data" -> "request" 파트명 변경
+            @Valid @RequestPart("request") ReviewRequest req,
             @RequestPart(value = "imageFile", required = false) MultipartFile imageFile
     ) {
-        // 프론트엔드가 결과를 활용할 수 있도록 기존 반환 객체(result) 트래픽은 안전하게 유지합니다.
         Object result = service.write(restaurantId, userId, req, imageFile);
         return ResponseEntity.ok(ApiResponse.success("리뷰가 등록되었습니다.", result));
     }
@@ -83,13 +102,22 @@ public class ReviewController {
     /**
      * 리뷰 수정
      */
-    @Operation(summary = "리뷰 수정", description = "본인이 작성한 리뷰를 수정합니다. 텍스트는 data 파트 JSON을 사용하며, 파일 파트는 선택적으로 첨부합니다.")
+    @Operation(
+            summary = "리뷰 수정",
+            description = "본인이 작성한 리뷰를 수정합니다. 텍스트는 request 파트 JSON을 사용하며, 파일 파트는 선택적으로 첨부합니다.",
+            requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
+                    content = @Content(
+                            mediaType = MediaType.MULTIPART_FORM_DATA_VALUE,
+                            schema = @Schema(implementation = MultipartRequestSpec.class)
+                    )
+            )
+    )
     @PutMapping(value = "/{reviewId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<ApiResponse<Void>> update(
             @Parameter(hidden = true) @AuthenticationPrincipal Long userId,
             @Parameter(description = "수정할 리뷰 ID", example = "100") @PathVariable Long reviewId,
-            // 💡 수정 파트 역시 통일성 매칭 완료
-            @Valid @RequestPart("data") ReviewRequest req,
+            // 💡 표준화: "data" -> "request" 파트명 변경
+            @Valid @RequestPart("request") ReviewRequest req,
             @RequestPart(value = "imageFile", required = false) MultipartFile imageFile
     ) {
         service.update(reviewId, userId, req, imageFile);

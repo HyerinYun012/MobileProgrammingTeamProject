@@ -6,6 +6,8 @@ import com.petplace.dto.response.PetResponse;
 import com.petplace.service.PetService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -27,6 +29,15 @@ public class PetController {
 
     private final PetService petService;
 
+    // 💡 Swagger UI에서 data(JSON)와 image(파일)가 폼 데이터로 명확히 분리되어 보이도록 설정
+    private interface MultipartRequestSpec {
+        @Schema(description = "반려동물 정보 (JSON)", implementation = PetRequest.class)
+        PetRequest getData();
+
+        @Schema(description = "반려동물 프로필 사진", type = "string", format = "binary")
+        MultipartFile getImage();
+    }
+
     @Operation(summary = "반려동물 목록 조회", description = "로그인한 사용자의 반려동물 리스트를 페이징하여 조회합니다.")
     @GetMapping
     public ResponseEntity<ApiResponse<Page<PetResponse>>> getPets(
@@ -46,31 +57,45 @@ public class PetController {
         return ResponseEntity.ok(ApiResponse.success("반려동물 목록 조회가 완료되었습니다.", response));
     }
 
-    @Operation(summary = "반려동물 추가", description = "새로운 반려동물을 등록합니다. 텍스트 데이터(data 파트, JSON)와 이미지 파일(image 파트)을 분리하여 전송합니다.")
+    @Operation(
+            summary = "반려동물 추가",
+            description = "새로운 반려동물을 등록합니다. 'data' 파트에 JSON을, 'image' 파트에 파일을 전송하세요.",
+            requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
+                    content = @Content(
+                            mediaType = MediaType.MULTIPART_FORM_DATA_VALUE,
+                            schema = @Schema(implementation = MultipartRequestSpec.class)
+                    )
+            )
+    )
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<ApiResponse<Void>> addPet(
             @AuthenticationPrincipal Long userId,
-            // 💡 "request" 대신 프로젝트 표준인 "data"로 파트명 대통합!
             @Valid @RequestPart("data") PetRequest req,
             @Parameter(description = "반려동물 프로필 사진 (선택)")
             @RequestPart(value = "image", required = false) MultipartFile image
     ) {
-        // 💡 엔티티 노출을 막고, 다른 쓰기 API들과 마찬가지로 응답 규격을 Void(null)로 일치화!
         petService.addPet(userId, req, image);
         return ResponseEntity.ok(ApiResponse.success("반려동물이 성공적으로 등록되었습니다.", null));
     }
 
-    @Operation(summary = "반려동물 정보 수정", description = "반려동물의 정보를 수정합니다. 텍스트 데이터(data 파트, JSON)와 이미지 파일(image 파트)을 분리하여 전송합니다.")
+    @Operation(
+            summary = "반려동물 정보 수정",
+            description = "반려동물의 정보를 수정합니다. 기존 이미지를 교체하려면 'image' 파트에 새 파일을 전송하세요.",
+            requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
+                    content = @Content(
+                            mediaType = MediaType.MULTIPART_FORM_DATA_VALUE,
+                            schema = @Schema(implementation = MultipartRequestSpec.class)
+                    )
+            )
+    )
     @PutMapping(value = "/{petId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<ApiResponse<Void>> updatePet(
             @AuthenticationPrincipal Long userId,
             @Parameter(description = "반려동물 ID") @PathVariable Long petId,
-            // 💡 여기도 동일하게 "data" 파트명으로 일치화!
             @Valid @RequestPart("data") PetRequest req,
             @Parameter(description = "새로 교체할 프로필 사진 (선택)")
             @RequestPart(value = "image", required = false) MultipartFile image
     ) {
-        // 💡 응답 규격을 Void(null)로 통일하여 깔끔한 결과 메시지만 반환!
         petService.updatePet(userId, petId, req, image);
         return ResponseEntity.ok(ApiResponse.success("반려동물 정보가 성공적으로 수정되었습니다.", null));
     }

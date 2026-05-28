@@ -6,6 +6,8 @@ import com.petplace.dto.response.MenuResponse;
 import com.petplace.service.RestaurantMenuService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -26,6 +28,15 @@ import org.springframework.web.multipart.MultipartFile;
 public class RestaurantMenuController {
 
     private final RestaurantMenuService restaurantMenuService;
+
+    // 💡 3. 컨트롤러 레이어 변경: Swagger UI에서 파일과 JSON 구조가 묶여서 완벽히 표현되도록 하는 가상 스펙 명세 선언
+    private interface MultipartRequestSpec {
+        @Schema(description = "메뉴 등록/수정 정보 (JSON)", implementation = MenuRequest.class)
+        MenuRequest getRequest(); // Getter 명명 규칙에 따라 Swagger 내부에서 파트명이 "request"로 자동 치환 연동됩니다.
+
+        @Schema(description = "메뉴 단건 이미지 파일", type = "string", format = "binary")
+        MultipartFile getImageFile();
+    }
 
     /**
      * 특정 식당의 전체 메뉴 목록 조회
@@ -52,17 +63,24 @@ public class RestaurantMenuController {
     /**
      * 메뉴 등록 (사장님 전용)
      */
-    @Operation(summary = "메뉴 등록", description = "텍스트 데이터(data 파트, JSON)와 메뉴 이미지 파일(imageFile 파트)을 분리하여 전송합니다. (OWNER 이상)")
+    @Operation(
+            summary = "메뉴 등록",
+            description = "텍스트 데이터(request 파트, JSON)와 메뉴 이미지 파일(imageFile 파트)을 분리하여 전송합니다. (OWNER 이상)",
+            requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
+                    content = @Content(
+                            mediaType = MediaType.MULTIPART_FORM_DATA_VALUE,
+                            schema = @Schema(implementation = MultipartRequestSpec.class)
+                    )
+            )
+    )
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<ApiResponse<Long>> registerMenu(
             @Parameter(hidden = true) @AuthenticationPrincipal Long ownerId,
             @Parameter(description = "식당 고유 ID", example = "1") @PathVariable Long restaurantId,
-            // 💡 @ModelAttribute 구조를 프로젝트 표준인 @RequestPart("data") JSON 구조로 전면 교체!
-            @Valid @RequestPart("data") MenuRequest req,
-            // 💡 이미지 파일은 독자적인 파트로 깔끔하게 분리 수신!
+            // 💡 규칙 3 적용: 파트 이름을 프로젝트 표준 규칙인 "request"로 전면 전환
+            @Valid @RequestPart("request") MenuRequest req,
             @RequestPart(value = "imageFile", required = false) MultipartFile imageFile
     ) {
-        // 분리된 req와 imageFile을 서비스 레이어에 순서대로 인계합니다.
         Long menuId = restaurantMenuService.registerMenu(restaurantId, ownerId, req, imageFile);
         return ResponseEntity.ok(ApiResponse.success("메뉴가 성공적으로 등록되었습니다.", menuId));
     }
@@ -70,14 +88,23 @@ public class RestaurantMenuController {
     /**
      * 메뉴 수정 (사장님 전용)
      */
-    @Operation(summary = "메뉴 정보 수정", description = "메뉴의 정보를 수정합니다. 텍스트는 data 파트 JSON을 사용하며, 파일 첨부 시 S3에서 자동 물리 교체됩니다. (OWNER 이상)")
+    @Operation(
+            summary = "메뉴 정보 수정",
+            description = "메뉴의 정보를 수정합니다. 텍스트는 request 파트 JSON을 사용하며, 파일 첨부 시 S3에서 자동 물리 교체됩니다. (OWNER 이상)",
+            requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
+                    content = @Content(
+                            mediaType = MediaType.MULTIPART_FORM_DATA_VALUE,
+                            schema = @Schema(implementation = MultipartRequestSpec.class)
+                    )
+            )
+    )
     @PutMapping(value = "/{menuId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<ApiResponse<Void>> updateMenu(
             @Parameter(hidden = true) @AuthenticationPrincipal Long ownerId,
             @Parameter(description = "식당 고유 ID", example = "1") @PathVariable Long restaurantId,
             @Parameter(description = "메뉴 고유 ID", example = "10") @PathVariable Long menuId,
-            // 💡 수정 API 역시 통일성을 위해 @RequestPart 분리 구조 적용
-            @Valid @RequestPart("data") MenuRequest req,
+            // 💡 규칙 3 적용: 수정 API 파트 네이밍도 동일하게 "request" 표준 구조로 매핑 전환
+            @Valid @RequestPart("request") MenuRequest req,
             @RequestPart(value = "imageFile", required = false) MultipartFile imageFile
     ) {
         restaurantMenuService.updateMenu(menuId, ownerId, req, imageFile);

@@ -52,12 +52,11 @@ public class RestaurantService {
 
         RestaurantResponse response = RestaurantResponse.from(restaurant);
 
-        // 사용자가 로그인 상태라면 테이블을 조회하여 북마크 Flag 설정
         if (userId != null) {
             boolean isBookmarked = bookmarkRepository.existsByUserIdAndRestaurantId(userId, id);
-            response.setBookmarked(isBookmarked); // 💡 setIsBookmarked -> setBookmarked로 변경
+            response.setBookmarked(isBookmarked);
         } else {
-            response.setBookmarked(false); // 💡 setIsBookmarked -> setBookmarked로 변경
+            response.setBookmarked(false);
         }
 
         return response;
@@ -67,24 +66,19 @@ public class RestaurantService {
      * 조건 필터 검색 및 북마크 매핑 (비로그인 유저 대응 완료)
      */
     public Page<RestaurantResponse> searchRestaurants(Long userId, RestaurantFilterRequest condition, Pageable pageable) {
-        // 1. 리포지토리로부터 엔티티 페이징 데이터 획득
         Page<Restaurant> restaurantPage = restaurantRepository.findByFilters(condition, pageable);
 
-        // 2. 로그인 유저인 경우 현재 페이지의 장소 IDs 기반으로 북마크 목록을 단 1회 대량 조회(성능 최적화)
         Set<Long> bookmarkedRestaurantIds = Collections.emptySet();
         if (userId != null && !restaurantPage.isEmpty()) {
             List<Long> restaurantIds = restaurantPage.getContent().stream()
                     .map(Restaurant::getId)
                     .collect(Collectors.toList());
 
-            // 유저가 북마크한 장소 ID 셋 추출
             bookmarkedRestaurantIds = bookmarkRepository.findRestaurantIdsByUserIdAndRestaurantIdIn(userId, restaurantIds);
         }
 
-        // 3. 엔티티 데이터 루프돌며 DTO 매핑 진행 시 북마크 포함 여부 판단 가공
         final Set<Long> finalBookmarkedIds = bookmarkedRestaurantIds;
         return restaurantPage.map(restaurant -> {
-            // 💡 인수가 1개인 기존 from 메서드를 호출한 뒤, Setter로 북마크 Flag를 주입하도록 수정
             RestaurantResponse response = RestaurantResponse.from(restaurant);
             response.setBookmarked(finalBookmarkedIds.contains(restaurant.getId()));
             return response;
@@ -93,7 +87,7 @@ public class RestaurantService {
 
     /**
      * 신규 장소 등록
-     * 🚀 롤백 시 업로드된 모든 이미지 삭제 로직 및 OperatingHour 구조 매핑 완비
+     * ★ 규칙 4 적용: null 반환 예외 방어 가드 장치 및 롤백 S3 청소 공정 고도화
      */
     @Transactional(rollbackFor = Exception.class)
     public Long register(Long ownerId, RestaurantRequest req, List<MultipartFile> images) {
@@ -111,43 +105,51 @@ public class RestaurantService {
         Restaurant restaurant = req.toEntity();
         restaurant.assignOwner(owner);
 
-        List<String> uploadedFiles = new ArrayList<>(); // 롤백 대비 추적 리스트
+        List<String> uploadedFiles = new ArrayList<>(); // 롤백 대비 새 파일 추적용 리스트
 
         if (images != null && !images.isEmpty()) {
             int order = 0;
             for (MultipartFile file : images) {
+                // 💡 규칙 4: 비어있는 파일 유입 방어 코드 추가
                 if (file != null && !file.isEmpty()) {
                     String imageUrl = fileService.uploadFile(file);
-                    uploadedFiles.add(imageUrl);
-                    restaurant.addImage(new RestaurantImage(imageUrl, restaurant, order++));
+
+                    // 🌟 [핵심 null 반환 예외 방어]: S3 업로드가 완벽히 성공해서 URL 주소가 리턴되었을 때만 주입 및 매핑 진행
+                    if (imageUrl != null) {
+                        uploadedFiles.add(imageUrl);
+                        restaurant.addImage(new RestaurantImage(imageUrl, restaurant, order++));
+                    }
                 }
             }
         }
 
-        // 트랜잭션 롤백 시 파일 삭제 동기화
+        // DB 저장 프로세스 실행
+        restaurantRepository.save(restaurant);
+
+        // ★ 규칙 4: 트랜잭션 롤백-S3 동기화 대책
         TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
             @Override
             public void afterCompletion(int status) {
+                // 저장 중 예외가 나서 트랜잭션이 최종 롤백되었다면, 업로드된 S3 새 파일 추적 제거
                 if (status == STATUS_ROLLED_BACK) {
                     uploadedFiles.forEach(fileService::deleteFile);
                 }
             }
         });
 
-        return restaurantRepository.save(restaurant).getId();
+        return restaurant.getId();
     }
 
     /**
      * 장소 정보 및 이미지 수정
-     * 💡 [정합성 수정] 트랜잭션 커밋 완료 후 S3 파일 삭제 처리 (엑스박스 버그 방지)
+     * ★ 규칙 4 적용: 커밋(기존 파일 청소) 및 롤백(수정 중 새로 등록된 유령 파일 청소) 양방향 완벽 동기화
      */
     @Transactional(rollbackFor = Exception.class)
     public Long update(Long id, Long ownerId, RestaurantRequest req, List<MultipartFile> newImages) {
-        // 1. 기존 데이터 조회
+        // 1. 기존 데이터 조회 및 권한 체크 (기존과 동일)
         Restaurant restaurant = restaurantRepository.findById(id)
                 .orElseThrow(() -> new BusinessException(ErrorCode.RESTAURANT_NOT_FOUND));
 
-        // 2. 권한 체크
         if (restaurant.getOwner() == null || !Objects.equals(restaurant.getOwner().getId(), ownerId)) {
             throw new BusinessException(ErrorCode.NO_PERMISSION);
         }
@@ -156,6 +158,7 @@ public class RestaurantService {
             throw new BusinessException(ErrorCode.DUPLICATE_BUSINESS_NUMBER);
         }
 
+        // 2. 엔티티 정보 갱신
         restaurant.update(
                 req.getName(), req.getAddress(), req.getPhone(), req.getBusinessNo(),
                 req.toOperatingHourEntities(),
@@ -163,41 +166,62 @@ public class RestaurantService {
                 req.isAllowSmall(), req.isAllowMedium(), req.isAllowLarge()
         );
 
-        // 5. 이미지 교체 로직
+        // 💡 해결 포인트: final로 선언하고 객체 재할당(=)을 하지 않음!
+        final List<String> oldImageUrls = new ArrayList<>();
+        final List<String> newlyUploadedFiles = new ArrayList<>();
+
+        // 3. 이미지 교체 로직 진행
         if (newImages != null && !newImages.isEmpty()) {
-            List<String> oldImageUrls = restaurant.getImages().stream()
+            // 변수 재할당 대신 기존 리스트에 .addAll()로 값만 추가 (Effectively Final 만족)
+            oldImageUrls.addAll(restaurant.getImages().stream()
                     .map(RestaurantImage::getImageUrl)
-                    .collect(Collectors.toList());
+                    .collect(Collectors.toList()));
 
-            uploadFilesAndCreateEntities(restaurant, newImages);
+            // 파일 업로드 헬퍼 호출
+            uploadFilesAndCreateEntities(restaurant, newImages, newlyUploadedFiles);
             restaurant.updateImages(restaurant.getImages());
-
-            TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
-                @Override
-                public void afterCommit() {
-                    for (String imageUrl : oldImageUrls) {
-                        fileService.deleteFile(imageUrl);
-                    }
-                }
-            });
         }
+
+        // 4. 트랜잭션 커밋-롤백 양방향 동기화 대책 (이제 컴파일 에러가 발생하지 않습니다)
+        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+            @Override
+            public void afterCommit() {
+                // 성공 시: 구버전 S3 파일 청소 (리스트가 비어있으면 루프를 돌지 않으므로 안전함)
+                for (String imageUrl : oldImageUrls) {
+                    fileService.deleteFile(imageUrl);
+                }
+            }
+
+            @Override
+            public void afterCompletion(int status) {
+                // 실패 시: 롤백되었다면 이번 요청으로 새롭게 올라간 유령 파일들만 추적 삭제
+                if (status == STATUS_ROLLED_BACK) {
+                    newlyUploadedFiles.forEach(fileService::deleteFile);
+                }
+            }
+        });
 
         return restaurant.getId();
     }
 
     /**
-     * 파일 업로드 및 연관관계 동기화 헬퍼
+     * 파일 업로드 및 연관관계 동기화 헬퍼 (null 반환 예외 가드 및 새 업로드 추적 연동 확장)
      */
-    private void uploadFilesAndCreateEntities(Restaurant restaurant, List<MultipartFile> images) {
+    private void uploadFilesAndCreateEntities(Restaurant restaurant, List<MultipartFile> images, List<String> newlyUploadedFiles) {
         if (images == null || images.isEmpty()) return;
 
         int order = 0;
         for (MultipartFile file : images) {
+            // 💡 규칙 4: 비어있는 파일 유입 차단 방어 코드
             if (file != null && !file.isEmpty()) {
                 String imageUrl = fileService.uploadFile(file);
 
-                RestaurantImage imgEntity = new RestaurantImage(imageUrl, restaurant, order++);
-                restaurant.addImage(imgEntity);
+                // 🌟 [핵심 null 반환 예외 방어]: S3가 URL을 확실히 반환했을 때만 연관관계 형성 및 추적 리스트 등록
+                if (imageUrl != null) {
+                    newlyUploadedFiles.add(imageUrl); // 수정 롤백 대응용 리스트에 보관
+                    RestaurantImage imgEntity = new RestaurantImage(imageUrl, restaurant, order++);
+                    restaurant.addImage(imgEntity);
+                }
             }
         }
     }

@@ -7,13 +7,15 @@ import com.petplace.service.MyPageService;
 import com.petplace.service.RecentViewService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page; // 💡 Page 타입 추가
-import org.springframework.data.domain.Pageable; // 💡 Pageable 타입 추가
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import org.springframework.data.web.PageableDefault; // 💡 기본 페이징 설정용
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -30,6 +32,15 @@ public class MyPageController {
     private final BookmarkService bookmarkService;
     private final RecentViewService recentViewService;
 
+    // 💡 3. 컨트롤러 레이어 변경: Swagger UI에서 JSON 데이터와 단건 파일 파트를 매핑해주는 가상 명세 인터페이스
+    private interface ProfileUpdateRequestSpec {
+        @Schema(description = "프로필 수정 텍스트 정보 (JSON)", implementation = UpdateProfileRequest.class)
+        UpdateProfileRequest getRequest();
+
+        @Schema(description = "새로운 프로필 이미지 파일 (선택)", type = "string", format = "binary")
+        MultipartFile getProfileImage();
+    }
+
     @Operation(summary = "프로필 조회", description = "로그인한 사용자의 프로필 정보를 조회합니다.")
     @GetMapping("/profile")
     public ResponseEntity<ApiResponse<UserProfileResponse>> profile(
@@ -39,11 +50,23 @@ public class MyPageController {
         return ResponseEntity.ok(ApiResponse.success("프로필 정보가 성공적으로 조회되었습니다.", response));
     }
 
-    @Operation(summary = "프로필 수정", description = "텍스트 데이터(data 파트, JSON)와 실제 물리 프로필 이미지 파일(profileImage 파트)을 분리하여 전송합니다.")
+    /**
+     * 프로필 수정 (Multipart/Form-Data 적용 및 표준화 명세 연동)
+     */
+    @Operation(
+            summary = "프로필 수정",
+            description = "텍스트 데이터(request 파트, JSON)와 실제 물리 프로필 이미지 파일(profileImage 파트)을 분리하여 전송합니다.",
+            requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
+                    content = @Content(
+                            mediaType = MediaType.MULTIPART_FORM_DATA_VALUE,
+                            schema = @Schema(implementation = ProfileUpdateRequestSpec.class)
+                    )
+            )
+    )
     @PutMapping(value = "/profile", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<ApiResponse<Void>> updateProfile(
             @AuthenticationPrincipal Long userId,
-            @Valid @RequestPart("data") UpdateProfileRequest req,
+            @Valid @RequestPart("request") UpdateProfileRequest req, // 💡 규칙에 따라 키값을 "data" -> "request"로 표준화 변경
             @RequestPart(value = "profileImage", required = false) MultipartFile profileImage
     ) {
         service.updateProfile(userId, req, profileImage);
@@ -53,12 +76,9 @@ public class MyPageController {
     @Operation(summary = "북마크 목록 조회", description = "로그인한 사용자가 북마크한 장소 목록을 페이징하여 조회합니다.")
     @GetMapping("/bookmarks")
     public ResponseEntity<ApiResponse<Page<BookmarkResponse>>> bookmarks(
-            @AuthenticationPrincipal Long userId,
-            // 💡 @ParameterObject 추가 및 기본값 세팅 (page=0, size=1, createdAt,desc)
             @org.springdoc.core.annotations.ParameterObject
             @PageableDefault(page = 0, size = 1, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable
     ) {
-        // 💡 "string" 방어 코드 추가
         if (pageable.getSort().stream().anyMatch(order -> "string".equals(order.getProperty()))) {
             pageable = org.springframework.data.domain.PageRequest.of(
                     pageable.getPageNumber(),
@@ -81,18 +101,13 @@ public class MyPageController {
         return ResponseEntity.ok(ApiResponse.success(isBookmarked));
     }
 
-    /**
-     * 최근 본 장소 목록 조회
-     */
     @Operation(summary = "최근 본 장소 목록 조회", description = "로그인한 사용자가 최근 본 장소 목록을 페이징하여 조회하며 각 장소의 북마크 여부가 포함됩니다.")
     @GetMapping("/recent")
     public ResponseEntity<ApiResponse<Page<RecentViewResponse>>> recent(
             @AuthenticationPrincipal Long userId,
-            // 💡 @ParameterObject 추가 및 기본값 세팅 (page=0, size=1, createdAt,desc)
             @org.springdoc.core.annotations.ParameterObject
             @PageableDefault(page = 0, size = 1, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable
     ) {
-        // 💡 "string" 방어 코드 추가
         if (pageable.getSort().stream().anyMatch(order -> "string".equals(order.getProperty()))) {
             pageable = org.springframework.data.domain.PageRequest.of(
                     pageable.getPageNumber(),
@@ -102,7 +117,6 @@ public class MyPageController {
         }
 
         Page<RecentViewResponse> response = recentViewService.getRecentViews(userId, pageable);
-
         return ResponseEntity.ok(ApiResponse.success("최근 본 장소 목록이 성공적으로 조회되었습니다.", response));
     }
 
@@ -120,11 +134,9 @@ public class MyPageController {
     @GetMapping("/reviews")
     public ResponseEntity<ApiResponse<Page<MyReviewResponse>>> myReviews(
             @AuthenticationPrincipal Long userId,
-            // 💡 @ParameterObject 추가 및 기본값 세팅 (page=0, size=1, createdAt,desc)
             @org.springdoc.core.annotations.ParameterObject
             @PageableDefault(page = 0, size = 1, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable
     ) {
-        // 💡 "string" 방어 코드 추가
         if (pageable.getSort().stream().anyMatch(order -> "string".equals(order.getProperty()))) {
             pageable = org.springframework.data.domain.PageRequest.of(
                     pageable.getPageNumber(),

@@ -26,31 +26,33 @@ public class ReviewService {
     private final ReviewRepository reviewRepo;
     private final ReviewReportRepository reportRepo;
     private final FileService fileService;
-    // 💡 프록시 객체 생성을 위해 Repository 의존성 추가
     private final UserRepository userRepository;
     private final RestaurantRepository restaurantRepository;
 
     public Page<ReviewResponse> getReviews(Long restaurantId, Pageable pageable) {
-        // 💡 Repository의 페이징 메서드 호출 후 DTO로 변환
         return reviewRepo.findByRestaurantId(restaurantId, pageable)
                 .map(ReviewResponse::from);
     }
 
     /**
      * 리뷰 작성
-     * 🚀 [개선] 롤백 시 S3 업로드 파일 삭제 로직 추가
+     * ★ 규칙 4 적용: null 방어 가드 및 롤백 S3 청소 공정
      */
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public Review write(Long restaurantId, Long userId, ReviewRequest req, MultipartFile image) {
         String imageUrl = null;
-        List<String> uploadedFiles = new ArrayList<>(); // 롤백 대비 추적 리스트
+        final List<String> uploadedFiles = new ArrayList<>(); // 롤백 대비 추적 리스트
 
         if (image != null && !image.isEmpty()) {
-            imageUrl = fileService.uploadFile(image);
-            uploadedFiles.add(imageUrl);
+            String tempUrl = fileService.uploadFile(image);
+
+            // 🌟 [핵심 null 방어]: 업로드가 성공한 경우에만 진행
+            if (tempUrl != null) {
+                imageUrl = tempUrl;
+                uploadedFiles.add(tempUrl);
+            }
         }
 
-        // 트랜잭션 롤백 시 파일 삭제 동기화
         TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
             @Override
             public void afterCompletion(int status) {
@@ -73,11 +75,10 @@ public class ReviewService {
 
     /**
      * 리뷰 수정
-     * 🚀 [개선] 트랜잭션 커밋/롤백 상태에 따른 S3 파일 정합성 보장 로직 도입
+     * ★ 규칙 4 적용: 커밋/롤백 양방향 동기화 완벽 보장
      */
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public void update(Long reviewId, Long userId, ReviewRequest req, MultipartFile newImage) {
-        // 1. 리뷰 조회 및 권한 검증
         Review review = reviewRepo.findById(reviewId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.REVIEW_NOT_FOUND));
 
@@ -85,52 +86,53 @@ public class ReviewService {
             throw new BusinessException(ErrorCode.NO_PERMISSION);
         }
 
-        String oldImageUrl = review.getImageUrl();
+        final String oldImageUrl = review.getImageUrl();
         String updatedImageUrl = oldImageUrl;
 
-        // 2. 새 이미지가 제공된 경우 처리
         if (newImage != null && !newImage.isEmpty()) {
-            // 새 이미지 선 업로드
-            updatedImageUrl = fileService.uploadFile(newImage);
-            String finalNewImageUrl = updatedImageUrl;
+            String tempUrl = fileService.uploadFile(newImage);
 
-            // 트랜잭션 생명주기에 파일 처리 동기화 조율
-            TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
-                @Override
-                public void afterCompletion(int status) {
-                    if (status == STATUS_COMMITTED) {
-                        // 최종 커밋 성공 시에만 구버전 파일 안전 삭제
-                        if (oldImageUrl != null) {
-                            fileService.deleteFile(oldImageUrl);
+            // 🌟 [핵심 null 방어]: 새 이미지가 성공적으로 업로드되었을 때만 처리
+            if (tempUrl != null) {
+                updatedImageUrl = tempUrl;
+                final String newlyUploadedUrl = tempUrl; // 내부 클래스 전달용 final 변수
+
+                TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+                    @Override
+                    public void afterCompletion(int status) {
+                        if (status == STATUS_COMMITTED) {
+                            if (oldImageUrl != null) fileService.deleteFile(oldImageUrl);
+                        } else if (status == STATUS_ROLLED_BACK) {
+                            fileService.deleteFile(newlyUploadedUrl);
                         }
-                    } else if (status == STATUS_ROLLED_BACK) {
-                        // 트랜잭션 실패(롤백) 시 낙관적으로 업로드했던 신규 파일 격리 삭제
-                        fileService.deleteFile(finalNewImageUrl);
                     }
-                }
-            });
+                });
+            }
         }
 
-        // 3. 더티 체킹을 통한 엔티티 상태 변경
         review.updateReview(req.rating(), req.content(), updatedImageUrl);
     }
 
     /**
      * 리뷰 삭제
      */
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public void delete(Long reviewId, Long userId) {
-        // 💡 ErrorCode 적용
         Review review = reviewRepo.findById(reviewId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.REVIEW_NOT_FOUND));
 
-        // 💡 ErrorCode 적용: 권한 검증
         if (!Objects.equals(review.getUser().getId(), userId)) {
             throw new BusinessException(ErrorCode.NO_PERMISSION);
         }
 
         if (review.getImageUrl() != null) {
-            fileService.deleteFile(review.getImageUrl());
+            final String targetUrl = review.getImageUrl();
+            TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+                @Override
+                public void afterCommit() {
+                    fileService.deleteFile(targetUrl);
+                }
+            });
         }
 
         reviewRepo.delete(review);
@@ -139,18 +141,15 @@ public class ReviewService {
     /**
      * 리뷰 신고
      */
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public void report(Long reviewId, Long ownerId, String reason) {
-        // 💡 ErrorCode 적용
         Review review = reviewRepo.findById(reviewId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.REVIEW_NOT_FOUND));
 
-        // 💡 ErrorCode 적용: 사장님 권한 검증
         if (!Objects.equals(review.getRestaurant().getOwner().getId(), ownerId)) {
             throw new BusinessException(ErrorCode.NO_PERMISSION);
         }
 
-        // 💡 ErrorCode 적용: 중복 신고 방지
         if (reportRepo.existsByReviewIdAndOwnerId(reviewId, ownerId)) {
             throw new BusinessException(ErrorCode.ALREADY_REPORTED);
         }

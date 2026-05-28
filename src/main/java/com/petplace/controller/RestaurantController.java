@@ -30,11 +30,12 @@ import java.util.List;
 @RequiredArgsConstructor
 public class RestaurantController {
 
-    private final RestaurantService restaurantService; // 💡 SearchService 주입 제거
+    private final RestaurantService restaurantService;
 
+    // 💡 3. 컨트롤러 레이어 변경: Swagger UI에서 실제 @RequestPart("request") 바인딩 Key와 완전히 일치하도록 선언문 수정
     private interface MultipartRequestSpec {
         @Schema(description = "가게 등록/수정 정보 (JSON)", implementation = RestaurantRequest.class)
-        RestaurantRequest getRequest();
+        RestaurantRequest getRequest(); // Swagger는 Getter 규칙(getRequest -> request)을 따라 파트명을 매핑합니다.
 
         @Schema(description = "장소 이미지 파일 리스트", type = "array", implementation = MultipartFile.class)
         List<MultipartFile> getImages();
@@ -105,8 +106,8 @@ public class RestaurantController {
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<ApiResponse<Long>> register(
             @AuthenticationPrincipal Long ownerId,
-            @Valid @RequestPart("request") RestaurantRequest req,
-            @RequestPart(value = "images", required = false) List<MultipartFile> images
+            @Valid @RequestPart("request") RestaurantRequest req, // 💡 JSON 분리 데이터 파트 ("request")
+            @RequestPart(value = "images", required = false) List<MultipartFile> images // 💡 다중 파일 파트 ("images")
     ) {
         Long registeredId = restaurantService.register(ownerId, req, images);
         return ResponseEntity.ok(ApiResponse.success("장소 등록이 완료되었습니다.", registeredId));
@@ -129,8 +130,8 @@ public class RestaurantController {
     public ResponseEntity<ApiResponse<Long>> update(
             @AuthenticationPrincipal Long ownerId,
             @Parameter(description = "장소 ID") @PathVariable Long id,
-            @Valid @RequestPart("request") RestaurantRequest req,
-            @RequestPart(value = "images", required = false) List<MultipartFile> images
+            @Valid @RequestPart("request") RestaurantRequest req, // 💡 JSON 분리 데이터 파트 ("request")
+            @RequestPart(value = "images", required = false) List<MultipartFile> images // 💡 다중 파일 파트 ("images")
     ) {
         Long updatedId = restaurantService.update(id, ownerId, req, images);
         return ResponseEntity.ok(ApiResponse.success("장소 정보가 수정되었습니다.", updatedId));
