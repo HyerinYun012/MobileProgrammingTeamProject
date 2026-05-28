@@ -10,6 +10,10 @@ public class Inquiry {
     @Enumerated(EnumType.STRING) private Category category = Category.일반문의;
     @Column(length = 100) private String email;
     @Lob @Column(nullable = false) private String content;
+    @Lob
+    private String answer;
+    private boolean isAnswered = false;
+    private LocalDateTime answeredAt;
     @Column(length = 500) private String imageUrl;
     @Enumerated(EnumType.STRING) private Status status = Status.대기;
     @CreationTimestamp private LocalDateTime createdAt;
