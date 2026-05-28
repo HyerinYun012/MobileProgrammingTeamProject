@@ -17,11 +17,13 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
-      # Secrets에 저장된 환경 변수로 application.yml 생성
+      # 🌟 [안전하게 수정됨] env 방식으로 application.yml 생성 (줄바꿈/들여쓰기 깨짐 방지)
       - name: Create application.yml
+        env:
+          APPLICATION_YML: ${{ secrets.APPLICATION_YML }}
         run: |
           mkdir -p src/main/resources
-          echo "${{ secrets.APPLICATION_YML }}" > src/main/resources/application.yml
+          echo "$APPLICATION_YML" > src/main/resources/application.yml
 
       # 빌드 진행 (테스트 제외)
       - name: Build with Gradle
@@ -29,7 +31,7 @@ jobs:
           chmod +x gradlew
           ./gradlew clean build -x test
 
-      # JAR 파일을 EC2로 전송 (버전 고정 반영)
+      # JAR 파일을 EC2로 전송
       - name: Copy JAR to EC2
         uses: appleboy/scp-action@v0.1.7
         with:
@@ -40,7 +42,7 @@ jobs:
           target: "/home/ubuntu/MobileProgrammingTeamProject/build/libs"
           strip_components: 2
 
-      # EC2에서 서버 재기동 (버전 고정 및 로그 확인 코드 추가)
+      # EC2에서 구버전 종료 후 신규 JAR 백그라운드 실행 및 실시간 로그 확인
       - name: Execute Server
         uses: appleboy/ssh-action@v1.0.3
         with:
@@ -53,3 +55,10 @@ jobs:
             
             # 신규 JAR 백그라운드 실행
             nohup java -jar /home/ubuntu/MobileProgrammingTeamProject/build/libs/petplace-0.0.1-SNAPSHOT.jar > /home/ubuntu/nohup.out 2>&1 &
+            
+            # 5초간 서버가 뜨길 기다린 후, 최신 로그 25줄을 깃허브 콘솔에 바로 출력
+            sleep 5
+            echo "========================================="
+            echo "🚀 서버 기동 직후 최신 로그 확인 (Nohup Log)"
+            echo "========================================="
+            tail -n 25 /home/ubuntu/nohup.out
