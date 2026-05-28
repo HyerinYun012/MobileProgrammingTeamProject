@@ -76,6 +76,8 @@ public class MyPageController {
     @Operation(summary = "북마크 목록 조회", description = "로그인한 사용자가 북마크한 장소 목록을 페이징하여 조회합니다.")
     @GetMapping("/bookmarks")
     public ResponseEntity<ApiResponse<Page<BookmarkResponse>>> bookmarks(
+            @AuthenticationPrincipal Long userId,
+
             @org.springdoc.core.annotations.ParameterObject
             @PageableDefault(page = 0, size = 1, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable
     ) {
