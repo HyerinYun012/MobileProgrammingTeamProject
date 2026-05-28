@@ -47,7 +47,7 @@ public class OwnerInquiryController {
     }
 
     /**
-     * 💡 [신규 추가] 사장님용 일반 문의 단건 상세 조회
+     * 사장님용 일반 문의 단건 상세 조회
      */
     @Operation(
             summary = "일반 문의 상세 조회",
