@@ -240,12 +240,19 @@ data class CommentResponse(
     val id: Long,
     val userId: Long,
     val nickname: String,
+    val role: String?,
     val profileUrl: String?,
     val content: String,
     val createdAt: String,
     val children: List<CommentResponse>?,
     val mine: Boolean
 ) : Serializable
+
+// 댓글 작성/수정 요청 바디
+data class CommentRequest(val parentId: Long?, val content: String)
+
+// 커뮤니티 신고 요청 바디 (게시글/댓글 신고 시 사용)
+data class CommunityReportBody(val reason: String)
 
 data class PostResponse(
     val id: Long,
@@ -262,9 +269,10 @@ data class PostDetailResponse(
     val userId: Long,
     val title: String,
     val content: String,
-    val imageUrl: String?,
+    val imageUrls: List<String>?,
     val writerNickname: String,
     val writerProfileUrl: String?,
+    val writerRole: String?,
     val createdAt: String,
     val comments: List<CommentResponse>?
 ) : Serializable
@@ -345,7 +353,7 @@ data class TitleContentRequest(
     val content: String
 )
 
-data class CommunityReportRequest(
+data class CommunityReportResponse(
     val id : Long,
     val postId : Long,
     val commentId : Long? = null,
@@ -372,17 +380,17 @@ interface ApiService {
     @GET("api/auth/check-id") fun checkId(@Query("loginId") loginId: String): Call<ApiResponse<Boolean>>
     @GET("api/auth/check-nickname") fun checkNickname(@Query("nickname") nickname: String): Call<ApiResponse<Boolean>>
 
-    @GET("api/community/posts") fun getCommunityPosts(@QueryMap pageable: Map<String, String>): Call<ApiResponse<PageResponse<PostResponse>>>
+    @GET("api/community/posts") fun getCommunityPosts(@QueryMap pageable: Map<String, String>): Call<ApiResponse<PageResponse<PostDetailResponse>>>
     @GET("api/community/posts/{postId}") fun getPostDetail(@Path("postId") postId: Long): Call<ApiResponse<PostDetailResponse>>
-    @Multipart @POST("api/community/posts") fun writePost(@Part("data") data: RequestBody, @Part image: MultipartBody.Part?): Call<ApiResponse<Any>>
-    @Multipart @PUT("api/community/posts/{postId}") fun updatePost(@Path("postId") postId: Long, @Part("data") data: RequestBody, @Part image: MultipartBody.Part?): Call<ApiResponse<Any>>
+    @Multipart @POST("api/community/posts") fun writePost(@Part("data") data: RequestBody, @Part images: List<MultipartBody.Part>): Call<ApiResponse<Any>>
+    @Multipart @PUT("api/community/posts/{postId}") fun updatePost(@Path("postId") postId: Long, @Part("data") data: RequestBody, @Part images: List<MultipartBody.Part>): Call<ApiResponse<Any>>
     @DELETE("api/community/posts/{postId}") fun deletePost(@Path("postId") postId: Long): Call<ApiResponse<Any>>
-    @POST("api/community/posts/{postId}/report") fun reportPost(@Path("postId") postId: Long, @Query("reason") reason: String): Call<ApiResponse<Any>>
+    @POST("api/community/posts/{postId}/report") fun reportPost(@Path("postId") postId: Long, @Body request: CommunityReportBody): Call<ApiResponse<Any>>
     @GET("api/community/posts/{postId}/comments") fun getPostComments(@Path("postId") postId: Long, @QueryMap pageable: Map<String, String>): Call<ApiResponse<PageResponse<CommentResponse>>>
-    @POST("api/community/posts/{postId}/comments") fun writeComment(@Path("postId") postId: Long, @Query("content") content: String, @Query("parentId") parentId: Long? = null): Call<ApiResponse<Any>>
-    @Multipart @PUT("api/community/comments/{commentId}") fun updateComment(@Path("commentId") commentId: Long, @Part("data") data: RequestBody, @Part image: MultipartBody.Part?): Call<ApiResponse<Any>>
+    @POST("api/community/posts/{postId}/comments") fun writeComment(@Path("postId") postId: Long, @Body request: CommentRequest): Call<ApiResponse<Any>>
+    @PUT("api/community/comments/{commentId}") fun updateComment(@Path("commentId") commentId: Long, @Body request: CommentRequest): Call<ApiResponse<Any>>
     @DELETE("api/community/comments/{commentId}") fun deleteComment(@Path("commentId") commentId: Long): Call<ApiResponse<Any>>
-    @POST("api/community/comments/{commentId}/report") fun reportComment(@Path("commentId") commentId: Long, @Query("reason") reason: String): Call<ApiResponse<Any>>
+    @POST("api/community/comments/{commentId}/report") fun reportComment(@Path("commentId") commentId: Long, @Body request: CommunityReportBody): Call<ApiResponse<Any>>
 
     @GET("api/my/profile") fun getProfile(): Call<ApiResponse<UserProfileResponse>>
     @Multipart @PUT("api/my/profile") fun updateProfile(@Part("data") data: RequestBody, @Part profileImage: MultipartBody.Part?): Call<ApiResponse<Any>>
@@ -427,7 +435,7 @@ interface ApiService {
     @PATCH("api/admin/inquiries/{inquiryId}/complete") fun completeInquiry(@Path("inquiryId") inquiryId: Long, @Body reply: Map<String, String>): Call<ApiResponse<Any>>
     @PATCH("api/admin/community/reports/{reportId}/complete") fun completeCommunityReport(@Path("reportId") reportId: Long): Call<ApiResponse<Any>>
     @GET("api/admin/reports/reviews") fun getReviewReports(@Query("page") page: Int, @Query("size") size: Int): Call<ApiResponse<PageResponse<ReviewReportItem>>>
-    @GET("api/admin/reports/community") fun getCommunityReports(@Query("status") status: String): Call<ApiResponse<PageResponse<CommunityReportRequest>>>
+    @GET("api/admin/reports/community") fun getCommunityReports(@Query("status") status: String): Call<ApiResponse<PageResponse<CommunityReportResponse>>>
     @GET("api/admin/owners/{ownerId}/business-info") fun getOwnerBusinessInfo(@Path("ownerId") ownerId: Long): Call<ApiResponse<OwnerBusinessInfoResponse>>
     @GET("api/admin/owners/pending") fun getPendingOwners(@QueryMap pageable: Map<String, String>): Call<ApiResponse<PageResponse<PendingOwnerItem>>>
     @GET("api/admin/inquiries") fun getAdminInquiries(@QueryMap pageable: Map<String, String>): Call<ApiResponse<PageResponse<InquiryResponse>>>

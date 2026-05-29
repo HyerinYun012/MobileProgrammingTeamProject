@@ -44,6 +44,13 @@ class CustomerMypageActivity : AppCompatActivity() {
         binding.button6.setOnClickListener {
             // 내 리뷰로 이동
         }
+        // 커뮤니티 버튼이 있다면 아래 id를 실제 버튼 id로 교체하세요
+        runCatching {
+            binding.root.findViewWithTag<android.view.View>("btn_community")
+                ?.setOnClickListener {
+                    startActivity(Intent(this, CommunityListActivity::class.java))
+                }
+        }
         binding.imageView9.setOnClickListener {
             val intent = Intent(this, MypageEditActivity::class.java)
             intent.putExtra("user_profile", profile)
