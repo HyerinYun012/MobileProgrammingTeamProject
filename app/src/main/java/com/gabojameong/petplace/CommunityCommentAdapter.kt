@@ -60,11 +60,25 @@ class CommunityCommentAdapter(
         holder.tvContent.visibility = View.VISIBLE
         holder.layoutEditMode.visibility = View.GONE
 
+        // 역할 배지 (사장님 / 고객님)
+        when (comment.role) {
+            "OWNER" -> {
+                holder.tvOwnerBadge.visibility = View.VISIBLE
+                holder.tvBadgeCustomer.visibility = View.GONE
+            }
+            "CUSTOMER" -> {
+                holder.tvOwnerBadge.visibility = View.GONE
+                holder.tvBadgeCustomer.visibility = View.VISIBLE
+            }
+            else -> {
+                holder.tvOwnerBadge.visibility = View.GONE
+                holder.tvBadgeCustomer.visibility = View.GONE
+            }
+        }
+
         // 댓글 작성자가 게시글 작성자인지 확인 → "글쓴이" 배지
         val isPostAuthor = comment.userId == postAuthorId
         holder.tvPostAuthorBadge.visibility = if (isPostAuthor) View.VISIBLE else View.GONE
-        holder.tvOwnerBadge.visibility = View.GONE
-        holder.tvBadgeCustomer.visibility = View.GONE
 
         // 수정/삭제 버튼은 본인 댓글에만 표시 (서버가 mine 필드를 채워줌)
         holder.btnEdit.visibility = if (comment.mine) View.VISIBLE else View.GONE

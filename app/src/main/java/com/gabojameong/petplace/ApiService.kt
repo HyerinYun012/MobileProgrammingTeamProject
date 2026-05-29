@@ -83,9 +83,13 @@ data class User(
 
 data class UserProfileResponse(
     val id: Long,
-    val email: String?,
+    val name: String?,
     val nickname: String,
-    val profileImageUrl: String?
+    val loginId: String?,
+    val email: String?,
+    val phone: String?,
+    val profileImageUrl: String?,
+    val role: String
 ) : Serializable
 
 // --- 4. Restaurant DTOs ---
@@ -216,6 +220,7 @@ data class CommentResponse(
     val id: Long,
     val userId: Long,
     val nickname: String,
+    val role: String?,
     val profileUrl: String?,
     val content: String,
     val createdAt: String,
@@ -223,33 +228,63 @@ data class CommentResponse(
     val mine: Boolean
 ) : Serializable
 
-data class PostResponse(
-    val id: Long,
-    val user: User?,
-    val title: String,
-    val content: String,
-    val imageUrl: String?,
-    val createdAt: String,
-    val comments: List<CommentResponse>?
-) : Serializable
+// 댓글 작성/수정 요청 바디
+data class CommentRequest(
+    val parentId: Long?,
+    val content: String
+)
+
+// 커뮤니티 신고 요청 바디
+data class CommunityReportRequest(val reason: String)
 
 data class PostDetailResponse(
     val id: Long,
     val userId: Long,
     val title: String,
     val content: String,
-    val imageUrl: String?,
+    val imageUrls: List<String>?,
     val writerNickname: String,
     val writerProfileUrl: String?,
+    val writerRole: String?,
     val createdAt: String,
     val comments: List<CommentResponse>?
 ) : Serializable
 
+// 프로필 수정 요청 바디
+data class UpdateProfileRequestData(
+    val name: String,
+    val nickname: String,
+    val email: String,
+    val phone: String,
+    val newPassword: String? = null
+)
+
 // --- 6. MyPage & Inquiry DTOs ---
 data class BookmarkResponse(val restaurantId: Long, val restaurantName: String, val category: String, val address: String, val imageUrl: String?) : Serializable
 data class RecentViewResponse(val restaurantId: Long, val restaurantName: String, val category: String, val imageUrl: String?, val createdAt: String) : Serializable
-data class InquiryRequest(val category: String, val email: String, val content: String, val imageUrl: String? = null)
-data class InquiryResponse(val id: Long, val userName: String, val category: String, val content: String, val status: String, val createdAt: String) : Serializable
+data class InquiryRequest(
+    val category: String,
+    val restaurantId: Long?, // "미정"일 경우 null을 보낼 수 있도록 Nullable 처리
+    val title: String,
+    val content: String,
+    val imageUrl: String? = null // 사진 URL (선택)
+)
+data class InquiryResponse(val id: Long, val userName: String, val title: String, val category: String, val content: String, val status: String, val createdAt: String) : Serializable
+
+data class InquiryDetailResponse(
+    val id: Long,
+    val category: String,          // 추가: 문의 종류 (GENERAL / ERROR)
+    @SerializedName("restaurantName") val shopName: String?, // 서버 응답 필드명 확인 (shopName -> restaurantName)
+    val title: String,
+    val content: String,
+    val answer: String?,           // null 이면 답변 전, 값이 있으면 답변 완료
+    val imageUrls: List<String>?,
+    val status: String             // "WAITING" (진행중), "COMPLETED" (답변완료) 등
+) : Serializable
+
+data class AnswerRequest(
+    val reply: String
+)
 
 // --- 7. API Interface ---
 interface ApiService {
@@ -273,20 +308,20 @@ interface ApiService {
     @GET("api/auth/check-id") fun checkId(@Query("loginId") loginId: String): Call<ApiResponse<Boolean>>
     @GET("api/auth/check-nickname") fun checkNickname(@Query("nickname") nickname: String): Call<ApiResponse<Boolean>>
 
-    @GET("api/community/posts") fun getCommunityPosts(@QueryMap pageable: Map<String, String>): Call<ApiResponse<PageResponse<PostResponse>>>
+    @GET("api/community/posts") fun getCommunityPosts(@QueryMap pageable: Map<String, String>): Call<ApiResponse<PageResponse<PostDetailResponse>>>
     @GET("api/community/posts/{postId}") fun getPostDetail(@Path("postId") postId: Long): Call<ApiResponse<PostDetailResponse>>
-    @Multipart @POST("api/community/posts") fun writePost(@Query("title") title: String, @Query("content") content: String, @Part image: MultipartBody.Part?): Call<ApiResponse<Any>>
-    @Multipart @PUT("api/community/posts/{postId}") fun updatePost(@Path("postId") postId: Long, @Query("title") title: String, @Query("content") content: String, @Part image: MultipartBody.Part?): Call<ApiResponse<Any>>
+    @Multipart @POST("api/community/posts") fun writePost(@Part("data") data: RequestBody, @Part images: List<MultipartBody.Part>): Call<ApiResponse<Any>>
+    @Multipart @PUT("api/community/posts/{postId}") fun updatePost(@Path("postId") postId: Long, @Part("data") data: RequestBody, @Part images: List<MultipartBody.Part>): Call<ApiResponse<Any>>
     @DELETE("api/community/posts/{postId}") fun deletePost(@Path("postId") postId: Long): Call<ApiResponse<Any>>
-    @POST("api/community/posts/{postId}/report") fun reportPost(@Path("postId") postId: Long, @Query("reason") reason: String): Call<ApiResponse<Any>>
+    @POST("api/community/posts/{postId}/report") fun reportPost(@Path("postId") postId: Long, @Body request: CommunityReportRequest): Call<ApiResponse<Any>>
     @GET("api/community/posts/{postId}/comments") fun getPostComments(@Path("postId") postId: Long, @QueryMap pageable: Map<String, String>): Call<ApiResponse<PageResponse<CommentResponse>>>
-    @POST("api/community/posts/{postId}/comments") fun writeComment(@Path("postId") postId: Long, @Query("content") content: String, @Query("parentId") parentId: Long? = null): Call<ApiResponse<Any>>
-    @PUT("api/community/comments/{commentId}") fun updateComment(@Path("commentId") commentId: Long, @Query("content") content: String): Call<ApiResponse<Any>>
+    @POST("api/community/posts/{postId}/comments") fun writeComment(@Path("postId") postId: Long, @Body request: CommentRequest): Call<ApiResponse<Any>>
+    @PUT("api/community/comments/{commentId}") fun updateComment(@Path("commentId") commentId: Long, @Body request: CommentRequest): Call<ApiResponse<Any>>
     @DELETE("api/community/comments/{commentId}") fun deleteComment(@Path("commentId") commentId: Long): Call<ApiResponse<Any>>
-    @POST("api/community/comments/{commentId}/report") fun reportComment(@Path("commentId") commentId: Long, @Query("reason") reason: String): Call<ApiResponse<Any>>
+    @POST("api/community/comments/{commentId}/report") fun reportComment(@Path("commentId") commentId: Long, @Body request: CommunityReportRequest): Call<ApiResponse<Any>>
 
     @GET("api/my/profile") fun getProfile(): Call<ApiResponse<UserProfileResponse>>
-    @Multipart @PUT("api/my/profile") fun updateProfile(@Part("nickname") nickname: RequestBody, @Part("email") email: RequestBody, @Part("phone") phone: RequestBody, @Part profileImage: MultipartBody.Part?): Call<ApiResponse<Any>>
+    @Multipart @PUT("api/my/profile") fun updateProfile(@Part("request") request: RequestBody, @Part profileImage: MultipartBody.Part?): Call<ApiResponse<Any>>
     @GET("api/my/bookmarks") fun getBookmarks(@QueryMap pageable: Map<String, String>): Call<ApiResponse<PageResponse<BookmarkResponse>>>
     @POST("api/my/bookmarks/{restaurantId}") fun toggleBookmark(@Path("restaurantId") restaurantId: Long): Call<ApiResponse<Boolean>>
     @GET("api/my/recent") fun getRecentViews(@QueryMap pageable: Map<String, String>): Call<ApiResponse<PageResponse<RecentViewResponse>>>
@@ -303,6 +338,13 @@ interface ApiService {
     @GET("api/restaurants/nearby") fun getNearbyRestaurants(@Query("lat") lat: Double, @Query("lng") lng: Double, @Query("radius") radius: Double = 3.0, @QueryMap pageable: Map<String, String>): Call<ApiResponse<PageResponse<RestaurantResponse>>>
     @GET("api/restaurants/filter") fun filterRestaurants(@QueryMap condition: Map<String, @JvmSuppressWildcards Any>, @QueryMap pageable: Map<String, String>): Call<ApiResponse<PageResponse<RestaurantResponse>>>
 
+    // 모든 사업장 목록 조회 (검색용) - 쿼리 없이 검색으로 대체 가능
+    @GET("api/search/search")
+    fun getAllRestaurants(
+        @Query("keyword") keyword: String = "",
+        @Query("size") size: Int = 1000
+    ): Call<ApiResponse<PageResponse<RestaurantResponse>>>
+
     @GET("api/restaurants/{restaurantId}/notices") fun getNotices(@Path("restaurantId") restaurantId: Long, @QueryMap pageable: Map<String, String>): Call<ApiResponse<PageResponse<NoticeResponse>>>
     @Multipart @POST("api/restaurants/{restaurantId}/notices") fun registerNotice(@Path("restaurantId") restaurantId: Long, @Query("title") title: String, @Query("content") content: String, @Part thumbnail: MultipartBody.Part?, @Part descriptionImage: MultipartBody.Part?): Call<ApiResponse<Any>>
     @DELETE("api/restaurants/notices/{noticeId}") fun deleteNotice(@Path("noticeId") noticeId: Long): Call<ApiResponse<Any>>
@@ -316,6 +358,32 @@ interface ApiService {
     @DELETE("api/reviews/{reviewId}") fun deleteReview(@Path("reviewId") reviewId: Long): Call<ApiResponse<Any>>
     @POST("api/reviews/{reviewId}/report") fun reportReview(@Path("reviewId") reviewId: Long, @Body reason: Map<String, String>): Call<ApiResponse<Any>>
 
-    @POST("api/inquiries") fun submitInquiry(@Body request: InquiryRequest): Call<ApiResponse<Any>>
+    @Multipart
+    @POST("api/inquiries")
+    fun submitInquiry(
+        @Part("data") data: RequestBody,
+        @Part images: List<MultipartBody.Part>
+    ): Call<ApiResponse<Any>>
+
     @GET("api/inquiries/my") fun getMyInquiries(@QueryMap pageable: Map<String, String>): Call<ApiResponse<PageResponse<InquiryResponse>>>
+
+    // 고객 문의 상세 조회
+    @GET("api/inquiries/{inquiryId}")
+    fun getInquiryDetail(@Path("inquiryId") inquiryId: Long): Call<ApiResponse<InquiryDetailResponse>>
+
+    // 사장님 전용 문의 목록 조회
+    @GET("api/owner/inquiries")
+    fun getOwnerInquiries(@QueryMap pageable: Map<String, String>): Call<ApiResponse<PageResponse<InquiryResponse>>>
+
+    // 사장님 전용 문의 상세 조회
+    @GET("api/owner/inquiries/{inquiryId}")
+    fun getOwnerInquiryDetail(@Path("inquiryId") inquiryId: Long): Call<ApiResponse<InquiryDetailResponse>>
+
+    // 사장님 답변 등록 (PATCH /api/owner/inquiries/{id}/complete, field: reply)
+    @PATCH("api/owner/inquiries/{inquiryId}/complete")
+    fun completeOwnerInquiry(@Path("inquiryId") inquiryId: Long, @Body request: AnswerRequest): Call<ApiResponse<Any>>
+
+    // 사장님 문의 신고
+    @POST("api/owner/inquiries/{inquiryId}/report")
+    fun reportOwnerInquiry(@Path("inquiryId") inquiryId: Long): Call<ApiResponse<Any>>
 }
