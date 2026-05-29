@@ -24,6 +24,9 @@ public class CommentResponse {
     @Schema(description = "댓글 작성자 닉네임", example = "해피맘")
     private final String nickname;
 
+    @Schema(description = "댓글 작성자 역할 (OWNER / CUSTOMER)", example = "CUSTOMER")
+    private final String role;
+
     @Schema(description = "댓글 작성자 프로필 URL", example = "/images/profiles/user1.png")
     private final String profileUrl;
 
@@ -46,6 +49,8 @@ public class CommentResponse {
                 .id(comment.getId())
                 .userId(comment.getUser() != null ? comment.getUser().getId() : null)
                 .nickname(comment.getUser() != null ? comment.getUser().getNickname() : "알 수 없음")
+                .role(comment.getUser() != null && comment.getUser().getRole() != null
+                        ? comment.getUser().getRole().name() : null)
                 .profileUrl(comment.getUser() != null ? comment.getUser().getProfileUrl() : null)
                 .content(comment.getContent())
                 .createdAt(comment.getCreatedAt())
