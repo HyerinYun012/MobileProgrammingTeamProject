@@ -67,16 +67,26 @@ public class CommunityController {
         return ResponseEntity.ok(ApiResponse.success("작성 성공", null));
     }
 
-    @Operation(summary = "커뮤니티 게시글 수정", description = "images 파트를 보내지 않으면 기존 사진이 유지됩니다.")
+    @Operation(summary = "커뮤니티 게시글 수정",
+            description = "data 파트의 existingImageUrls에 유지할 기존 URL 목록을 보내고, images 파트에 새 파일을 첨부하면 합쳐서 저장됩니다.")
     @PutMapping(value = "/posts/{postId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<ApiResponse<Void>> updatePost(
             @PathVariable Long postId,
             @AuthenticationPrincipal Long currentUserId,
             @Valid @RequestPart("data") PostRequest req,
             @RequestPart(value = "images", required = false) List<MultipartFile> images) {
-        // images 파트가 없거나 비어있으면 null → 서비스에서 기존 사진 유지
-        List<String> newImageUrls = (images != null && !images.isEmpty()) ? uploadImages(images) : null;
-        communityService.updatePost(currentUserId, postId, req.title(), req.content(), newImageUrls);
+
+        // 1. 새로 추가된 이미지 업로드
+        List<String> newlyUploaded = uploadImages(images);
+
+        // 2. 유지할 기존 URL + 새로 업로드된 URL 병합
+        List<String> merged = new ArrayList<>();
+        if (req.existingImageUrls() != null) {
+            merged.addAll(req.existingImageUrls());
+        }
+        merged.addAll(newlyUploaded);
+
+        communityService.updatePost(currentUserId, postId, req.title(), req.content(), merged);
         return ResponseEntity.ok(ApiResponse.success("수정 성공", null));
     }
 

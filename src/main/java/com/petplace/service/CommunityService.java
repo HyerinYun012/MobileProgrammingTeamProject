@@ -43,9 +43,9 @@ public class CommunityService {
         postRepository.save(post);
     }
 
-    // newImageUrls == null 이면 기존 사진 유지, 비어있지 않은 리스트이면 교체
+    // mergedImageUrls: 유지할 기존 URL + 새로 업로드된 URL 이 합쳐진 최종 목록
     @Transactional
-    public void updatePost(Long userId, Long postId, String title, String content, List<String> newImageUrls) {
+    public void updatePost(Long userId, Long postId, String title, String content, List<String> mergedImageUrls) {
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.POST_NOT_FOUND));
 
@@ -54,14 +54,18 @@ public class CommunityService {
         }
 
         List<String> oldImageUrls = new ArrayList<>(post.getImageUrls());
-        post.updateContent(title, content, newImageUrls); // null 이면 기존 유지
+        post.updateContent(title, content, mergedImageUrls);
 
-        // 새 이미지로 교체된 경우 기존 파일 삭제
-        if (newImageUrls != null && !oldImageUrls.isEmpty()) {
+        // 기존 URL 중 최종 목록에 없는 것(사용자가 제거한 것)만 S3에서 삭제
+        List<String> removedUrls = oldImageUrls.stream()
+                .filter(url -> !mergedImageUrls.contains(url))
+                .toList();
+
+        if (!removedUrls.isEmpty()) {
             TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
                 @Override
                 public void afterCommit() {
-                    oldImageUrls.forEach(fileService::deleteFile);
+                    removedUrls.forEach(fileService::deleteFile);
                 }
             });
         }
