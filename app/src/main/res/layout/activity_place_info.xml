@@ -8,18 +8,20 @@
 
     <ImageButton
         android:id="@+id/btnReturn"
-        android:layout_width="65dp"
-        android:layout_height="65dp"
+        android:layout_width="32dp"
+        android:layout_height="40dp"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="16dp"
         android:background="@null"
         android:contentDescription="@string/contentDescription_return"
         android:elevation="100dp"
         android:scaleType="fitStart"
         app:layout_constraintBottom_toTopOf="@+id/verticalLine"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.05"
+        app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.050000012"
+        app:layout_constraintVertical_bias="0.0"
         app:srcCompat="@drawable/ic_return" />
 
     <ImageView

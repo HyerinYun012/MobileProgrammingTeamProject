@@ -34,6 +34,7 @@ class ReviewReportAdapter(
         fun bind(item: ReviewReportItem) {
             binding.tvReviewContent.text = item.reviewContent
             binding.tvReviewerName.text = item.ownerName
+            binding.ratingBar.rating = item.rating.toFloat()
 
             binding.btnDeleteReview.setOnClickListener {
                 onDeleteClick(item.reviewId)

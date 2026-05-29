@@ -23,8 +23,8 @@
 
         <ImageView
             android:id="@+id/btn_back"
-            android:layout_width="24dp"
-            android:layout_height="24dp"
+            android:layout_width="32dp"
+            android:layout_height="40dp"
             android:layout_centerVertical="true"
             android:src="@drawable/ic_return" />
 
@@ -35,7 +35,7 @@
             android:fontFamily="@font/nanum_gothic_extra_bold"
             android:text="리뷰쓰기"
             android:textColor="#FF8A4C"
-            android:textSize="20sp" />
+            android:textSize="22sp" />
     </RelativeLayout>
 
     <View
@@ -82,7 +82,11 @@
                 android:isIndicator="false"
                 android:numStars="5"
                 android:rating="0"
-                android:stepSize="0.5" />
+                android:stepSize="0.5"
+                android:progressTint="#FFC107"
+                android:progressBackgroundTint="#E0E0E0"
+                android:secondaryProgressTint="#FFC107"
+                />
 
             <TextView
                 android:layout_width="wrap_content"

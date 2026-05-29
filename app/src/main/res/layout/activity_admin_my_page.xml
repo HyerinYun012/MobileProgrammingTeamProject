@@ -23,8 +23,8 @@
 
         <ImageView
             android:id="@+id/btn_back"
-            android:layout_width="24dp"
-            android:layout_height="24dp"
+            android:layout_width="32dp"
+            android:layout_height="40dp"
             android:layout_centerVertical="true"
             android:src="@drawable/ic_return" />
 
@@ -35,7 +35,7 @@
             android:fontFamily="@font/nanum_gothic_extra_bold"
             android:text="MY"
             android:textColor="#FF8A4C"
-            android:textSize="20sp" />
+            android:textSize="22sp" />
     </RelativeLayout>
 
     <View

@@ -45,6 +45,7 @@
         android:id="@+id/textView3"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:fontFamily="@font/nanum_gothic_extra_bold"
         android:text="My"
         android:textColor="#FF8243"
         android:textSize="22sp"

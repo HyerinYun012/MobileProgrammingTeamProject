@@ -7,29 +7,31 @@
 
     <ImageButton
         android:id="@+id/btnReturn"
-        android:layout_width="65dp"
-        android:layout_height="65dp"
+        android:layout_width="32dp"
+        android:layout_height="40dp"
+        android:layout_marginTop="16dp"
         android:background="@null"
         android:contentDescription="@string/contentDescription_return"
         android:scaleType="fitStart"
-        app:layout_constraintBottom_toTopOf="@+id/verticalLine"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.05"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.0"
         app:srcCompat="@drawable/ic_return" />
 
     <View
         android:id="@+id/verticalLine"
         android:layout_width="0dp"
         android:layout_height="1dp"
+        android:layout_marginTop="16dp"
         android:background="#E0E0E0"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.5"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.12" />
+        app:layout_constraintTop_toBottomOf="@+id/btnReturn"
+        app:layout_constraintVertical_bias="0.0" />
 
     <TextView
         android:id="@+id/textViewTop"
@@ -39,12 +41,11 @@
         android:fontFamily="@font/nanum_gothic_extra_bold"
         android:text="@string/signup"
         android:textColor="#FF8E4F"
-        android:textSize="32sp"
-        app:layout_constraintBottom_toTopOf="@id/verticalLine"
+        android:textSize="22sp"
+        app:layout_constraintBottom_toBottomOf="@+id/btnReturn"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.55" />
+        app:layout_constraintTop_toTopOf="@+id/btnReturn" />
 
     <FrameLayout
         android:id="@+id/fragmentContainer"
