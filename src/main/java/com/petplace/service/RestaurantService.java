@@ -3,6 +3,7 @@ package com.petplace.service;
 import com.petplace.dto.request.RestaurantFilterRequest;
 import com.petplace.dto.request.RestaurantRequest;
 import com.petplace.dto.request.RestaurantUpdateRequest;
+import com.petplace.dto.response.OwnerRestaurantSummaryResponse;
 import com.petplace.dto.response.RestaurantResponse;
 import com.petplace.entity.Restaurant;
 import com.petplace.entity.RestaurantImage;
@@ -43,6 +44,15 @@ public class RestaurantService {
         if (!owner.isVerified()) { // User 엔티티의 승인 여부 필드 (명칭에 맞게 수정)
             throw new BusinessException(ErrorCode.UNAUTHORIZED_OWNER); // 승인되지 않은 사장님 예외
         }
+    }
+
+    /**
+     * 사장님 본인 업장 목록 조회
+     */
+    public List<OwnerRestaurantSummaryResponse> getMyRestaurants(Long ownerId) {
+        return restaurantRepository.findAllByOwnerId(ownerId).stream()
+                .map(OwnerRestaurantSummaryResponse::from)
+                .collect(Collectors.toList());
     }
 
     /**
