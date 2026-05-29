@@ -107,7 +107,7 @@ public class RestaurantService {
             throw new BusinessException(ErrorCode.NO_PERMISSION);
         }
 
-        validateOwnerVerified(owner);
+        // validateOwnerVerified(owner);
 
         if (restaurantRepository.existsByBusinessNo(req.getBusinessNo())) {
             throw new BusinessException(ErrorCode.DUPLICATE_BUSINESS_NUMBER);

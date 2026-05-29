@@ -209,8 +209,11 @@ public class AdminService {
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.POST_NOT_FOUND));
 
-        if (post.getImageUrl() != null && !post.getImageUrl().isEmpty()) {
-            fileService.deleteFile(post.getImageUrl());
+        // 💡 수정된 부분: 다중 이미지(List)를 순회하며 삭제하도록 변경
+        if (post.getImageUrls() != null && !post.getImageUrls().isEmpty()) {
+            for (String imageUrl : post.getImageUrls()) {
+                fileService.deleteFile(imageUrl);
+            }
         }
 
         // 1. 신고 내역 먼저 삭제 (이게 있어야 postRepository.delete가 성공합니다)
