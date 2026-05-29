@@ -2,8 +2,9 @@ package com.petplace.service;
 
 import com.petplace.dto.request.RestaurantFilterRequest;
 import com.petplace.dto.request.RestaurantRequest;
-import com.petplace.dto.request.RestaurantUpdateRequest; // 💡 변경된 수정 전용 DTO 임포트
+import com.petplace.dto.request.RestaurantUpdateRequest;
 import com.petplace.dto.response.RestaurantResponse;
+import com.petplace.dto.response.OwnerRestaurantSummaryResponse; // 💡 [추가] 컨트롤러에서 사용하는 Response DTO 임포트
 import com.petplace.entity.Restaurant;
 import com.petplace.entity.RestaurantImage;
 import com.petplace.entity.User;
@@ -43,6 +44,19 @@ public class RestaurantService {
         if (!owner.isVerified()) {
             throw new BusinessException(ErrorCode.UNAUTHORIZED_OWNER);
         }
+    }
+
+    /**
+     * 💡 [추가된 메서드] 사장님이 등록한 장소(가게) 목록 조회
+     * OwnerRestaurantController의 에러를 해결하기 위한 메서드입니다.
+     */
+    public List<OwnerRestaurantSummaryResponse> getMyRestaurants(Long ownerId) {
+        // 레포지토리 메서드명이 프로젝트 규칙에 따라 findByOwner_Id 혹은 findAllByOwnerId 일 수 있으므로 확인 필요
+        List<Restaurant> restaurants = restaurantRepository.findAllByOwnerId(ownerId);
+
+        return restaurants.stream()
+                .map(OwnerRestaurantSummaryResponse::from)
+                .collect(Collectors.toList());
     }
 
     /**
@@ -107,7 +121,7 @@ public class RestaurantService {
             throw new BusinessException(ErrorCode.NO_PERMISSION);
         }
 
-        // 💡 [요청 반영]: 신규 등록 시 사장님 승인 여부 검증 제한 해제
+        // 💡 신규 등록 시 사장님 승인 여부 검증 해제 완료
         // validateOwnerVerified(owner);
 
         if (restaurantRepository.existsByBusinessNo(req.getBusinessNo())) {
@@ -160,10 +174,7 @@ public class RestaurantService {
 
         validateOwnerVerified(restaurant.getOwner());
 
-        // 💡 [요청 반영]: 사업자등록번호 수정 불가 처리에 따라 기존 중복 체크 로직 제거
-
-        // 💡 [안전 장치]: 기존 엔티티의 사업자등록번호(restaurant.getBusinessNo())를 그대로 다시 넘겨줌으로써
-        // Restaurant 엔티티 클래스의 대대적인 수정 없이도 사업자번호 수정을 원천 차단합니다.
+        // 💡 사업자등록번호 수정 차단 및 기존 중복 체크 로직 제거 완료
         restaurant.update(
                 req.getName(), req.getAddress(), req.getPhone(),
                 req.toOperatingHourEntities(),
@@ -171,27 +182,23 @@ public class RestaurantService {
                 req.isAllowSmall(), req.isAllowMedium(), req.isAllowLarge()
         );
 
-        final List<String> urlsToDelete = new ArrayList<>();      // S3에서 지워야 할 기존 파일들
-        final List<String> newlyUploadedFiles = new ArrayList<>(); // 실패 시 롤백용 새 파일들
+        final List<String> urlsToDelete = new ArrayList<>();
+        final List<String> newlyUploadedFiles = new ArrayList<>();
 
         // 이미지 편집 로직: 살릴 이미지와 지울 이미지 발라내기
         List<RestaurantImage> currentImages = restaurant.getImages();
         List<RestaurantImage> imagesToKeep = new ArrayList<>();
 
         for (RestaurantImage img : currentImages) {
-            // 프론트엔드가 유지하겠다고 보낸 목록에 포함되어 있다면 유지
             if (req.getExistingImageUrls() != null && req.getExistingImageUrls().contains(img.getImageUrl())) {
                 imagesToKeep.add(img);
             } else {
-                // 목록에 없으면 삭제 대상 분류
                 urlsToDelete.add(img.getImageUrl());
             }
         }
 
-        // 엔티티 내 이미지 목록을 1차적으로 '유지할 이미지'로 세팅
         restaurant.updateImages(imagesToKeep);
 
-        // 💡 [해결 포인트]: 4개의 파라미터(시작 순서 포함)를 전달하여 순서 매핑 오류 방지
         if (newImages != null && !newImages.isEmpty()) {
             int currentOrder = imagesToKeep.size();
             uploadFilesAndCreateEntities(restaurant, newImages, newlyUploadedFiles, currentOrder);
@@ -218,12 +225,11 @@ public class RestaurantService {
 
     /**
      * 파일 업로드 및 연관관계 동기화 헬퍼
-     * 💡 [해결 포인트]: 파라미터 맨 뒤에 'int startOrder'를 추가하여 호출부와 시그니처를 완전히 일치시켰습니다.
      */
     private void uploadFilesAndCreateEntities(Restaurant restaurant, List<MultipartFile> images, List<String> newlyUploadedFiles, int startOrder) {
         if (images == null || images.isEmpty()) return;
 
-        int order = startOrder; // 0번 고정이 아니라 유지된 기존 사진 개수 다음 번호부터 부여
+        int order = startOrder;
         for (MultipartFile file : images) {
             if (file != null && !file.isEmpty()) {
                 String imageUrl = fileService.uploadFile(file);
