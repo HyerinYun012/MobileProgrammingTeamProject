@@ -304,6 +304,18 @@ data class InquiryDetailResponse(
     val restaurantName: String? = null
 ) : Serializable
 
+// 프로필 수정 요청 바디
+data class UpdateProfileRequestData(
+    val name: String,
+    val nickname: String,
+    val email: String,
+    val phone: String,
+    val newPassword: String? = null
+)
+
+// 문의 답변 요청 바디
+data class AnswerRequest(val reply: String)
+
 // --- 7. Owner Restaurant ---
 data class OwnerRestaurantSummary(
     val id: Long,
@@ -413,6 +425,7 @@ interface ApiService {
     @Multipart @PUT("api/restaurants/{id}") fun updateRestaurant(@Path("id") id: Long, @Part("request") request: RequestBody, @Part images: List<MultipartBody.Part>?): Call<ApiResponse<Long>>
     @GET("api/restaurants/nearby") fun getNearbyRestaurants(@Query("lat") lat: Double, @Query("lng") lng: Double, @Query("radius") radius: Double = 3.0, @QueryMap pageable: Map<String, String>): Call<ApiResponse<PageResponse<RestaurantResponse>>>
     @GET("api/restaurants/filter") fun filterRestaurants(@QueryMap condition: Map<String, @JvmSuppressWildcards Any>, @QueryMap pageable: Map<String, String>): Call<ApiResponse<PageResponse<RestaurantResponse>>>
+    @GET("api/search/search") fun getAllRestaurants(@Query("keyword") keyword: String, @Query("size") size: Int): Call<ApiResponse<PageResponse<RestaurantResponse>>>
 
     @Multipart @POST("api/restaurants/{restaurantId}/notices") fun registerNotice(@Path("restaurantId") restaurantId: Long, @Query("title") title: String, @Query("content") content: String, @Part thumbnail: MultipartBody.Part?, @Part descriptionImage: MultipartBody.Part?): Call<ApiResponse<Any>>
     @Multipart @PUT("api/restaurants/{restaurantId}/notices/{noticeId}") fun updateNotice(@Path("restaurantId") restaurantId: Long, @Path("noticeId") noticeId: Long, @Part("data") data: RequestBody, @Part thumbnail: MultipartBody.Part?, @Part descriptionImage: MultipartBody.Part?): Call<ApiResponse<Any>>

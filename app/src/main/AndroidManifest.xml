@@ -79,6 +79,10 @@
         <activity android:name=".ImageDetailActivity" android:exported="false" />
 
         <activity android:name=".AttentionPage" android:exported="false" />
+        <activity android:name=".InquiryListActivity" android:exported="false" />
+        <activity android:name=".InquiryWriteActivity" android:exported="false" android:windowSoftInputMode="adjustResize" />
+        <activity android:name=".CustomerInquiryAnswerActivity" android:exported="false" />
+        <activity android:name=".OwnerInquiryAnswerActivity" android:exported="false" android:windowSoftInputMode="adjustResize" />
         <activity android:name=".CommunityListActivity" android:exported="false" />
         <activity android:name=".CommunityDetailActivity" android:exported="false" android:windowSoftInputMode="adjustResize" />
         <activity android:name=".CommunityWriteActivity" android:exported="false" android:windowSoftInputMode="adjustResize" />
