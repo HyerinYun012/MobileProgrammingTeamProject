@@ -108,13 +108,13 @@ class ReportManageActivity : AppCompatActivity() {
     }
 
     private fun loadCommunityReports() {
-        apiService.getCommunityReports().enqueue(object : Callback<ApiResponse<List<CommunityReportRequest>>> {
+        apiService.getCommunityReports().enqueue(object : Callback<ApiResponse<PageResponse<CommunityReportRequest>>> {
             override fun onResponse(
-                call: Call<ApiResponse<List<CommunityReportRequest>>>,
-                response: Response<ApiResponse<List<CommunityReportRequest>>>
+                call: Call<ApiResponse<PageResponse<CommunityReportRequest>>>,
+                response: Response<ApiResponse<PageResponse<CommunityReportRequest>>>
             ) {
                 if (response.isSuccessful) {
-                    val reports = response.body()?.data ?: emptyList()
+                    val reports = response.body()?.data?.content ?: emptyList()
                     val pending = reports.filter { it.status != "COMPLETED" }
                     communityAdapter.setData(pending)
 
@@ -130,7 +130,7 @@ class ReportManageActivity : AppCompatActivity() {
                     Toast.makeText(applicationContext, "커뮤니티 신고 목록 로드 실패", Toast.LENGTH_SHORT).show()
                 }
             }
-            override fun onFailure(call: Call<ApiResponse<List<CommunityReportRequest>>>, t: Throwable) {
+            override fun onFailure(call: Call<ApiResponse<PageResponse<CommunityReportRequest>>>, t: Throwable) {
                 Log.e("ReportManage", "Error loading community reports", t)
                 binding.tvCommunityEmpty.visibility = View.VISIBLE
             }

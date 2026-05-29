@@ -427,7 +427,7 @@ interface ApiService {
     @PATCH("api/admin/inquiries/{inquiryId}/complete") fun completeInquiry(@Path("inquiryId") inquiryId: Long, @Body reply: Map<String, String>): Call<ApiResponse<Any>>
     @PATCH("api/admin/community/reports/{reportId}/complete") fun completeCommunityReport(@Path("reportId") reportId: Long): Call<ApiResponse<Any>>
     @GET("api/admin/reports/reviews") fun getReviewReports(@Query("page") page: Int, @Query("size") size: Int): Call<ApiResponse<PageResponse<ReviewReportItem>>>
-    @GET("api/admin/reports/community") fun getCommunityReports(): Call<ApiResponse<List<CommunityReportRequest>>>
+    @GET("api/admin/reports/community") fun getCommunityReports(@Query("status") status: String = "PENDING"): Call<ApiResponse<PageResponse<CommunityReportRequest>>>
     @GET("api/admin/owners/{ownerId}/business-info") fun getOwnerBusinessInfo(@Path("ownerId") ownerId: Long): Call<ApiResponse<OwnerBusinessInfoResponse>>
     @GET("api/admin/owners/pending") fun getPendingOwners(@QueryMap pageable: Map<String, String>): Call<ApiResponse<PageResponse<PendingOwnerItem>>>
     @GET("api/admin/inquiries") fun getAdminInquiries(@QueryMap pageable: Map<String, String>): Call<ApiResponse<PageResponse<InquiryResponse>>>
