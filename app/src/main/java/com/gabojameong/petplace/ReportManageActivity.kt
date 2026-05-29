@@ -108,7 +108,7 @@ class ReportManageActivity : AppCompatActivity() {
     }
 
     private fun loadCommunityReports() {
-        apiService.getCommunityReports().enqueue(object : Callback<ApiResponse<PageResponse<CommunityReportRequest>>> {
+        apiService.getCommunityReports("PENDING").enqueue(object : Callback<ApiResponse<PageResponse<CommunityReportRequest>>> {
             override fun onResponse(
                 call: Call<ApiResponse<PageResponse<CommunityReportRequest>>>,
                 response: Response<ApiResponse<PageResponse<CommunityReportRequest>>>
