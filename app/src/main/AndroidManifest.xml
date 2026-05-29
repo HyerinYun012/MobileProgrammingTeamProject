@@ -67,8 +67,10 @@
         <activity android:name=".InquiryDetailActivity" android:exported="false" />
 
         <activity android:name=".NoticeManageActivity" android:exported="false" />
+        <activity android:name=".NoticeWriteActivity" android:exported="false" />
         <activity android:name=".MenuManageActivity" android:exported="false" />
         <activity android:name=".StoreManageActivity" android:exported="false" />
+        <activity android:name=".AddressSearchActivity" android:exported="false" />
         <activity android:name=".OwnerReviewManageActivity" android:exported="false" />
 
         <activity android:name=".MyReviewActivity" android:exported="false" />

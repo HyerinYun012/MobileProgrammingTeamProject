@@ -1,4 +1,4 @@
-package com.example.petplace // 🚨 본인 패키지명 확인!
+package com.gabojameong.petplace // 🚨 본인 패키지명 확인!
 
 import android.content.Intent
 import android.os.Bundle

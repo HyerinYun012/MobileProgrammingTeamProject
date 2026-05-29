@@ -146,8 +146,14 @@ class StoreManageActivity : AppCompatActivity() {
         isDailyAdded = false
 
         hours.forEach { hour ->
-            val dayKor = when(hour.dayOfWeek) {
-                "MON" -> "월" "TUE" -> "화" "WED" -> "수" "THU" -> "목" "FRI" -> "금" "SAT" -> "토" "SUN" -> "일"
+            val dayKor = when (hour.dayOfWeek) {
+                "MON" -> "월"
+                "TUE" -> "화"
+                "WED" -> "수"
+                "THU" -> "목"
+                "FRI" -> "금"
+                "SAT" -> "토"
+                "SUN" -> "일"
                 else -> hour.dayOfWeek
             }
             val timeStr = if (hour.regularHoliday) "휴무" else "${hour.openTime} ~ ${hour.closeTime}"
@@ -236,8 +242,14 @@ class StoreManageActivity : AppCompatActivity() {
             })
     }
 
-    private fun dayToEng(day: String): String = when(day) {
-        "월" -> "MON" "화" -> "TUE" "수" -> "WED" "목" -> "THU" "금" -> "FRI" "토" -> "SAT" "일" -> "SUN"
+    private fun dayToEng(day: String): String = when (day) {
+        "월" -> "MON"
+        "화" -> "TUE"
+        "수" -> "WED"
+        "목" -> "THU"
+        "금" -> "FRI"
+        "토" -> "SAT"
+        "일" -> "SUN"
         else -> day
     }
 

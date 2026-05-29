@@ -1,5 +1,7 @@
 package com.gabojameong.petplace
 
+import android.app.Activity
+import android.content.Intent
 import android.os.Bundle
 import android.text.Editable
 import android.text.Selection
@@ -10,6 +12,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.CheckBox
 import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.Fragment
 import com.gabojameong.petplace.databinding.FragmentSingupInfoBinding
 import com.google.gson.Gson
@@ -30,6 +33,16 @@ class SignupInfoFragment : Fragment() {
     private var isAccountCreated = false // 추가: 회원가입 계정 생성 여부 플래그
     private val apiService = RetrofitClient.apiService
     private val gson = Gson()
+    private var selectedDong: String = ""
+
+    private val addressLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+        if (result.resultCode == Activity.RESULT_OK) {
+            val fullAddress = result.data?.getStringExtra("address") ?: ""
+            val dong = result.data?.getStringExtra("dong") ?: ""
+            binding.editTextBusinessAdress.setText(fullAddress)
+            selectedDong = dong
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -79,6 +92,11 @@ class SignupInfoFragment : Fragment() {
 
         // 서비스 유형 체크박스 상호 배제 로직 (식당/카페/기타)
         setupMutualExclusion(listOf(binding.checkBoxRestaurant, binding.checkBoxCafe, binding.checkBoxOthers), mandatory = (role == "owner"))
+
+        binding.btnSearchAddress.setOnClickListener {
+            val intent = Intent(requireContext(), AddressSearchActivity::class.java)
+            addressLauncher.launch(intent)
+        }
 
         binding.btnIdCheck.setOnClickListener {
             checkIdDuplication()
@@ -408,7 +426,7 @@ class SignupInfoFragment : Fragment() {
             phone = phone,
             businessNo = bNo,
             category = category,
-            region = mapRegionToEnum(addr),
+            region = mapRegionToEnum(selectedDong),
             latitude = 0.0,
             longitude = 0.0,
             operatingHours = emptyList()
@@ -432,24 +450,24 @@ class SignupInfoFragment : Fragment() {
         })
     }
 
-    private fun mapRegionToEnum(addr: String): String {
+    private fun mapRegionToEnum(dong: String): String {
         return when {
-            addr.contains("거북섬") -> "GEOBUKSEOM"
-            addr.contains("과림") -> "GWARIM"
-            addr.contains("군자") -> "GUNJA"
-            addr.contains("능곡") -> "NEUNGGOK"
-            addr.contains("대야") -> "DAEYA"
-            addr.contains("매화") -> "MAEHWA"
-            addr.contains("목감") -> "MOKGAM"
-            addr.contains("배곧") -> "BAEGON"
-            addr.contains("신천") -> "SINCHEON"
-            addr.contains("신현") -> "SINHYEON"
-            addr.contains("연성") -> "YEONSEONG"
-            addr.contains("월곶") -> "WOLGOT"
-            addr.contains("은행") -> "EUNHAENG"
-            addr.contains("장곡") -> "JANGGOK"
-            addr.contains("정왕") -> "JEONGWANG"
-            else -> "JEONGWANGa"
+            dong.contains("거북섬") -> "GEOBUKSEOM"
+            dong.contains("과림") -> "GWARIM"
+            dong.contains("군자") -> "GUNJA"
+            dong.contains("능곡") -> "NEUNGGOK"
+            dong.contains("대야") -> "DAEYA"
+            dong.contains("매화") -> "MAEHWA"
+            dong.contains("목감") -> "MOKGAM"
+            dong.contains("배곧") -> "BAEGON"
+            dong.contains("신천") -> "SINCHEON"
+            dong.contains("신현") -> "SINHYEON"
+            dong.contains("연성") -> "YEONSEONG"
+            dong.contains("월곶") -> "WOLGOT"
+            dong.contains("은행") -> "EUNHAENG"
+            dong.contains("장곡") -> "JANGGOK"
+            dong.contains("정왕") -> "JEONGWANG"
+            else -> "ETC"
         }
     }
 

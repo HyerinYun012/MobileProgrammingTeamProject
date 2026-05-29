@@ -423,14 +423,32 @@
 
                     <EditText
                         android:id="@+id/editTextBusinessAdress"
-                        android:layout_width="match_parent"
+                        android:layout_width="0dp"
                         android:layout_height="40dp"
                         android:layout_marginStart="50dp"
+                        android:layout_weight="1"
                         android:autofillHints="businessAddress"
                         android:background="@null"
+                        android:clickable="false"
+                        android:focusable="false"
                         android:hint="@string/hint_business_adress"
-                        android:inputType="textPostalAddress"
                         android:textSize="16sp" />
+
+                    <Button
+                        android:id="@+id/btnSearchAddress"
+                        android:layout_width="wrap_content"
+                        android:layout_height="match_parent"
+                        android:layout_marginTop="2dp"
+                        android:layout_marginBottom="2dp"
+                        android:backgroundTint="@color/orange"
+                        android:fontFamily="@font/nanum_gothic_extra_bold"
+                        android:maxLines="1"
+                        android:paddingLeft="0dp"
+                        android:paddingRight="0dp"
+                        android:text="검색"
+                        android:textColor="@color/white"
+                        android:textSize="12sp"
+                        app:cornerRadius="10dp" />
                 </LinearLayout>
 
                 <View
