@@ -5,6 +5,7 @@ import lombok.*;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 @Entity
 @Table(name = "restaurants")
@@ -152,9 +153,21 @@ public class Restaurant extends BaseTimeEntity {
      * 🌟 [추가] 영업시간 컬렉션 안전 초기화 내부 비즈니스 메서드
      */
     public void updateOperatingHours(List<OperatingHour> newOperatingHours) {
-        this.operatingHours.clear();
+        this.operatingHours.clear(); // 기존 컬렉션 비우기
+
         if (newOperatingHours != null) {
-            this.operatingHours.addAll(newOperatingHours);
+            // LinkedHashMap을 사용하여 순서를 유지하면서, 요일이 같으면 새 값으로 덮어씁니다.
+            // ⚠️ 주의: hour.getDayOfWeek() 부분은 실제 OperatingHour 클래스의 요일 필드/Getter 명칭에 맞추세요.
+            Map<Object, OperatingHour> uniqueHoursMap = new java.util.LinkedHashMap<>();
+
+            for (OperatingHour hour : newOperatingHours) {
+                if (hour != null) {
+                    uniqueHoursMap.put(hour.getDayOfWeek(), hour); // 요일을 Key로 두어 중복 시 자동 덮어쓰기
+                }
+            }
+
+            // 중복이 완벽히 제거되고 최신화된 영업시간 리스트만 최종 추가
+            this.operatingHours.addAll(uniqueHoursMap.values());
         }
     }
 

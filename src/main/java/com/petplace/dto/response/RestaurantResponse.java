@@ -2,6 +2,7 @@ package com.petplace.dto.response;
 
 import com.petplace.entity.OperatingHour;
 import com.petplace.entity.Restaurant;
+import com.petplace.entity.RestaurantImage;
 import io.swagger.v3.oas.annotations.media.Schema; // 💡 Swagger 어노테이션 임포트
 import lombok.Builder;
 import lombok.Getter;
@@ -9,6 +10,7 @@ import lombok.Setter;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Getter
 @Setter
@@ -80,8 +82,8 @@ public class RestaurantResponse {
     @Schema(description = "야외 운동장/테라스 보유 여부", example = "true")
     private boolean hasOutdoor;
 
-    @Schema(description = "장소 대표 이미지 URL", example = "https://petplace-bucket.s3.amazonaws.com/restaurants/playground_main.jpg")
-    private String imageUrl;
+    @Schema(description = "장소 전체 이미지 URL 목록")
+    private List<String> imageUrls;
 
     @Schema(description = "로그인한 유저의 북마크(즐겨찾기) 등록 여부", example = "true")
     private boolean isBookmarked;
@@ -112,7 +114,9 @@ public class RestaurantResponse {
                 .hasRestroom(restaurant.isHasRestroom())
                 .hasIndoor(restaurant.isHasIndoor())
                 .hasOutdoor(restaurant.isHasOutdoor())
-                .imageUrl(restaurant.getImageUrl())
+                .imageUrls(restaurant.getImages().stream()
+                        .map(RestaurantImage::getImageUrl)
+                        .collect(Collectors.toList()))
                 .isBookmarked(isBookmarked)
                 .build();
     }
