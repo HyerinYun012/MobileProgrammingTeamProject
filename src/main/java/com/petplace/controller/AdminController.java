@@ -127,13 +127,13 @@ public class AdminController {
     /**
      * 커뮤니티 신고 내역 조건별 목록 조회 (페이징 적용)
      */
-    @Operation(summary = "커뮤니티 신고 내역 목록 조회", description = "접수된 커뮤니티 신고 내역을 상태별로 페이징 조회합니다.")
+    @Operation(summary = "커뮤니티 신고 내역 목록 조회", description = "접수된 커뮤니티 신고 내역을 상태별로 페이징 조회합니다. status 미입력 시 PENDING(처리 대기) 목록을 반환합니다.")
     @GetMapping("/reports/community")
     public ResponseEntity<ApiResponse<Page<CommunityReportResponse>>> getCommunityReports(
-            @Parameter(description = "신고 처리 상태 (PENDING, COMPLETED)")
-            @RequestParam CommunityReport.Status status,
+            @Parameter(description = "신고 처리 상태 (PENDING, COMPLETED) — 미입력 시 PENDING")
+            @RequestParam(required = false, defaultValue = "PENDING") CommunityReport.Status status,
             @org.springdoc.core.annotations.ParameterObject
-            @PageableDefault(page = 0, size = 1, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
+            @PageableDefault(page = 0, size = 100, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
 
         if (pageable.getSort().stream().anyMatch(order -> "string".equals(order.getProperty()))) {
             pageable = org.springframework.data.domain.PageRequest.of(
