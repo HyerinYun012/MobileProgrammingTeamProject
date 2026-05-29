@@ -20,9 +20,9 @@ public record MyReviewResponse(
         @Schema(description = "부여한 평점 (별점)", example = "5")
         int rating,
 
-        @Schema(description = "리뷰 등록 일시")
+        @Schema(description = "리뷰 등록 일시", example = "2026-05-29T14:00:00") // 🌟 프론트를 위한 날짜 예시 추가
         LocalDateTime createdAt,
 
-        @Schema(description = "메뉴 이미지 URL (등록 안 된 경우 null)", example = "https://petplace-bucket.s3.amazonaws.com/menus/puppuccino.jpg")
+        @Schema(description = "리뷰 이미지 URL (등록 안 된 경우 null)", example = "https://petplace-bucket.s3.amazonaws.com/reviews/uuid_image.jpg") // 🌟 설명 및 예시 경로를 '메뉴'에서 '리뷰'로 수정
         String imageUrl
 ) {}
