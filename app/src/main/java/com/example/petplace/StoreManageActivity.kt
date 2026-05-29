@@ -55,6 +55,9 @@ class StoreManageActivity : AppCompatActivity() {
     private var isDailyAdded = false
     private val addedWeeklyDays = mutableSetOf<String>()
 
+    // 💡 테스트용 고정 토큰 (실제 서비스에서는 로그인할 때 받은 토큰으로 교체해야 함!)
+    private val testToken = "eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiIxNCIsInJvbGUiOiJPV05FUiIsImlhdCI6MTc4MDA1NzQ4OSwiZXhwIjoxNzgwMTQzODg5fQ.i9FqNdwNfRoSW2xHipgxfrWmNESjehIjLUduSy2SmTv0feuTxQxGjEdoDrMJhqBkgGJMvcbvkpRXfIsCdSLWsg"
+
     private val thumbnailLauncher = registerForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
         uri?.let {
             thumbnailUri = it
@@ -77,6 +80,9 @@ class StoreManageActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        // 🔥 주의: onCreate에서는 토큰을 세팅하지 않습니다! API 호출 직전에 세팅할 겁니다.
+
         binding = ActivityStoreManageBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
@@ -113,15 +119,12 @@ class StoreManageActivity : AppCompatActivity() {
             addressLauncher.launch(intent)
         }
 
-        // 1. SharedPreferences에서 회원가입 시 연동된 식당 고유 ID 로드
-        val sharedPref = getSharedPreferences("PetPlacePrefs", Context.MODE_PRIVATE)
-        // savedRestaurantId = sharedPref.getLong("OWNER_RESTAURANT_ID", -1L) // 💡 일단 주석 처리!
+        // 1. SharedPreferences에서 회원가입 시 연동된 식당 고유 ID 로드 (주석 처리)
+        // val sharedPref = getSharedPreferences("PetPlacePrefs", Context.MODE_PRIVATE)
+        // savedRestaurantId = sharedPref.getLong("OWNER_RESTAURANT_ID", -1L)
 
-        // 🔥 프론트엔드 일타강사의 테스트용 치트키: 강제로 1번 주입!!
+        // 🔥 테스트용 하드코딩 식당 ID
         savedRestaurantId = 1L
-
-        // 이렇게 강제로 1을 꽂아두면 밑에 있는 if (savedRestaurantId != -1L) 검문소를
-        // 무사통과해서 백엔드 1번 식당 데이터를 쫙 불러올 겁니다!
 
         // 2. 초기화 단계 검증: 회원가입 시 생성되므로 ID가 무조건 존재해야 함
         if (savedRestaurantId != -1L) {
@@ -190,6 +193,9 @@ class StoreManageActivity : AppCompatActivity() {
     private fun fetchRestaurantDetailFromServer(restaurantId: Long) {
         showLoadingDialog()
 
+        // 🌟 핵심 수정 1: GET 통신 출발 직전에 토큰을 확실하게 장착!
+        RetrofitClient.setToken(testToken)
+
         RetrofitClient.apiService.getRestaurantDetail(restaurantId)
             .enqueue(object : Callback<ApiResponse<RestaurantDetailResponse>> {
                 override fun onResponse(
@@ -200,29 +206,22 @@ class StoreManageActivity : AppCompatActivity() {
                     if (response.isSuccessful && response.body()?.success == true) {
                         val restaurantData = response.body()?.data
                         if (restaurantData != null) {
-                            Log.i(
-                                "StoreManageActivity",
-                                "fetchRestaurantDetail success: id=${restaurantData.id}"
-                            )
+                            Log.i("StoreManageActivity", "fetchRestaurantDetail success: id=${restaurantData.id}")
                             bindRestaurantDataToUI(restaurantData)
                         }
                     } else {
-                        // 기존 에러 메시지 파싱
                         val errorMsg = RetrofitClient.parseErrorMessage(response)
+                        val rawErrorBody = response.errorBody()?.string() ?: "에러 본문 없음"
 
-                        // 🔥 추가: 서버가 뱉어낸 진짜 날것의 에러 텍스트(HTML이나 긴 JSON) 긁어오기
-                        val rawErrorBody = response.errorBody()?.string()
-
-                        // 아주 건조하고 사무적인 톤으로 상세 로그 출력
                         Log.e("StoreManageActivity", "API Request Failed. Code: ${response.code()}")
                         Log.e("StoreManageActivity", "Parsed Error: $errorMsg")
                         Log.e("StoreManageActivity", "Raw Error Body: $rawErrorBody")
 
-                        Toast.makeText(
-                            this@StoreManageActivity,
-                            "서버 내부 오류가 발생했습니다.",
-                            Toast.LENGTH_SHORT
-                        ).show()
+                        android.app.AlertDialog.Builder(this@StoreManageActivity)
+                            .setTitle("정보 불러오기 실패 (${response.code()})")
+                            .setMessage(rawErrorBody)
+                            .setPositiveButton("확인", null)
+                            .show()
                     }
                 }
                 override fun onFailure(call: Call<ApiResponse<RestaurantDetailResponse>>, t: Throwable) {
@@ -262,8 +261,28 @@ class StoreManageActivity : AppCompatActivity() {
         val selectedCategory = binding.spinnerCategory.selectedItem.toString()
         val finalCategoryCode = convertCategoryToCode(selectedCategory)
 
-        // RestaurantRequest 객체 생성 (businessNo 영구 제외 버전)
-        val restaurantRequest = RestaurantRequest(
+        val existingUrlsToKeep = mutableListOf<String>()
+        val imageParts = mutableListOf<MultipartBody.Part>()
+
+        // 썸네일 분류
+        thumbnailUri?.let {
+            if (it.scheme == "http" || it.scheme == "https") {
+                existingUrlsToKeep.add(it.toString())
+            } else {
+                uriToMultipartPart(it, "imageFile")?.let { part -> imageParts.add(part) }
+            }
+        }
+
+        // 배너 리스트 분류
+        for (bannerUri in bannerUriList) {
+            if (bannerUri.scheme == "http" || bannerUri.scheme == "https") {
+                existingUrlsToKeep.add(bannerUri.toString())
+            } else {
+                uriToMultipartPart(bannerUri, "imageFile")?.let { part -> imageParts.add(part) }
+            }
+        }
+
+        val restaurantUpdateRequest = com.example.petplace.network.RestaurantUpdateRequest(
             name = storeName,
             address = storeAddress,
             phone = storePhone,
@@ -282,27 +301,21 @@ class StoreManageActivity : AppCompatActivity() {
             allowSmall = binding.cbSmallAnimal.isChecked,
             allowMedium = binding.cbMediumAnimal.isChecked,
             allowLarge = binding.cbLargeAnimal.isChecked,
-            menus = emptyList(),
-            operatingHours = serverOperatingHours
+            operatingHours = serverOperatingHours,
+            existingImageUrls = existingUrlsToKeep
         )
 
-        val jsonString = Gson().toJson(restaurantRequest)
+        val jsonString = Gson().toJson(restaurantUpdateRequest)
         val requestBody = jsonString.toRequestBody("application/json".toMediaTypeOrNull())
 
-        val imageParts = mutableListOf<MultipartBody.Part>()
+        Log.i("StoreManageActivity", "--- [PUT Request Data Check] ---")
+        Log.i("StoreManageActivity", "3. existingUrlsToKeep (Size: ${existingUrlsToKeep.size}): $existingUrlsToKeep")
+        Log.i("StoreManageActivity", "4. imageParts (New Files): ${imageParts.size}")
+        Log.i("StoreManageActivity", "--------------------------------")
 
-        // 명세서 규격 key 이름인 "imageFile"로 Multipart 생성
-        thumbnailUri?.let {
-            uriToMultipartPart(it, "imageFile")?.let { part -> imageParts.add(part) }
-        }
+        // 🌟 핵심 수정 2: PUT 통신 출발 직전에도 토큰을 확실하게 장착!
+        RetrofitClient.setToken(testToken)
 
-        for (bannerUri in bannerUriList) {
-            uriToMultipartPart(bannerUri, "imageFile")?.let { part -> imageParts.add(part) }
-        }
-
-        RetrofitClient.setToken("eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiIxNCIsInJvbGUiOiJPV05FUiIsImlhdCI6MTc3OTk1NDQxNiwiZXhwIjoxNzgwMDQwODE2fQ.y7TZrp61HdL51plxasWppZdE9g-zWsQAOGed1udmKVRYj8ccUW9xGh0QovKeQI8GEryegWUdqJsEVr8jc8bfpw")
-
-        // 수정을 전담하므로 항상 updateRestaurant(PUT) API를 호출
         RetrofitClient.apiService.updateRestaurant(savedRestaurantId, requestBody, imageParts)
             .enqueue(object : Callback<ApiResponse<Long>> {
                 override fun onResponse(call: Call<ApiResponse<Long>>, response: Response<ApiResponse<Long>>) {
@@ -310,11 +323,19 @@ class StoreManageActivity : AppCompatActivity() {
                     if (response.isSuccessful && response.body()?.success == true) {
                         Log.i("StoreManageActivity", "updateRestaurant PUT success. id: $savedRestaurantId")
                         fetchRestaurantDetailFromServer(savedRestaurantId)
-                        Toast.makeText(this@StoreManageActivity, "장소 정보가 수정되었습니다.", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(this@StoreManageActivity, "장소 정보가 성공적으로 수정되었습니다.", Toast.LENGTH_SHORT).show()
                     } else {
-                        val errorMsg = RetrofitClient.parseErrorMessage(response)
-                        Log.e("StoreManageActivity", "updateRestaurant PUT error. msg: $errorMsg")
-                        Toast.makeText(this@StoreManageActivity, "수정 실패: $errorMsg", Toast.LENGTH_SHORT).show()
+                        val errorCode = response.code()
+                        val rawErrorBody = response.errorBody()?.string() ?: "에러 본문 없음"
+
+                        Log.e("StoreManageActivity", "🚨🚨🚨 ERROR CODE: $errorCode 🚨🚨🚨")
+                        Log.e("StoreManageActivity", "🚨🚨🚨 ERROR BODY: $rawErrorBody 🚨🚨🚨")
+
+                        android.app.AlertDialog.Builder(this@StoreManageActivity)
+                            .setTitle("수정 실패 ($errorCode)")
+                            .setMessage(rawErrorBody)
+                            .setPositiveButton("확인", null)
+                            .show()
                     }
                 }
 
@@ -327,10 +348,9 @@ class StoreManageActivity : AppCompatActivity() {
     }
 
     // =========================================================================
-    // 🎨 3. 서버에서 가져온 초기 생성 데이터를 UI에 매핑 (GET 대응)
+    // 🎨 3. 서버에서 가져온 초기 생성 데이터를 UI에 매핑
     // =========================================================================
     private fun bindRestaurantDataToUI(data: RestaurantDetailResponse) {
-        // 회원가입 시 기입된 정보가 각 컴포넌트에 자동 매핑됨
         binding.etStoreName.setText(data.name)
         binding.etStoreAddress.setText(data.address)
         binding.etStorePhone.setText(data.phone)
@@ -352,28 +372,77 @@ class StoreManageActivity : AppCompatActivity() {
         binding.cbMediumAnimal.isChecked = data.allowMedium
         binding.cbLargeAnimal.isChecked = data.allowLarge
 
-        // Spinner 카테고리 초기 선택 상태 동기화
         if (data.category == "CAFE") {
             binding.spinnerCategory.setSelection(0)
         } else if (data.category == "RESTAURANT") {
             binding.spinnerCategory.setSelection(1)
         }
 
-        if (!data.imageUrl.isNullOrEmpty()) {
-            Glide.with(this)
-                .load(data.imageUrl)
-                .centerCrop()
-                .into(binding.ivThumbnailAdd)
+        // 이미지 초기화
+        thumbnailUri = null
+        bannerUriList.clear()
+
+        while (binding.layoutBannerContainer.childCount > 1) {
+            binding.layoutBannerContainer.removeViewAt(0)
         }
 
-        // 요일별 영업시간 데이터 복원 및 Chip 렌더링
+        // 🌟 바뀐 imageUrls 필드 처리 (0번 인덱스 방어 코드 추가)
+        data.imageUrls?.let { urls ->
+            if (urls.isNotEmpty()) {
+                val thumbUrl = urls[0]
+                thumbnailUri = Uri.parse(thumbUrl)
+                Glide.with(this)
+                    .load(thumbUrl)
+                    .centerCrop()
+                    .into(binding.ivThumbnailAdd)
+
+                for (i in 1 until urls.size) {
+                    val bannerUrl = urls[i]
+                    val bannerUri = Uri.parse(bannerUrl)
+
+                    bannerUriList.add(bannerUri)
+                    addBannerImageToLayout(bannerUri)
+                }
+            } else {
+                // 이미지가 하나도 없을 땐 썸네일 비우기
+                binding.ivThumbnailAdd.setImageDrawable(null)
+            }
+        }
+
+        // ⏰ 영업시간 처리
         binding.cgSelectedTimes.removeAllViews()
         data.operatingHours?.let { hours ->
             val dayMap = mapOf("MON" to "월", "TUE" to "화", "WED" to "수", "THU" to "목", "FRI" to "금", "SAT" to "토", "SUN" to "일")
-            for (hour in hours) {
-                val korDay = dayMap[hour.dayOfWeek] ?: ""
-                val timeString = if (hour.regularHoliday) "휴무" else "${hour.openTime} ~ ${hour.closeTime}"
-                addChipToGroup("$korDay $timeString", isDaily = false, days = listOf(korDay))
+            val dayOrder = listOf("MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN")
+
+            fun formatTimeWithoutSeconds(time: String?): String {
+                if (time == null) return "00:00"
+                return if (time.length >= 5) time.substring(0, 5) else time
+            }
+
+            data class ScheduleGroupKey(val open: String, val close: String, val isHoliday: Boolean)
+
+            val groupedSchedules = hours.groupBy { hour ->
+                ScheduleGroupKey(
+                    open = formatTimeWithoutSeconds(hour.openTime),
+                    close = formatTimeWithoutSeconds(hour.closeTime),
+                    isHoliday = hour.isRegularHoliday
+                )
+            }
+
+            for ((key, hourList) in groupedSchedules) {
+                val timeString = if (key.isHoliday) "휴무" else "${key.open} ~ ${key.close}"
+                val presentDays = hourList.map { it.dayOfWeek }
+
+                if (presentDays.size == 7 && presentDays.containsAll(dayOrder)) {
+                    addChipToGroup("매일 $timeString", isDaily = true, days = emptyList())
+                    isDailyAdded = true
+                } else {
+                    val sortedKorDays = dayOrder.filter { presentDays.contains(it) }.map { dayMap[it] ?: "" }
+                    val daysString = sortedKorDays.joinToString(", ")
+                    addChipToGroup("$daysString $timeString", isDaily = false, days = sortedKorDays)
+                    addedWeeklyDays.addAll(sortedKorDays)
+                }
             }
         }
     }
@@ -406,6 +475,9 @@ class StoreManageActivity : AppCompatActivity() {
         super.onDestroy()
     }
 
+    // =========================================================================
+    // 이하 헬퍼 함수들 (기존과 동일)
+    // =========================================================================
     private fun parseHoursToSeverFormat(chipTexts: List<String>): List<OperatingHourRequest> {
         val resultList = mutableListOf<OperatingHourRequest>()
         val dayMap = mapOf("월" to "MON", "화" to "TUE", "수" to "WED", "목" to "THU", "금" to "FRI", "토" to "SAT", "일" to "SUN")
@@ -416,11 +488,10 @@ class StoreManageActivity : AppCompatActivity() {
             var closeTime: String? = null
 
             if (!isHoliday) {
-                val timePart = text.split(" ").lastOrNull() ?: ""
-                if (timePart.contains("~")) {
-                    val times = timePart.split("~")
-                    openTime = times.getOrNull(0)?.trim()
-                    closeTime = times.getOrNull(1)?.trim()
+                val timeSplit = text.split(" ~ ")
+                if (timeSplit.size == 2) {
+                    openTime = convertTo24HourFormat(timeSplit[0])
+                    closeTime = convertTo24HourFormat(timeSplit[1])
                 }
             }
 
@@ -445,7 +516,8 @@ class StoreManageActivity : AppCompatActivity() {
             val inputStream = contentResolver.openInputStream(uri) ?: return null
             val originalBitmap = BitmapFactory.decodeStream(inputStream)
             val outputStream = ByteArrayOutputStream()
-            originalBitmap.compress(Bitmap.CompressFormat.JPEG, 80, outputStream)
+            // 화질 너무 박살 나지 않게 50 정도로 타협
+            originalBitmap.compress(Bitmap.CompressFormat.JPEG, 50, outputStream)
             val compressedBytes = outputStream.toByteArray()
             val requestFile = compressedBytes.toRequestBody("image/jpeg".toMediaTypeOrNull(), 0, compressedBytes.size)
             MultipartBody.Part.createFormData(partName, "store_img_${System.currentTimeMillis()}.jpg", requestFile)
@@ -623,5 +695,29 @@ class StoreManageActivity : AppCompatActivity() {
             "식당" -> "RESTAURANT"
             else -> "ETC"
         }
+    }
+
+    private fun convertTo24HourFormat(timeString: String?): String? {
+        if (timeString == null) return null
+
+        val regex = Regex("(오전|오후)?\\s*(\\d{1,2}):(\\d{2})")
+        val matchResult = regex.find(timeString)
+
+        if (matchResult != null) {
+            val amPm = matchResult.groupValues[1]
+            val hourStr = matchResult.groupValues[2]
+            val minuteStr = matchResult.groupValues[3]
+
+            var hour = hourStr.toIntOrNull() ?: return timeString
+
+            if (amPm == "오후" && hour < 12) {
+                hour += 12
+            } else if (amPm == "오전" && hour == 12) {
+                hour = 0
+            }
+
+            return String.format(java.util.Locale.getDefault(), "%02d:%s", hour, minuteStr)
+        }
+        return timeString
     }
 }

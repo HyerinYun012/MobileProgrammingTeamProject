@@ -102,9 +102,9 @@ data class MenuRequest(
 
 data class OperatingHourRequest(
     val dayOfWeek: String,
-    val openTime: String?,
+    val openTime: String?, // 서버 LocalTime에 맞게 null 허용
     val closeTime: String?,
-    @SerializedName("isRegularHoliday") val regularHoliday: Boolean
+    @SerializedName("isRegularHoliday") val isRegularHoliday: Boolean // 백엔드 변수명 완벽 매칭
 ) : Serializable
 
 data class RestaurantRequest(
@@ -131,11 +131,36 @@ data class RestaurantRequest(
     val operatingHours: List<OperatingHourRequest> = emptyList()
 ) : Serializable
 
+// 🔥 (추가) 서버의 정보 수정 전용(PUT) DTO 바구니
+data class RestaurantUpdateRequest(
+    val name: String,
+    val address: String,
+    val phone: String,
+    val category: String,
+    val region: String?,
+    val latitude: Double?,
+    val longitude: Double?,
+    val hasFence: Boolean = false,
+    val hasArtificialGrass: Boolean = false,
+    val hasNaturalGrass: Boolean = false,
+    val hasSnack: Boolean = false,
+    val hasParking: Boolean = false,
+    val hasRestroom: Boolean = false,
+    val hasIndoor: Boolean = false,
+    val hasOutdoor: Boolean = false,
+    val allowSmall: Boolean = true,
+    val allowMedium: Boolean = false,
+    val allowLarge: Boolean = false,
+    val operatingHours: List<OperatingHourRequest> = emptyList(),
+    // 💡 썸네일과 배너가 증발하지 않도록 백엔드에 쥐여주는 기존 이미지 영수증(URL) 리스트!
+    val existingImageUrls: List<String> = emptyList()
+) : Serializable
+
 data class OperatingHourResponse(
     val dayOfWeek: String,
-    val openTime: String,
-    val closeTime: String,
-    val regularHoliday: Boolean
+    val openTime: String?,
+    val closeTime: String?,
+    @SerializedName("isRegularHoliday") val isRegularHoliday: Boolean
 ) : Serializable
 
 data class RestaurantImage(val id: Long, val imageUrl: String, val sortOrder: Int) : Serializable
@@ -169,7 +194,7 @@ data class RestaurantResponse(
 // 🔥 식당 상세 정보 응답 DTO (조회용 API 대응)
 data class RestaurantDetailResponse(
     val id: Long,
-    val owner: User?, // 서버에 따라 owner 객체가 없거나 null일 수 있음
+    val owner: User?,
     val name: String,
     val category: String,
     val region: String,
@@ -190,11 +215,13 @@ data class RestaurantDetailResponse(
     val hasRestroom: Boolean,
     val hasIndoor: Boolean,
     val hasOutdoor: Boolean,
-    val images: List<RestaurantImage>?,
+
+    // 💡 백엔드 스펙에 맞춰서 단일 문자열 리스트로 완벽 통일!
+    val imageUrls: List<String>?,
+
     val reviews: List<ReviewResponse>?,
     val menus: List<MenuResponse>?,
     val verified: Boolean,
-    val imageUrl: String?,
     val bookmarked: Boolean = false
 ) : Serializable
 
@@ -346,7 +373,7 @@ interface ApiService {
     @Multipart
     @POST("api/restaurants") fun registerRestaurant(@Part("data") data: RequestBody, @Part imageFile: List<MultipartBody.Part>?): Call<ApiResponse<Long>>
     @Multipart
-    @PUT("api/restaurants/{id}") fun updateRestaurant(@Path("id") id: Long, @Part("data") data: RequestBody, @Part imageFile: List<MultipartBody.Part>?): Call<ApiResponse<Long>>
+    @PUT("api/restaurants/{id}") fun updateRestaurant(@Path("id") id: Long, @Part("data") data: okhttp3.RequestBody, @Part imageFile: List<MultipartBody.Part>?): Call<ApiResponse<Long>>
     @GET("api/restaurants/nearby") fun getNearbyRestaurants(@Query("lat") lat: Double, @Query("lng") lng: Double, @Query("radius") radius: Double = 3.0, @QueryMap pageable: Map<String, String>): Call<ApiResponse<PageResponse<RestaurantResponse>>>
     @GET("api/restaurants/filter") fun filterRestaurants(@QueryMap condition: Map<String, @JvmSuppressWildcards Any>, @QueryMap pageable: Map<String, String>): Call<ApiResponse<PageResponse<RestaurantResponse>>>
 
