@@ -61,6 +61,10 @@ public class RestaurantUpdateRequest {
     @Schema(description = "대형견(25kg 초과) 입장 가능 여부", example = "false")
     private boolean allowLarge;
 
+    /* 🌟 [추가된 필드] 프론트엔드에서 삭제하지 않고 남겨둔 기존 S3 이미지 URL 주소 리스트 */
+    @Schema(description = "유지할 기존 S3 이미지 URL 목록", example = "[\"https://s3.../img1.jpg\", \"https://s3.../img2.jpg\"]")
+    private List<String> existingImageUrls = new ArrayList<>();
+
     public List<OperatingHour> toOperatingHourEntities() {
         if (this.operatingHours == null) return new ArrayList<>();
         return this.operatingHours.stream()
