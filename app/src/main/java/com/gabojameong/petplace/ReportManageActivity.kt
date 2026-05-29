@@ -35,7 +35,9 @@ class ReportManageActivity : AppCompatActivity() {
             ) {
                 if (response.isSuccessful) {
                     val reports = response.body()?.data?.content ?: emptyList()
-                    reviewAdapter.setData(reports)
+                    // status가 COMPLETED인 항목 제외
+                    val filteredReports = reports.filter { it.status != "COMPLETED" }
+                    reviewAdapter.setData(filteredReports)
                 } else {
                     Toast.makeText(applicationContext, "신고 목록을 불러오지 못했습니다.", Toast.LENGTH_SHORT).show()
                 }
@@ -57,7 +59,7 @@ class ReportManageActivity : AppCompatActivity() {
             },
             onItemClick = { item ->
                 val intent = Intent(this, ReviewReadActivity::class.java)
-                intent.putExtra("REVIEW_ID", item.reviewId)
+                intent.putExtra("RESTAURANT_ID", item.restaurantId)
                 startActivity(intent)
             }
         )
@@ -85,10 +87,10 @@ class ReportManageActivity : AppCompatActivity() {
         apiService.completeReviewReport(reportId).enqueue(object : Callback<ApiResponse<Any>> {
             override fun onResponse(call: Call<ApiResponse<Any>>, response: Response<ApiResponse<Any>>) {
                 if (response.isSuccessful) {
-                    Toast.makeText(applicationContext, "신고 처리가 완료되었습니다.", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(applicationContext, "신고를 완료처리 하였습니다.", Toast.LENGTH_SHORT).show()
                     loadReportedReviews() // 목록 새로고침
                 } else {
-                    Toast.makeText(applicationContext, "신고 처리에 실패했습니다.", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(applicationContext, "처리에 실패했습니다.", Toast.LENGTH_SHORT).show()
                 }
             }
 

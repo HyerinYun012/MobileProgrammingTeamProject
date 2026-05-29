@@ -34,14 +34,39 @@
         android:layout_height="wrap_content"
         android:layout_marginStart="12dp"
         android:orientation="horizontal"
+        android:visibility="gone"
         app:layout_constraintBottom_toBottomOf="@id/tv_reviewer_name"
         app:layout_constraintStart_toEndOf="@id/tv_reviewer_name"
         app:layout_constraintTop_toTopOf="@id/tv_reviewer_name">
-        <ImageView android:layout_width="20dp" android:layout_height="20dp" android:src="@drawable/ic_star" android:layout_marginEnd="4dp"/>
-        <ImageView android:layout_width="20dp" android:layout_height="20dp" android:src="@drawable/ic_star" android:layout_marginEnd="4dp"/>
-        <ImageView android:layout_width="20dp" android:layout_height="20dp" android:src="@drawable/ic_star" android:layout_marginEnd="4dp"/>
-        <ImageView android:layout_width="20dp" android:layout_height="20dp" android:src="@drawable/ic_star" android:layout_marginEnd="4dp"/>
-        <ImageView android:layout_width="20dp" android:layout_height="20dp" android:src="@drawable/ic_star" />
+
+        <ImageView
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:layout_marginEnd="4dp"
+            android:src="@drawable/ic_star" />
+
+        <ImageView
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:layout_marginEnd="4dp"
+            android:src="@drawable/ic_star" />
+
+        <ImageView
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:layout_marginEnd="4dp"
+            android:src="@drawable/ic_star" />
+
+        <ImageView
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:layout_marginEnd="4dp"
+            android:src="@drawable/ic_star" />
+
+        <ImageView
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:src="@drawable/ic_star" />
     </LinearLayout>
 
     <ImageView
@@ -57,13 +82,12 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
-        android:layout_marginEnd="12dp"
         android:fontFamily="@font/nanum_gothic_regular"
         android:text="리뷰 내용이 들어갈 자리입니다."
         android:textColor="#000000"
         android:textSize="15sp"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toStartOf="@id/btn_delete_review"
+        app:layout_constraintEnd_toStartOf="@+id/btn_complete_review"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/iv_reviewer_profile" />
 
@@ -91,7 +115,7 @@
         android:layout_marginTop="5dp"
         android:background="@drawable/bg_solid_orange"
         android:fontFamily="@font/nanum_gothic_bold"
-        android:paddingHorizontal="24dp"
+        android:paddingHorizontal="12dp"
         android:paddingVertical="8dp"
         android:text="완료처리"
         android:textColor="#FFFFFF"

@@ -110,8 +110,8 @@ class SignupInfoFragment : Fragment() {
 
                 if (!input.startsWith(prefix)) {
                     s.replace(0, s.length, prefix)
+                    binding.editTextPhone.setSelection(s.length)
                     isFormatting = false
-                    binding.editTextPhone.setSelection(prefix.length)
                     return
                 }
 
@@ -127,7 +127,7 @@ class SignupInfoFragment : Fragment() {
                 val finalStr = formatted.toString()
                 if (input != finalStr) {
                     s.replace(0, s.length, finalStr)
-                    binding.editTextPhone.setSelection(finalStr.length)
+                    binding.editTextPhone.setSelection(s.length)
                 }
 
                 isFormatting = false
@@ -145,13 +145,14 @@ class SignupInfoFragment : Fragment() {
                 if (isFormatting || s == null) return
                 isFormatting = true
 
-                val input = s.toString().replace("-", "")
-                val digits = input.filter { it.isDigit() }.take(10)
+                val digits = s.toString().replace("-", "").filter { it.isDigit() }.take(10)
                 
                 val formatted = StringBuilder()
                 for (i in digits.indices) {
                     formatted.append(digits[i])
-                    if ((i == 2 && digits.length > 3) || (i == 4 && digits.length > 5)) {
+                    if (i == 2 && digits.length > 3) {
+                        formatted.append("-")
+                    } else if (i == 4 && digits.length > 5) {
                         formatted.append("-")
                     }
                 }
@@ -159,7 +160,7 @@ class SignupInfoFragment : Fragment() {
                 val finalStr = formatted.toString()
                 if (s.toString() != finalStr) {
                     s.replace(0, s.length, finalStr)
-                    binding.editTextBusinessNumber.setSelection(finalStr.length)
+                    binding.editTextBusinessNumber.setSelection(s.length)
                 }
 
                 isFormatting = false
@@ -410,13 +411,11 @@ class SignupInfoFragment : Fragment() {
             region = mapRegionToEnum(addr),
             latitude = 0.0,
             longitude = 0.0,
-            menus = emptyList(),
             operatingHours = emptyList()
         )
 
         val json = gson.toJson(resRequest)
         val requestBody = json.toRequestBody("application/json".toMediaTypeOrNull())
-
         apiService.registerRestaurant(requestBody, null).enqueue(object : Callback<ApiResponse<Long>> {
             override fun onResponse(call: Call<ApiResponse<Long>>, response: Response<ApiResponse<Long>>) {
                 if (response.isSuccessful && response.body()?.success == true) {
@@ -450,7 +449,7 @@ class SignupInfoFragment : Fragment() {
             addr.contains("은행") -> "EUNHAENG"
             addr.contains("장곡") -> "JANGGOK"
             addr.contains("정왕") -> "JEONGWANG"
-            else -> "BAEGON"
+            else -> "JEONGWANGa"
         }
     }
 
@@ -466,7 +465,7 @@ class SignupInfoFragment : Fragment() {
                 }
             } else {
                 val msg = RetrofitClient.parseErrorMessage(response)
-                // 이미 존재하는 계정인 경우, 사장님이라면 가게 등록 단계로 진행 시도
+                // 이미 존재하는 계정인 경우, 사장님이라면 가게 등록 단계로 진행
                 if (role == "owner" && (msg.contains("이미") || msg.contains("중복") || msg.contains("exists"))) {
                     isAccountCreated = true
                     Toast.makeText(requireContext().applicationContext, "이미 가입된 계정입니다. 가게 등록을 진행합니다.", Toast.LENGTH_SHORT).show()

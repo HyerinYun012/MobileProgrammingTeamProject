@@ -36,15 +36,19 @@ class SearchActivity : AppCompatActivity() {
                 "pet_selection" -> selectedPets = data
             }
 
-            if (!data.isNullOrEmpty()) {
-                button.text = if (data.size > 1) "${data[0]} 외 ${data.size - 1}" else data[0]
-                button.setBackgroundResource(R.drawable.bg_round_orange)
-                button.setTextColor(ContextCompat.getColor(this, R.color.white))
-            } else {
-                button.setText(defaultText)
-                button.setBackgroundResource(R.drawable.edge_round_orange)
-                button.setTextColor(ContextCompat.getColor(this, R.color.orange))
-            }
+            updateSortButtonUI(button, data, defaultText)
+        }
+    }
+
+    private fun updateSortButtonUI(button: Button, data: ArrayList<String>?, defaultText: Int) {
+        if (!data.isNullOrEmpty()) {
+            button.text = if (data.size > 1) "${data[0]} 외 ${data.size - 1}" else data[0]
+            button.setBackgroundResource(R.drawable.bg_round_orange)
+            button.setTextColor(ContextCompat.getColor(this, R.color.white))
+        } else {
+            button.setText(defaultText)
+            button.setBackgroundResource(R.drawable.edge_round_orange)
+            button.setTextColor(ContextCompat.getColor(this, R.color.orange))
         }
     }
 
@@ -94,11 +98,27 @@ class SearchActivity : AppCompatActivity() {
             performSearch(query)
         }
 
+        // MainActivity에서 "전체 지역 검색" 요청이 왔는지 확인
+        if (intent.getBooleanExtra("SEARCH_ALL_REGIONS", false)) {
+            searchAllRegions()
+        }
+
         ViewCompat.setOnApplyWindowInsetsListener(binding.root) { v, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
             insets
         }
+    }
+
+    private fun searchAllRegions() {
+        val allRegions = arrayListOf(
+            "거북섬동", "과림동", "군자동", "능곡동", "대야동",
+            "매화동", "목감동", "배곧동", "신천동", "신현동",
+            "연성동", "월곶동", "은행동", "장곡동", "정왕동"
+        )
+        selectedRegions = allRegions
+        updateSortButtonUI(binding.btnSortRegion, selectedRegions, R.string.region_all)
+        performSearch("")
     }
 
     fun setSearchText(text: String) {

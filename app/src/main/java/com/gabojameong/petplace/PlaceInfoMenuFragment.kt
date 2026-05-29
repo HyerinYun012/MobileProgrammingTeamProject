@@ -49,7 +49,7 @@ class PlaceInfoMenuFragment : Fragment() {
                 val apiResponse = response.body()
                 if (response.isSuccessful && apiResponse?.success == true) {
                     val menuList = apiResponse.data?.content ?: emptyList()
-                    val adapterData = menuList.map { MenuData(it.name, it.price, it.imageUrl) }
+                    val adapterData = menuList.map { MenuData(id = it.id, name = it.name, price = it.price, imageUrl = it.imageUrl, desc = it.description) }
                     setupRecyclerView(adapterData)
                 } else {
                     Toast.makeText(requireContext(), "메뉴 정보를 불러올 수 없습니다.", Toast.LENGTH_SHORT).show()

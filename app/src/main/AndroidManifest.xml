@@ -7,6 +7,7 @@
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
 
     <application
         android:name=".GlobalApplication"
@@ -42,27 +43,35 @@
         </activity>
 
         <activity android:name=".MainActivity" android:exported="true" />
+        <activity android:name=".MapActivity" android:exported="false" />
         <activity android:name=".LoginActivity" android:exported="true" />
-        <activity android:name=".SignupActivity" android:exported="false" />
+        <activity android:name=".FindIdActivity" android:exported="true" />
+        <activity android:name=".FindPwActivity" android:exported="true" />
+        <activity
+            android:name=".SignupActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
         <activity android:name=".SearchActivity" android:exported="false" />
         <activity android:name=".ResultActivity" android:exported="true" />
         <activity android:name=".PlaceInfoActivity" android:exported="false" />
-        <activity android:name=".FindIdActivity" android:exported="true" />
-        <activity android:name=".FindPwActivity" android:exported="true" />
         <activity android:name=".AnnouncementActivity" android:exported="false" />
-        <activity android:name=".MapActivity" android:exported="false" />
 
-        <activity android:name=".CustomerMyPageActivity" android:exported="false" />
-        <activity android:name=".OwnerMyPageActivity" android:exported="false" />
-
+        <activity android:name=".CustomerMypageActivity" android:exported="false" />
+        <activity android:name=".OwnerMypageActivity" android:exported="false" />
         <activity android:name=".AdminMyPageActivity" android:exported="false" />
+        <activity android:name=".MypageEditActivity" android:exported="false" />
+
         <activity android:name=".ReportManageActivity" android:exported="false" />
         <activity android:name=".BusinessManageActivity" android:exported="false" />
         <activity android:name=".InquiryManageActivity" android:exported="false" />
         <activity android:name=".InquiryDetailActivity" android:exported="false" />
+
+        <activity android:name=".NoticeManageActivity" android:exported="false" />
+        <activity android:name=".MenuManageActivity" android:exported="false" />
         <activity android:name=".StoreManageActivity" android:exported="false" />
-        <activity android:name=".MyReviewActivity" android:exported="false" />
         <activity android:name=".OwnerReviewManageActivity" android:exported="false" />
+
+        <activity android:name=".MyReviewActivity" android:exported="false" />
         <activity android:name=".ReviewReadActivity" android:exported="false" />
         <activity android:name=".ReviewWriteActivity" android:exported="false" />
         <activity android:name=".ImageDetailActivity" android:exported="false" />

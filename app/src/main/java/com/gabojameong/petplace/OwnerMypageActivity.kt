@@ -34,9 +34,32 @@ class OwnerMypageActivity : AppCompatActivity() {
             finish()
         }
         binding.imageView9.setOnClickListener {
-            val intent = Intent(this, OwnerMypageEditActivity::class.java)
+            val intent = Intent(this, MypageEditActivity::class.java)
             intent.putExtra("user_profile", profile)
             startActivity(intent)
+        }
+        binding.button4.setOnClickListener {
+            //업장관리 액티비티로 이동 (storemanageactivity
+            val intent = Intent(this, StoreManageActivity::class.java)
+            startActivity(intent)
+        }
+        binding.button6.setOnClickListener{
+            val intent = Intent(this, OwnerReviewManageActivity::class.java)
+            startActivity(intent)
+            //리뷰관리 액티비티로 이동 (OwnerReviewManageActivity)
+        }
+        binding.button2.setOnClickListener {
+            val intent = Intent(this, MenuManageActivity::class.java)
+            startActivity(intent)
+            //메뉴관리 액티비티로 이동
+        }
+        binding.button9.setOnClickListener {
+            val intent = Intent(this, NoticeManageActivity::class.java)
+            startActivity(intent)
+            //공지관리 액티비티로 이동
+        }
+        binding.ivLogout.setOnClickListener {
+            RetrofitClient.logout()
         }
 
         ViewCompat.setOnApplyWindowInsetsListener(binding.root) { v, insets ->

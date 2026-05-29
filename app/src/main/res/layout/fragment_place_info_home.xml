@@ -184,7 +184,7 @@
                 android:background="@drawable/bg_round_white"
                 android:backgroundTint="@color/bright_gray"
                 android:elevation="4dp"
-                app:srcCompat="@drawable/icon_fence" />
+                app:srcCompat="@drawable/icon_fence_legacy" />
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -214,7 +214,7 @@
                 android:background="@drawable/bg_round_white"
                 android:backgroundTint="@color/bright_gray"
                 android:elevation="4dp"
-                app:srcCompat="@drawable/icon_indoor" />
+                app:srcCompat="@drawable/icon_indoor_legacy" />
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -244,7 +244,7 @@
                 android:background="@drawable/bg_round_white"
                 android:backgroundTint="@color/bright_gray"
                 android:elevation="4dp"
-                app:srcCompat="@drawable/icon_outdoor" />
+                app:srcCompat="@drawable/icon_outdoor_legacy" />
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -274,7 +274,7 @@
                 android:background="@drawable/bg_round_white"
                 android:backgroundTint="@color/bright_gray"
                 android:elevation="4dp"
-                app:srcCompat="@drawable/icon_artificial_grass" />
+                app:srcCompat="@drawable/icon_artificial_grass_legacy" />
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -334,7 +334,7 @@
                 android:background="@drawable/bg_round_white"
                 android:backgroundTint="@color/bright_gray"
                 android:elevation="4dp"
-                app:srcCompat="@drawable/icon_snack" />
+                app:srcCompat="@drawable/icon_snack_legacy" />
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"

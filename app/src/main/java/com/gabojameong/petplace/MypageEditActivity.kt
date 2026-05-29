@@ -8,18 +8,18 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import com.bumptech.glide.Glide
-import com.gabojameong.petplace.databinding.ActivityOwnerMypageEditBinding
+import com.gabojameong.petplace.databinding.ActivityMypageEditBinding
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 
-class OwnerMypageEditActivity : AppCompatActivity() {
-    private lateinit var binding: ActivityOwnerMypageEditBinding
+class MypageEditActivity : AppCompatActivity() {
+    private lateinit var binding: ActivityMypageEditBinding
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-        binding = ActivityOwnerMypageEditBinding.inflate(layoutInflater)
+        binding = ActivityMypageEditBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
         binding.imageView7.setOnClickListener {
@@ -65,13 +65,13 @@ class OwnerMypageEditActivity : AppCompatActivity() {
                     profile?.let { updateUI(it) }
                 } else {
                     val errorMsg = RetrofitClient.parseErrorMessage(response)
-                    Toast.makeText(this@OwnerMypageEditActivity, "프로필 로드 실패: $errorMsg", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this@MypageEditActivity, "프로필 로드 실패: $errorMsg", Toast.LENGTH_SHORT).show()
                 }
             }
 
             override fun onFailure(call: Call<ApiResponse<UserProfileResponse>>, t: Throwable) {
                 Log.e("OwnerMypage", "Profile load failed", t)
-                Toast.makeText(this@OwnerMypageEditActivity, "네트워크 오류: ${t.message}", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this@MypageEditActivity, "네트워크 오류: ${t.message}", Toast.LENGTH_SHORT).show()
             }
         })
     }

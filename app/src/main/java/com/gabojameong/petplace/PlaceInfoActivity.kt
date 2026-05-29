@@ -24,8 +24,12 @@ class PlaceInfoActivity : AppCompatActivity() {
         setContentView(binding.root)
         supportActionBar?.hide()
 
+        restaurantId = intent.getLongExtra("restaurantId", -1L)
         restaurant = intent.getSerializableExtra("restaurant", RestaurantResponse::class.java)
 
+        if (restaurant == null && restaurantId > 0) {
+            // restaurantId로 장소 정보를 가져오는 로직
+        }
         if (restaurant == null) {
             Toast.makeText(applicationContext, "장소 정보를 불러올 수 없습니다.", Toast.LENGTH_SHORT).show()
             finish()

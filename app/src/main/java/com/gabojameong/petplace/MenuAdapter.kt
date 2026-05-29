@@ -7,10 +7,18 @@ import com.bumptech.glide.Glide
 import com.gabojameong.petplace.databinding.ItemMenuBinding
 
 data class MenuData(
-    val name: String,
-    val price: Int,
-    val imageUrl: String? = null
-)
+    var id: Long? = null,
+    var name: String = "",
+    var price: Int = 0,
+    var imageUrl: String? = null,
+    var desc: String? = null
+) {
+    var imageUri: String
+        get() = imageUrl ?: ""
+        set(value) {
+            imageUrl = value
+        }
+}
 
 class MenuAdapter(private val menuList: List<MenuData>) : RecyclerView.Adapter<MenuAdapter.MenuViewHolder>() {
 
@@ -19,8 +27,7 @@ class MenuAdapter(private val menuList: List<MenuData>) : RecyclerView.Adapter<M
             binding.tvMenuName.text = menu.name
             binding.tvMenuPrice.text = "${menu.price} 원"
             
-            Glide.with(binding.
-            ivMenuImage.context)
+            Glide.with(binding.ivMenuImage.context)
                 .load(menu.imageUrl)
                 .placeholder(R.drawable.icon_nothing)
                 .into(binding.ivMenuImage)

@@ -1,5 +1,6 @@
 package com.gabojameong.petplace
 
+import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import android.widget.Toast
@@ -22,9 +23,6 @@ class CustomerMypageActivity : AppCompatActivity() {
         binding = ActivityCustomerMypageBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        binding.imageView7.setOnClickListener {
-            finish()
-        }
 
         // 인텐트로 전달된 프로필 정보 확인 (중복 호출 방지)
         val profile = intent.getSerializableExtra("user_profile", UserProfileResponse::class.java)
@@ -33,6 +31,30 @@ class CustomerMypageActivity : AppCompatActivity() {
         } else {
             fetchUserProfile()
         }
+
+        binding.imageView7.setOnClickListener {
+            finish()
+        }
+        binding.button3.setOnClickListener {
+            // 관심목록으로 이동
+        }
+        binding.button4.setOnClickListener {
+            // 최근 본 가게로 이동
+        }
+        binding.button6.setOnClickListener {
+            // 내 리뷰로 이동
+        }
+        binding.imageView9.setOnClickListener {
+            val intent = Intent(this, MypageEditActivity::class.java)
+            intent.putExtra("user_profile", profile)
+            startActivity(intent)
+        }
+        binding.ivLogout.setOnClickListener {
+            RetrofitClient.logout()
+        }
+//        binding.petButton.setOnClickListener {
+//            // 펫 등록으로 이동
+//        }
 
         ViewCompat.setOnApplyWindowInsetsListener(binding.root) { v, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())

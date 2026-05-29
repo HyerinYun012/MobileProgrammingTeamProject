@@ -1,11 +1,13 @@
 package com.gabojameong.petplace
 
+import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -21,6 +23,21 @@ class InquiryManageActivity : AppCompatActivity() {
     private val apiService = RetrofitClient.apiService
     private lateinit var inquiryAdapter: InquiryAdapter
 
+    private val updateStatus =
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+
+            if (result.resultCode == Activity.RESULT_OK) {
+
+                val inquiryId = result.data?.getLongExtra("INQUIRY_ID", -1L)
+                val status = result.data?.getStringExtra("status")
+
+                if (inquiryId != null && inquiryId != -1L && status != null) {
+
+                    inquiryAdapter.updateStatus(inquiryId, status)
+                }
+            }
+        }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityInquiryManageBinding.inflate(layoutInflater)
@@ -33,6 +50,7 @@ class InquiryManageActivity : AppCompatActivity() {
     }
 
     private fun loadInquiries() {
+
         val pageable = mapOf("page" to "0", "size" to "100")
         apiService.getAdminInquiries(pageable).enqueue(object : Callback<ApiResponse<PageResponse<InquiryResponse>>> {
             override fun onResponse(
@@ -40,12 +58,21 @@ class InquiryManageActivity : AppCompatActivity() {
                 response: Response<ApiResponse<PageResponse<InquiryResponse>>>
             ) {
                 if (response.isSuccessful) {
-                    val inquiryList = (response.body()?.data?.content ?: emptyList()).toMutableList()
+                    val content = response.body()?.data?.content ?: emptyList()
+                    val inquiryList = content.map {
+                        InquiryDetailResponse(
+                            id = it.id,
+                            title = it.title,
+                            status = it.status,
+                            createdAt = it.createdAt
+                        )
+                    }.toMutableList()
+
                     inquiryAdapter = InquiryAdapter(inquiryList) { inquiry ->
-                        val intent = Intent(this@InquiryManageActivity, InquiryDetailActivity::class.java).apply {
+                        val intent = Intent(applicationContext, InquiryDetailActivity::class.java).apply {
                             putExtra("INQUIRY_ID", inquiry.id)
                         }
-                        startActivity(intent)
+                        updateStatus.launch(intent)
                     }
                     binding.rvInquiries.adapter = inquiryAdapter
 
@@ -54,7 +81,7 @@ class InquiryManageActivity : AppCompatActivity() {
                         fetchInquiryDetail(inquiry.id, index)
                     }
                 } else {
-                    Toast.makeText(this@InquiryManageActivity, "문의 내역을 불러오지 못했습니다.", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(applicationContext, "문의 내역을 불러오지 못했습니다.", Toast.LENGTH_SHORT).show()
                 }
             }
 
@@ -65,8 +92,8 @@ class InquiryManageActivity : AppCompatActivity() {
     }
 
     private fun fetchInquiryDetail(id: Long, position: Int) {
-        apiService.getAdminInquiryDetail(id).enqueue(object : Callback<ApiResponse<InquiryResponse>> {
-            override fun onResponse(call: Call<ApiResponse<InquiryResponse>>, response: Response<ApiResponse<InquiryResponse>>) {
+        apiService.getAdminInquiryDetail(id).enqueue(object : Callback<ApiResponse<InquiryDetailResponse>> {
+            override fun onResponse(call: Call<ApiResponse<InquiryDetailResponse>>, response: Response<ApiResponse<InquiryDetailResponse>>) {
                 if (response.isSuccessful) {
                     response.body()?.data?.let { detail ->
                         // 카테고리 정보가 포함된 상세 데이터로 아이템 갱신
@@ -74,18 +101,26 @@ class InquiryManageActivity : AppCompatActivity() {
                     }
                 }
             }
-            override fun onFailure(call: Call<ApiResponse<InquiryResponse>>, t: Throwable) {
+            override fun onFailure(call: Call<ApiResponse<InquiryDetailResponse>>, t: Throwable) {
                 Log.e("InquiryManage", "Detail fetch failed for ID: $id", t)
             }
         })
     }
 
     inner class InquiryAdapter(
-        private val list: MutableList<InquiryResponse>,
-        private val onItemClick: (InquiryResponse) -> Unit
+        private val list: MutableList<InquiryDetailResponse>,
+        private val onItemClick: (InquiryDetailResponse) -> Unit
     ) : RecyclerView.Adapter<InquiryAdapter.ViewHolder>() {
 
-        fun updateItem(position: Int, updatedInquiry: InquiryResponse) {
+
+        fun updateStatus(id: Long, status: String) {
+            val index = list.indexOfFirst { it.id == id }
+            if (index != -1) {
+                list[index] = list[index].copy(status = status)
+                notifyItemChanged(index)
+            }
+        }
+        fun updateItem(position: Int, updatedInquiry: InquiryDetailResponse) {
             if (position < list.size) {
                 list[position] = updatedInquiry
                 notifyItemChanged(position)
@@ -93,7 +128,7 @@ class InquiryManageActivity : AppCompatActivity() {
         }
 
         inner class ViewHolder(private val itemBinding: ItemInquiryBinding) : RecyclerView.ViewHolder(itemBinding.root) {
-            fun bind(inquiry: InquiryResponse) {
+            fun bind(inquiry: InquiryDetailResponse) {
                 // 카테고리 표시 (상세 정보 로드 전후 대응)
                 itemBinding.tvCategory.text = when (inquiry.category) {
                     "BUSINESS" -> "비즈니스 문의"

@@ -82,13 +82,11 @@ class MainActivity : AppCompatActivity() {
             startActivity(intent)
         }
 
-        findViewById<ImageButton>(R.id.btnTestLogout).setOnClickListener {
-            Toast.makeText(applicationContext, "로그아웃 테스트를 진행합니다.", Toast.LENGTH_SHORT).show()
-            RetrofitClient.logout()
-        }
-
-        findViewById<ImageButton>(R.id.btnCheck).setOnClickListener {
-
+        findViewById<Button>(R.id.btnCheck).setOnClickListener {
+            val intent = Intent(this, SearchActivity::class.java).apply {
+                putExtra("SEARCH_ALL_REGIONS", true)
+            }
+            startActivity(intent)
         }
 
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->

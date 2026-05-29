@@ -21,7 +21,8 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:padding="16dp">
+            android:padding="16dp"
+            android:clipToPadding="false">
 
             <TextView
                 android:id="@+id/textViewUserInfo"
@@ -394,10 +395,10 @@
                         android:layout_width="match_parent"
                         android:layout_height="40dp"
                         android:layout_marginStart="6dp"
-                        android:autofillHints="phone"
                         android:background="@null"
                         android:hint="@string/hint_business_number"
-                        android:inputType="numberSigned"
+                        android:inputType="phone"
+                        android:maxLength="12"
                         android:textSize="16sp" />
                 </LinearLayout>
 
@@ -508,6 +509,11 @@
                         android:textSize="20sp" />
                 </LinearLayout>
             </LinearLayout>
+
+            <!-- 키보드 가림 방지를 위한 하단 여유 공간 -->
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="300dp" />
 
         </LinearLayout>
     </ScrollView>
