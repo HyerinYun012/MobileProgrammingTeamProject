@@ -36,7 +36,7 @@ class CustomerMypageActivity : AppCompatActivity() {
             finish()
         }
         binding.button3.setOnClickListener {
-            // 관심목록으로 이동
+            startActivity(Intent(this, AttentionPage::class.java))
         }
         binding.button4.setOnClickListener {
             // 최근 본 가게로 이동

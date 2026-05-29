@@ -78,6 +78,7 @@
         <activity android:name=".ReviewWriteActivity" android:exported="false" />
         <activity android:name=".ImageDetailActivity" android:exported="false" />
 
+        <activity android:name=".AttentionPage" android:exported="false" />
         <activity android:name=".CommunityListActivity" android:exported="false" />
         <activity android:name=".CommunityDetailActivity" android:exported="false" android:windowSoftInputMode="adjustResize" />
         <activity android:name=".CommunityWriteActivity" android:exported="false" android:windowSoftInputMode="adjustResize" />

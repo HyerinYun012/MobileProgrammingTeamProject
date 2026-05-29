@@ -77,6 +77,10 @@ class MainActivity : AppCompatActivity() {
                 startActivity(intent)
             }
         }
+        findViewById<ImageButton>(R.id.imageButton).setOnClickListener {
+            startActivity(Intent(this, CommunityListActivity::class.java))
+        }
+
         findViewById<Button>(R.id.btnMap).setOnClickListener{
             val intent = Intent(this, MapActivity::class.java)
             startActivity(intent)
