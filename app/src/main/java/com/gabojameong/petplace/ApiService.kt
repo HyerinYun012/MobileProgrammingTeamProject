@@ -292,7 +292,15 @@ data class InquiryDetailResponse(
     val createdAt: String,
 )
 
-// --- 7. Admin DTOs ---
+// --- 7. Owner Restaurant ---
+data class OwnerRestaurantSummary(
+    val id: Long,
+    val name: String,
+    val category: String,
+    val address: String
+) : Serializable
+
+// --- 8. Admin DTOs ---
 data class ReviewReportItem(
     val id: Long,
     val reviewId: Long,
@@ -337,6 +345,15 @@ data class TitleContentRequest(
     val content: String
 )
 
+data class CommunityReportRequest(
+    val id : Long,
+    val postId : Long,
+    val commentId : Long? = null,
+    val reporterNickname : String,
+    val reason : String,
+    val status : String,
+    val createdAt : String
+)
 
 // --- 8. API Interface ---
 interface ApiService {
@@ -410,7 +427,7 @@ interface ApiService {
     @PATCH("api/admin/inquiries/{inquiryId}/complete") fun completeInquiry(@Path("inquiryId") inquiryId: Long, @Body reply: Map<String, String>): Call<ApiResponse<Any>>
     @PATCH("api/admin/community/reports/{reportId}/complete") fun completeCommunityReport(@Path("reportId") reportId: Long): Call<ApiResponse<Any>>
     @GET("api/admin/reports/reviews") fun getReviewReports(@Query("page") page: Int, @Query("size") size: Int): Call<ApiResponse<PageResponse<ReviewReportItem>>>
-    @GET("api/admin/reports/community") fun getCommunityReports(): Call<ApiResponse<List<Any>>>
+    @GET("api/admin/reports/community") fun getCommunityReports(): Call<ApiResponse<List<CommunityReportRequest>>>
     @GET("api/admin/owners/{ownerId}/business-info") fun getOwnerBusinessInfo(@Path("ownerId") ownerId: Long): Call<ApiResponse<OwnerBusinessInfoResponse>>
     @GET("api/admin/owners/pending") fun getPendingOwners(@QueryMap pageable: Map<String, String>): Call<ApiResponse<PageResponse<PendingOwnerItem>>>
     @GET("api/admin/inquiries") fun getAdminInquiries(@QueryMap pageable: Map<String, String>): Call<ApiResponse<PageResponse<InquiryResponse>>>
@@ -419,6 +436,8 @@ interface ApiService {
     @DELETE("api/admin/community/posts/{postId}") fun adminDeleteCommunityPost(@Path("postId") postId: Long): Call<ApiResponse<Any>>
     @DELETE("api/admin/community/comments/{commentId}") fun adminDeleteCommunityComment(@Path("commentId") commentId: Long): Call<ApiResponse<Any>>
     @DELETE("api/admin/owners/{ownerId}/reject") fun rejectOwner(@Path("ownerId") ownerId: Long): Call<ApiResponse<Any>>
+
+    @GET("api/owner/restaurants") fun getMyRestaurants(): Call<ApiResponse<List<OwnerRestaurantSummary>>>
 
     @GET("api/owner/inquiries") fun getGeneralInquiries(@QueryMap pageable: Map<String, String>): Call<ApiResponse<PageResponse<InquiryResponse>>>
     @GET("api/owner/inquiries/{inquiryId}") fun getGeneralInquiryDetail(@Path("inquiryId") inquiryId: Long): Call<ApiResponse<InquiryDetailResponse>>

@@ -1,118 +1,155 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_marginBottom="16dp"
-    android:background="@drawable/bg_edit_gray"
-    android:padding="20dp">
+    android:layout_marginBottom="12dp"
+    app:cardBackgroundColor="#FFFFFF"
+    app:cardCornerRadius="12dp"
+    app:cardElevation="3dp"
+    app:strokeColor="#F0F0F0"
+    app:strokeWidth="1dp">
 
-    <ImageView
-        android:id="@+id/btn_remove_item"
-        android:layout_width="24dp"
-        android:layout_height="24dp"
-        android:src="@android:drawable/ic_menu_close_clear_cancel"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
-
-    <TextView
-        android:id="@+id/tv_label_name"
-        android:layout_width="70dp"
+    <LinearLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="메뉴이름"
-        android:textColor="#000000"
-        android:textSize="16sp"
-        android:fontFamily="@font/nanum_gothic_bold"
-        app:layout_constraintTop_toTopOf="@id/et_menu_name"
-        app:layout_constraintBottom_toBottomOf="@id/et_menu_name"
-        app:layout_constraintStart_toStartOf="parent" />
+        android:orientation="horizontal"
+        android:padding="14dp">
 
-    <EditText
-        android:id="@+id/et_menu_name"
-        android:layout_width="0dp"
-        android:layout_height="44dp"
-        android:background="@drawable/bg_edit_selector"
-        android:paddingHorizontal="12dp"
-        android:textColor="#000000"
-        android:inputType="text"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintStart_toEndOf="@id/tv_label_name"
-        app:layout_constraintEnd_toStartOf="@id/btn_remove_item"
-        android:layout_marginEnd="12dp" />
+        <!-- 메뉴 사진 -->
+        <ImageView
+            android:id="@+id/iv_menu_photo"
+            android:layout_width="96dp"
+            android:layout_height="96dp"
+            android:layout_gravity="center_vertical"
+            android:background="@drawable/bg_edit_gray"
+            android:scaleType="centerCrop"
+            android:src="@drawable/ic_add_photo" />
 
-    <TextView
-        android:id="@+id/tv_label_price"
-        android:layout_width="70dp"
-        android:layout_height="wrap_content"
-        android:text="메뉴가격"
-        android:textColor="#000000"
-        android:textSize="16sp"
-        android:fontFamily="@font/nanum_gothic_bold"
-        app:layout_constraintTop_toTopOf="@id/et_menu_price"
-        app:layout_constraintBottom_toBottomOf="@id/et_menu_price"
-        app:layout_constraintStart_toStartOf="parent" />
+        <!-- 입력 폼 영역 -->
+        <RelativeLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="14dp"
+            android:layout_weight="1">
 
-    <EditText
-        android:id="@+id/et_menu_price"
-        android:layout_width="0dp"
-        android:layout_height="44dp"
-        android:layout_marginEnd="35dp"
-        android:layout_marginTop="12dp"
-        android:background="@drawable/bg_edit_selector"
-        android:paddingHorizontal="12dp"
-        android:textColor="#000000"
-        android:inputType="number"
-        app:layout_constraintTop_toBottomOf="@id/et_menu_name"
-        app:layout_constraintStart_toEndOf="@id/tv_label_price"
-        app:layout_constraintEnd_toEndOf="parent"
-        />
+            <!-- 삭제 버튼 -->
+            <ImageView
+                android:id="@+id/btn_remove_item"
+                android:layout_width="30dp"
+                android:layout_height="30dp"
+                android:layout_alignParentEnd="true"
+                android:layout_alignParentTop="true"
+                android:padding="4dp"
+                android:src="@android:drawable/ic_menu_close_clear_cancel" />
 
-    <TextView
-        android:id="@+id/tv_label_desc"
-        android:layout_width="70dp"
-        android:layout_height="wrap_content"
-        android:text="한줄소개"
-        android:textColor="#000000"
-        android:textSize="16sp"
-        android:fontFamily="@font/nanum_gothic_bold"
-        app:layout_constraintTop_toTopOf="@id/et_menu_desc"
-        app:layout_constraintBottom_toBottomOf="@id/et_menu_desc"
-        app:layout_constraintStart_toStartOf="parent" />
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_toStartOf="@id/btn_remove_item"
+                android:orientation="vertical">
 
-    <EditText
-        android:id="@+id/et_menu_desc"
-        android:layout_width="0dp"
-        android:layout_height="44dp"
-        android:layout_marginTop="12dp"
-        android:layout_marginEnd="35dp"
-        android:background="@drawable/bg_edit_selector"
-        android:paddingHorizontal="12dp"
-        android:textColor="#000000"
-        android:inputType="text"
-        app:layout_constraintTop_toBottomOf="@id/et_menu_price"
-        app:layout_constraintStart_toEndOf="@id/tv_label_desc"
-        app:layout_constraintEnd_toEndOf="parent" />
+                <!-- 메뉴 이름 -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="36dp"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
 
-    <TextView
-        android:id="@+id/tv_label_photo"
-        android:layout_width="70dp"
-        android:layout_height="wrap_content"
-        android:text="메뉴사진"
-        android:textColor="#000000"
-        android:textSize="16sp"
-        android:fontFamily="@font/nanum_gothic_bold"
-        app:layout_constraintTop_toTopOf="@id/iv_menu_photo"
-        app:layout_constraintBottom_toBottomOf="@id/iv_menu_photo"
-        app:layout_constraintStart_toStartOf="parent" />
+                    <TextView
+                        android:layout_width="32dp"
+                        android:layout_height="wrap_content"
+                        android:fontFamily="@font/nanum_gothic_bold"
+                        android:text="이름"
+                        android:textColor="#AAAAAA"
+                        android:textSize="12sp" />
 
-    <ImageView
-        android:id="@+id/iv_menu_photo"
-        android:layout_width="80dp"
-        android:layout_height="80dp"
-        android:layout_marginTop="12dp"
-        android:scaleType="fitCenter"
-        android:src="@drawable/ic_add_photo"
-        app:layout_constraintTop_toBottomOf="@id/et_menu_desc"
-        app:layout_constraintStart_toEndOf="@id/tv_label_photo" />
+                    <EditText
+                        android:id="@+id/et_menu_name"
+                        android:layout_width="0dp"
+                        android:layout_height="34dp"
+                        android:layout_marginStart="6dp"
+                        android:layout_weight="1"
+                        android:background="@drawable/bg_edit_selector"
+                        android:hint="메뉴명을 입력하세요"
+                        android:inputType="text"
+                        android:paddingHorizontal="10dp"
+                        android:textColor="#000000"
+                        android:textColorHint="#CCCCCC"
+                        android:textSize="13sp" />
+                </LinearLayout>
 
-</androidx.constraintlayout.widget.ConstraintLayout>
+                <!-- 메뉴 가격 -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="36dp"
+                    android:layout_marginTop="6dp"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:layout_width="32dp"
+                        android:layout_height="wrap_content"
+                        android:fontFamily="@font/nanum_gothic_bold"
+                        android:text="가격"
+                        android:textColor="#AAAAAA"
+                        android:textSize="12sp" />
+
+                    <EditText
+                        android:id="@+id/et_menu_price"
+                        android:layout_width="0dp"
+                        android:layout_height="34dp"
+                        android:layout_marginStart="6dp"
+                        android:layout_weight="1"
+                        android:background="@drawable/bg_edit_selector"
+                        android:hint="0"
+                        android:inputType="number"
+                        android:paddingHorizontal="10dp"
+                        android:textColor="#000000"
+                        android:textColorHint="#CCCCCC"
+                        android:textSize="13sp" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="6dp"
+                        android:fontFamily="@font/nanum_gothic_bold"
+                        android:text="원"
+                        android:textColor="#666666"
+                        android:textSize="13sp" />
+                </LinearLayout>
+
+                <!-- 한 줄 소개 -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="36dp"
+                    android:layout_marginTop="6dp"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:layout_width="32dp"
+                        android:layout_height="wrap_content"
+                        android:fontFamily="@font/nanum_gothic_bold"
+                        android:text="소개"
+                        android:textColor="#AAAAAA"
+                        android:textSize="12sp" />
+
+                    <EditText
+                        android:id="@+id/et_menu_desc"
+                        android:layout_width="0dp"
+                        android:layout_height="34dp"
+                        android:layout_marginStart="6dp"
+                        android:layout_weight="1"
+                        android:background="@drawable/bg_edit_selector"
+                        android:hint="한 줄 소개 (선택)"
+                        android:inputType="text"
+                        android:paddingHorizontal="10dp"
+                        android:textColor="#000000"
+                        android:textColorHint="#CCCCCC"
+                        android:textSize="13sp" />
+                </LinearLayout>
+            </LinearLayout>
+        </RelativeLayout>
+    </LinearLayout>
+</com.google.android.material.card.MaterialCardView>

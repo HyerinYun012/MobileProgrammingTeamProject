@@ -50,7 +50,7 @@ class MenuInputAdapter(
             binding.etMenuPrice.addTextChangedListener(textWatcher)
             binding.etMenuDesc.addTextChangedListener(textWatcher)
 
-            if (!menu.imageUri.isNullOrEmpty()) {
+            if (menu.imageUri.isNotEmpty()) {
                 Glide.with(binding.ivMenuPhoto.context)
                     .load(Uri.parse(menu.imageUri))
                     .transform(RoundedCorners(20))
