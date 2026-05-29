@@ -3,8 +3,10 @@ package com.petplace.controller;
 import com.petplace.dto.request.RestaurantFilterRequest;
 import com.petplace.dto.request.RestaurantRequest;
 import com.petplace.dto.request.RestaurantUpdateRequest;
+import com.petplace.dto.response.OwnerRestaurantSummaryResponse;
 import com.petplace.dto.response.ApiResponse;
 import com.petplace.dto.response.RestaurantResponse;
+import com.petplace.repository.RestaurantRepository;
 import com.petplace.service.RestaurantService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -24,6 +26,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Tag(name = "장소(Restaurant/Cafe) API", description = "반려견 동반 가능 장소 검색, 필터링 및 업체 등록 관리 API")
 @RestController
@@ -32,6 +35,7 @@ import java.util.List;
 public class RestaurantController {
 
     private final RestaurantService restaurantService;
+    private final RestaurantRepository restaurantRepository;
 
     @lombok.Getter
     @io.swagger.v3.oas.annotations.media.Schema(description = "장소 등록 폼 데이터")
@@ -147,5 +151,14 @@ public class RestaurantController {
     ) {
         Long updatedId = restaurantService.update(id, ownerId, req, images); // 🌟 흐름 연결
         return ResponseEntity.ok(ApiResponse.success("장소 정보가 수정되었습니다.", updatedId));
+    }
+
+    /**
+     * 사장님 본인 업장 목록 조회
+     */
+    public List<OwnerRestaurantSummaryResponse> getMyRestaurants(Long ownerId) {
+        return restaurantRepository.findAllByOwnerId(ownerId).stream()
+                .map(OwnerRestaurantSummaryResponse::from)
+                .collect(Collectors.toList());
     }
 }
