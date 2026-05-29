@@ -6,7 +6,7 @@
     android:layout_height="wrap_content"
     android:background="#FFFFFF"
     android:paddingHorizontal="20dp"
-    android:paddingVertical="16dp">
+    android:paddingVertical="20dp">
 
     <LinearLayout
         android:id="@+id/layout_restaurant_link"
@@ -42,8 +42,10 @@
     <ImageView
         android:id="@+id/btn_delete_review"
         android:layout_width="40dp"
-        android:layout_height="40dp"
-        android:padding="8dp"
+        android:layout_height="30dp"
+        android:padding="4dp"
+        android:scaleType="fitCenter"
+        android:background="?attr/selectableItemBackgroundBorderless"
         android:src="@drawable/ic_delete"
         android:clickable="true"
         android:focusable="true"
@@ -58,9 +60,10 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
         android:numStars="5"
-        android:stepSize="1.0"
-        tools:rating="5"
+        android:stepSize="0.5"
         android:progressTint="#FFC107"
+        android:progressBackgroundTint="#E0E0E0"
+        android:secondaryProgressTint="#FFC107"
         app:layout_constraintTop_toBottomOf="@id/layout_restaurant_link"
         app:layout_constraintStart_toStartOf="parent" />
 
@@ -81,7 +84,8 @@
     <ImageView
         android:id="@+id/iv_review_photo"
         android:layout_width="0dp"
-        android:layout_height="150dp" android:layout_marginTop="12dp"
+        android:layout_height="150dp"
+        android:layout_marginTop="12dp"
         android:scaleType="centerCrop"
         android:background="@drawable/bg_rounded_border"
         android:clipToOutline="true"

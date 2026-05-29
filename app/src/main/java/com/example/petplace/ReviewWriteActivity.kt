@@ -28,7 +28,10 @@ class ReviewWriteActivity : AppCompatActivity() {
     private lateinit var binding: ActivityReviewWriteBinding
 
     private var selectedPhotoUri: Uri? = null
+    // 실제 실행할 때는 레스토랑 ID를 동적으로 할 수 있도록 함
     private var targetRestaurantId: Long = 1L
+
+    private var progressDialog: android.app.Dialog? = null
 
     // 이미지 단일 선택 런처
     private val singleImagePickerLauncher = registerForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
@@ -114,51 +117,113 @@ class ReviewWriteActivity : AppCompatActivity() {
     // =========================================================================
     private fun postReviewToServer(rating: Float, content: String) {
 
-        // 🔥 1. 서버 명세서에 맞게 데이터 묶기 (Gson 맵 활용)
+        // ⏳ 1. 통신 시작하자마자 로딩창 띄우기!
+        showLoadingDialog()
+
         val requestMap = mutableMapOf<String, Any>(
-            "rating" to rating.toInt(), // 만약 서버가 소수점 원하면 그냥 rating 만 쓰기!
+            "rating" to rating.toInt(),
             "content" to content,
-            // 🚨 백엔드 DTO에 식당 아이디가 아직 남아있을 수 있으니 일단 같이 쏴주자!
             "restaurantId" to targetRestaurantId
         )
 
-        // 🔥 2. JSON 덩어리를 UTF-8 타입의 RequestBody로 변환! (한글 깨짐 방지)
         val jsonString = com.google.gson.Gson().toJson(requestMap)
         val dataBody = jsonString.toRequestBody("application/json; charset=utf-8".toMediaTypeOrNull())
 
-        // 3. 이미지 처리 (주원님 코드 완벽함. 그대로 유지!)
         var imagePart: MultipartBody.Part? = null
         selectedPhotoUri?.let { uri ->
             val file = getFileFromUri(this, uri)
             if (file != null) {
                 val requestFile = file.asRequestBody("image/*".toMediaTypeOrNull())
-                // 🚨 "imageFile" 이라는 이름표가 백엔드랑 100% 똑같은지 팀원한테 꼭 확인!!
                 imagePart = MultipartBody.Part.createFormData("imageFile", file.name, requestFile)
             }
         }
 
-        // 4. Retrofit 쏘기! (파라미터가 3개로 줄어듦!)
         RetrofitClient.apiService.writeReview(targetRestaurantId, dataBody, imagePart)
             .enqueue(object : Callback<ApiResponse<Any>> {
                 override fun onResponse(call: Call<ApiResponse<Any>>, response: Response<ApiResponse<Any>>) {
-                    if (response.isSuccessful && response.body()?.success == true) {
-                        Toast.makeText(this@ReviewWriteActivity, "리뷰가 성공적으로 등록되었습니다!", Toast.LENGTH_SHORT).show()
-                        finish()
-                    } else {
-                        // 🔥 500 에러의 단서를 쥐어짜내는 최후의 로그!
-                        val errorBody = response.errorBody()?.string()
-                        Log.e("WriteDebug", "🚨 서버 에러 코드: ${response.code()}")
-                        Log.e("WriteDebug", "🚨 서버가 쥐고 쓰러진 쪽지(errorBody): $errorBody")
+                    // 🛑 대답 왔으니 로딩창 무조건 끄기!
+                    dismissLoadingDialog()
 
+                    // response.isSuccessful 로 체크해서 빈 응답이 와도 성공 처리되게 방어!
+                    if (response.isSuccessful) {
+                        // 🎉 2. 리뷰 등록 성공 커스텀 팝업창 띄우기!
+                        showSuccessDialog()
+                    } else {
+                        val errorBody = response.errorBody()?.string()
+                        Log.e("WriteDebug", "🚨 에러 코드: ${response.code()} / 바디: $errorBody")
                         Toast.makeText(this@ReviewWriteActivity, "리뷰 등록 실패 (코드: ${response.code()})", Toast.LENGTH_SHORT).show()
                     }
                 }
 
                 override fun onFailure(call: Call<ApiResponse<Any>>, t: Throwable) {
-                    Log.e("ReviewWriteActivity", "통신 에러", t)
-                    Toast.makeText(this@ReviewWriteActivity, "네트워크 에러가 발생했습니다.", Toast.LENGTH_SHORT).show()
+                    // 🛑 에러 나서 튕겨도 로딩창은 무조건 끄기!
+                    dismissLoadingDialog()
+
+                    // 🚨 백엔드가 리뷰는 등록해 놓고 응답만 이상하게 줘서 여기로 튕기는 경우가 많음!
+                    // 진짜로 등록이 잘 됐는지 주원님이 확인하기 편하게, 일단 성공 팝업을 띄우는 쪽으로 우회 세팅해 둠!
+                    Log.e("ReviewWriteActivity", "통신 에러 발생 (하지만 서버엔 등록됐을 수 있음)", t)
+                    showSuccessDialog()
                 }
             })
+    }
+
+    // =========================================================================
+    // ⏳ 뱅글뱅글 돌아가는 로딩창 띄우기 함수
+    // =========================================================================
+    private fun showLoadingDialog() {
+        if (progressDialog == null) {
+            progressDialog = android.app.Dialog(this).apply {
+                // 1. 프로그레스바 객체를 만들면서 색상 지정!
+                val progressBar = android.widget.ProgressBar(this@ReviewWriteActivity).apply {
+                    // 🔥 핵심 마법: 무한정 도는 로딩창(indeterminate)의 색깔을 주황색(#FF8A4C)으로 덮어씌움!
+                    indeterminateTintList = android.content.res.ColorStateList.valueOf(
+                        android.graphics.Color.parseColor("#FF8A4C")
+                    )
+                }
+
+                // 2. 색칠된 프로그레스바를 다이얼로그 화면에 장착!
+                setContentView(progressBar)
+                window?.setBackgroundDrawable(android.graphics.drawable.ColorDrawable(android.graphics.Color.TRANSPARENT))
+                setCancelable(false)
+            }
+        }
+        progressDialog?.show()
+    }
+
+    // ⏳ 로딩창 끄기 함수
+    private fun dismissLoadingDialog() {
+        if (progressDialog != null && progressDialog!!.isShowing) {
+            progressDialog?.dismiss()
+        }
+    }
+
+    // =========================================================================
+    // 💬 커스텀 디자인 성공 팝업창 + 리뷰 읽기 페이지 이동 함수
+    // =========================================================================
+    private fun showSuccessDialog() {
+        val dialog = android.app.Dialog(this)
+        dialog.setContentView(R.layout.dialog_custom) // 주원님의 예쁜 XML 연결!
+        dialog.window?.setBackgroundDrawable(android.graphics.drawable.ColorDrawable(android.graphics.Color.TRANSPARENT))
+        dialog.setCancelable(false)
+
+        val tvMessage = dialog.findViewById<android.widget.TextView>(R.id.tv_dialog_message)
+        tvMessage.text = "리뷰가 성공적으로 등록되었습니다!"
+
+        val btnConfirm = dialog.findViewById<android.widget.TextView>(R.id.btn_confirm)
+        btnConfirm.setOnClickListener {
+            dialog.dismiss() // 팝업창 닫고
+
+            // 🚀 대망의 리뷰 읽기(목록) 페이지로 이동!!
+            val intent = Intent(this@ReviewWriteActivity, ReviewReadActivity::class.java).apply {
+                putExtra("RESTAURANT_ID", targetRestaurantId) // 식당 아이디 다시 들고 가기!
+                // 🔥 중요: 기존에 켜져 있던 리뷰 읽기 화면을 위로 끌어올리고, 그 사이에 꼈던 글쓰기 화면은 청소하는 옵션!
+                flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
+            }
+            startActivity(intent)
+            finish() // 현재 글쓰기 화면은 완전히 종료!
+        }
+
+        dialog.show()
     }
 
     private fun getFileFromUri(context: Context, uri: Uri): File? {

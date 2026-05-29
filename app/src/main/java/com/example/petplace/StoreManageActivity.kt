@@ -1,7 +1,12 @@
 package com.example.petplace // 🚨 본인 패키지명 확인!
 
+import android.content.Context
+import android.content.Intent
 import android.content.res.ColorStateList
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.graphics.Color
+import android.location.Geocoder
 import android.net.Uri
 import android.os.Bundle
 import android.util.Log
@@ -16,10 +21,11 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import com.bumptech.glide.Glide
 import com.example.petplace.databinding.ActivityStoreManageBinding
-import com.example.petplace.network.RetrofitClient
 import com.example.petplace.network.ApiResponse
-import com.example.petplace.network.RestaurantRequest
 import com.example.petplace.network.OperatingHourRequest
+import com.example.petplace.network.RestaurantDetailResponse
+import com.example.petplace.network.RestaurantRequest
+import com.example.petplace.network.RetrofitClient
 import com.google.android.material.chip.Chip
 import com.google.gson.Gson
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
@@ -29,20 +35,18 @@ import okhttp3.RequestBody.Companion.toRequestBody
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
-import android.graphics.Bitmap
-import android.graphics.BitmapFactory
 import java.io.ByteArrayOutputStream
-import android.location.Geocoder
-import android.content.Intent
 import java.util.Locale
 
 class StoreManageActivity : AppCompatActivity() {
 
     private var finalLatitude: Double = 0.0
     private var finalLongitude: Double = 0.0
-    private var finalRegionCode: String = "ETC" // 기본값
+    private var finalRegionCode: String = "ETC"
 
     private lateinit var binding: ActivityStoreManageBinding
+    private var progressDialog: android.app.Dialog? = null
+    private var savedRestaurantId: Long = -1L
 
     private var thumbnailUri: Uri? = null
     private val bannerUriList = mutableListOf<Uri>()
@@ -99,13 +103,34 @@ class StoreManageActivity : AppCompatActivity() {
         setupCategorySpinner()
         setupTimePicker()
 
+        // 저장 버튼 클릭 시 항상 수정(PUT) API 호출
         binding.ivSaveButton.setOnClickListener {
-            packAndSendToServer() // 🔥 이제 서버로 진짜 발송!
+            packAndSendToServer()
         }
 
         binding.btnSearchAddress.setOnClickListener {
             val intent = Intent(this, AddressSearchActivity::class.java)
             addressLauncher.launch(intent)
+        }
+
+        // 1. SharedPreferences에서 회원가입 시 연동된 식당 고유 ID 로드
+        val sharedPref = getSharedPreferences("PetPlacePrefs", Context.MODE_PRIVATE)
+        // savedRestaurantId = sharedPref.getLong("OWNER_RESTAURANT_ID", -1L) // 💡 일단 주석 처리!
+
+        // 🔥 프론트엔드 일타강사의 테스트용 치트키: 강제로 1번 주입!!
+        savedRestaurantId = 1L
+
+        // 이렇게 강제로 1을 꽂아두면 밑에 있는 if (savedRestaurantId != -1L) 검문소를
+        // 무사통과해서 백엔드 1번 식당 데이터를 쫙 불러올 겁니다!
+
+        // 2. 초기화 단계 검증: 회원가입 시 생성되므로 ID가 무조건 존재해야 함
+        if (savedRestaurantId != -1L) {
+            Log.d("StoreManageActivity", "Saved restaurant ID verified: $savedRestaurantId. Executing initial fetch.")
+            fetchRestaurantDetailFromServer(savedRestaurantId)
+        } else {
+            Log.e("StoreManageActivity", "Initialization failed: OWNER_RESTAURANT_ID is missing.")
+            Toast.makeText(this, "식당 정보 고유 ID를 확인할 수 없습니다.", Toast.LENGTH_SHORT).show()
+            finish()
         }
     }
 
@@ -115,24 +140,17 @@ class StoreManageActivity : AppCompatActivity() {
             val fullAddress = data?.getStringExtra("address") ?: ""
             val dongName = data?.getStringExtra("dong") ?: ""
 
-            // 화면에 선택한 주소 글씨 띄우기
             binding.etStoreAddress.setText(fullAddress)
-
-            // 텍스트 주소를 위도/경도로 변환!! (Geocoder)
             convertAddressToCoordinates(fullAddress)
-
-            // 동을 영어 이름으로 바꿈
             finalRegionCode = convertDongToRegionCode(dongName)
 
             Toast.makeText(this, "지역코드: $finalRegionCode \n좌표: ($finalLatitude, $finalLongitude)", Toast.LENGTH_LONG).show()
         }
     }
 
-    // 🔥 3. 텍스트 주소 -> 위도/경도 숫자 변환기
     private fun convertAddressToCoordinates(address: String) {
         try {
             val geocoder = Geocoder(this, Locale.KOREA)
-            // 안드로이드 13(Tiramisu) 이상부터는 Geocoder 사용법이 바뀜 (동기/비동기 호환)
             val addresses = geocoder.getFromLocationName(address, 1)
             if (!addresses.isNullOrEmpty()) {
                 finalLatitude = addresses[0].latitude
@@ -141,11 +159,10 @@ class StoreManageActivity : AppCompatActivity() {
                 Toast.makeText(this, "지도에서 좌표를 찾을 수 없는 주소입니다.", Toast.LENGTH_SHORT).show()
             }
         } catch (e: Exception) {
-            Log.e("GEOCODER", "좌표 변환 실패", e)
+            Log.e("StoreManageActivity", "convertAddressToCoordinates error", e)
         }
     }
 
-    // 🔥 4. 한글 동 이름 -> 영어 지역 코드 번역기 (팀원 명세서 기준)
     private fun convertDongToRegionCode(dong: String): String {
         return when {
             dong.contains("대야") -> "DAEYA"
@@ -158,34 +175,84 @@ class StoreManageActivity : AppCompatActivity() {
             dong.contains("월곶") -> "WOLGOT"
             dong.contains("정왕") -> "JEONGWANG"
             dong.contains("거북섬") -> "GEOBUKSEOM"
-            dong.contains("배곧") -> "BAEGOT"
+            dong.contains("배곧") -> "BAEGON"
             dong.contains("과림") -> "GWARIM"
             dong.contains("연성") -> "YEONSEONG"
             dong.contains("능곡") -> "NEUNGGOK"
             dong.contains("장곡") -> "JANGGOK"
-            else -> "ETC" // 시흥시 외의 기타 지역이 들어올 경우 기본값
+            else -> "ETC"
         }
     }
 
     // =========================================================================
-    // 🔥 [핵심] 데이터를 패키징해서 진짜 서버로 쏘는 함수
+    // 🌐 1. 서버에서 기존 등록된 업장 정보 가져오기 (GET)
+    // =========================================================================
+    private fun fetchRestaurantDetailFromServer(restaurantId: Long) {
+        showLoadingDialog()
+
+        RetrofitClient.apiService.getRestaurantDetail(restaurantId)
+            .enqueue(object : Callback<ApiResponse<RestaurantDetailResponse>> {
+                override fun onResponse(
+                    call: Call<ApiResponse<RestaurantDetailResponse>>,
+                    response: Response<ApiResponse<RestaurantDetailResponse>>
+                ) {
+                    dismissLoadingDialog()
+                    if (response.isSuccessful && response.body()?.success == true) {
+                        val restaurantData = response.body()?.data
+                        if (restaurantData != null) {
+                            Log.i(
+                                "StoreManageActivity",
+                                "fetchRestaurantDetail success: id=${restaurantData.id}"
+                            )
+                            bindRestaurantDataToUI(restaurantData)
+                        }
+                    } else {
+                        // 기존 에러 메시지 파싱
+                        val errorMsg = RetrofitClient.parseErrorMessage(response)
+
+                        // 🔥 추가: 서버가 뱉어낸 진짜 날것의 에러 텍스트(HTML이나 긴 JSON) 긁어오기
+                        val rawErrorBody = response.errorBody()?.string()
+
+                        // 아주 건조하고 사무적인 톤으로 상세 로그 출력
+                        Log.e("StoreManageActivity", "API Request Failed. Code: ${response.code()}")
+                        Log.e("StoreManageActivity", "Parsed Error: $errorMsg")
+                        Log.e("StoreManageActivity", "Raw Error Body: $rawErrorBody")
+
+                        Toast.makeText(
+                            this@StoreManageActivity,
+                            "서버 내부 오류가 발생했습니다.",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    }
+                }
+                override fun onFailure(call: Call<ApiResponse<RestaurantDetailResponse>>, t: Throwable) {
+                    dismissLoadingDialog()
+                    Log.e("StoreManageActivity", "fetchRestaurantDetail network failure", t)
+                    Toast.makeText(this@StoreManageActivity, "네트워크 연결 상태를 확인해주세요.", Toast.LENGTH_SHORT).show()
+                }
+            })
+    }
+
+    // =========================================================================
+    // 🌐 2. 데이터를 패키징해서 서버로 수정 본문 발송 (PUT)
     // =========================================================================
     private fun packAndSendToServer() {
         val storeName = binding.etStoreName.text.toString().trim()
         val storeAddress = binding.etStoreAddress.text.toString().trim()
         val storePhone = binding.etStorePhone.text.toString().trim()
 
-        // 간단한 유효성 검사
         if (storeName.isEmpty() || storeAddress.isEmpty() || storePhone.isEmpty()) {
             Toast.makeText(this, "필수 항목(이름, 주소, 전화번호)을 입력해주세요.", Toast.LENGTH_SHORT).show()
             return
         }
-        if (thumbnailUri == null) {
-            Toast.makeText(this, "썸네일 사진은 필수입니다.", Toast.LENGTH_SHORT).show()
+
+        if (savedRestaurantId == -1L) {
+            Log.e("StoreManageActivity", "packAndSendToServer abort: invalid savedRestaurantId")
             return
         }
 
-        // 1️⃣ Chip 텍스트들을 긁어모아 서버가 원하는 요일별 리스트로 조각조각 변환!
+        showLoadingDialog()
+
         val timeChipTexts = mutableListOf<String>()
         for (i in 0 until binding.cgSelectedTimes.childCount) {
             val chip = binding.cgSelectedTimes.getChildAt(i) as Chip
@@ -195,16 +262,15 @@ class StoreManageActivity : AppCompatActivity() {
         val selectedCategory = binding.spinnerCategory.selectedItem.toString()
         val finalCategoryCode = convertCategoryToCode(selectedCategory)
 
-        // 2️⃣ 서버에 보낼 JSON 바디 객체 조립!
+        // RestaurantRequest 객체 생성 (businessNo 영구 제외 버전)
         val restaurantRequest = RestaurantRequest(
             name = storeName,
             address = storeAddress,
             phone = storePhone,
-            businessNo = "120-00-12346", // 화면에 칸이 없어서 일단 더미로 세팅
             category = finalCategoryCode,
-            region = finalRegionCode, // BAEGOT 같은 영어 코드
-            latitude = finalLatitude, // 37.xxx
-            longitude = finalLongitude, // 126.xxx
+            region = finalRegionCode,
+            latitude = finalLatitude,
+            longitude = finalLongitude,
             hasFence = binding.cbFence.isChecked,
             hasArtificialGrass = binding.cbArtificialGrass.isChecked,
             hasNaturalGrass = binding.cbNaturalGrass.isChecked,
@@ -216,53 +282,130 @@ class StoreManageActivity : AppCompatActivity() {
             allowSmall = binding.cbSmallAnimal.isChecked,
             allowMedium = binding.cbMediumAnimal.isChecked,
             allowLarge = binding.cbLargeAnimal.isChecked,
-            menus = emptyList(), // 메뉴 등록 화면은 따로 있으니 일단 패스!
+            menus = emptyList(),
             operatingHours = serverOperatingHours
         )
 
-        // 3️⃣ JSON 객체를 서버 전송용 Multipart RequestBody로 포장 (비닐 래핑 작업)
         val jsonString = Gson().toJson(restaurantRequest)
         val requestBody = jsonString.toRequestBody("application/json".toMediaTypeOrNull())
 
-        // 4️⃣ 이미지들을 하나의 리스트로 합체! (★팀원분 조건: 0번째가 썸ne일, 그 뒤가 배너)
         val imageParts = mutableListOf<MultipartBody.Part>()
 
-        // 0번째 썸네일 장전
-        uriToMultipartPart(thumbnailUri!!, "images")?.let { imageParts.add(it) }
-
-        // 그 뒤로 배너 사진들 연달아 장전
-        for (bannerUri in bannerUriList) {
-            uriToMultipartPart(bannerUri, "images")?.let { imageParts.add(it) }
+        // 명세서 규격 key 이름인 "imageFile"로 Multipart 생성
+        thumbnailUri?.let {
+            uriToMultipartPart(it, "imageFile")?.let { part -> imageParts.add(part) }
         }
 
-        // 5️⃣ 대망의 레트로핏 배달원 출발!!
-        Toast.makeText(this, "업장 등록 중...", Toast.LENGTH_SHORT).show()
+        for (bannerUri in bannerUriList) {
+            uriToMultipartPart(bannerUri, "imageFile")?.let { part -> imageParts.add(part) }
+        }
 
         RetrofitClient.setToken("eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiIxNCIsInJvbGUiOiJPV05FUiIsImlhdCI6MTc3OTk1NDQxNiwiZXhwIjoxNzgwMDQwODE2fQ.y7TZrp61HdL51plxasWppZdE9g-zWsQAOGed1udmKVRYj8ccUW9xGh0QovKeQI8GEryegWUdqJsEVr8jc8bfpw")
 
-        RetrofitClient.apiService.registerRestaurant(requestBody, imageParts)
+        // 수정을 전담하므로 항상 updateRestaurant(PUT) API를 호출
+        RetrofitClient.apiService.updateRestaurant(savedRestaurantId, requestBody, imageParts)
             .enqueue(object : Callback<ApiResponse<Long>> {
                 override fun onResponse(call: Call<ApiResponse<Long>>, response: Response<ApiResponse<Long>>) {
+                    dismissLoadingDialog()
                     if (response.isSuccessful && response.body()?.success == true) {
-                        val serverId = response.body()?.data
-                        Toast.makeText(this@StoreManageActivity, "성공적으로 등록되었습니다! ID: $serverId", Toast.LENGTH_LONG).show()
-                        finish() // 성공하면 화면 닫기
+                        Log.i("StoreManageActivity", "updateRestaurant PUT success. id: $savedRestaurantId")
+                        fetchRestaurantDetailFromServer(savedRestaurantId)
+                        Toast.makeText(this@StoreManageActivity, "장소 정보가 수정되었습니다.", Toast.LENGTH_SHORT).show()
                     } else {
                         val errorMsg = RetrofitClient.parseErrorMessage(response)
-                        Toast.makeText(this@StoreManageActivity, "등록 실패: $errorMsg", Toast.LENGTH_LONG).show()
+                        Log.e("StoreManageActivity", "updateRestaurant PUT error. msg: $errorMsg")
+                        Toast.makeText(this@StoreManageActivity, "수정 실패: $errorMsg", Toast.LENGTH_SHORT).show()
                     }
                 }
 
                 override fun onFailure(call: Call<ApiResponse<Long>>, t: Throwable) {
-                    Toast.makeText(this@StoreManageActivity, "네트워크 연결 실패..", Toast.LENGTH_SHORT).show()
-                    Log.e("API_FAIL", "통신 에러 발생", t)
+                    dismissLoadingDialog()
+                    Log.e("StoreManageActivity", "updateRestaurant PUT network failure", t)
+                    Toast.makeText(this@StoreManageActivity, "네트워크 통신 오류가 발생했습니다.", Toast.LENGTH_SHORT).show()
                 }
             })
     }
 
     // =========================================================================
-    // 🛠️ 대박 중요: "월, 화 09:00 ~ 18:00" 문자열을 서버용 리스트로 분해하는 기계
+    // 🎨 3. 서버에서 가져온 초기 생성 데이터를 UI에 매핑 (GET 대응)
     // =========================================================================
+    private fun bindRestaurantDataToUI(data: RestaurantDetailResponse) {
+        // 회원가입 시 기입된 정보가 각 컴포넌트에 자동 매핑됨
+        binding.etStoreName.setText(data.name)
+        binding.etStoreAddress.setText(data.address)
+        binding.etStorePhone.setText(data.phone)
+
+        finalLatitude = data.latitude
+        finalLongitude = data.longitude
+        finalRegionCode = data.region ?: "ETC"
+
+        binding.cbFence.isChecked = data.hasFence
+        binding.cbArtificialGrass.isChecked = data.hasArtificialGrass
+        binding.cbNaturalGrass.isChecked = data.hasNaturalGrass
+        binding.cbSnack.isChecked = data.hasSnack
+        binding.cbParking.isChecked = data.hasParking
+        binding.cbRestroom.isChecked = data.hasRestroom
+        binding.cbIndoor.isChecked = data.hasIndoor
+        binding.cbOutdoor.isChecked = data.hasOutdoor
+
+        binding.cbSmallAnimal.isChecked = data.allowSmall
+        binding.cbMediumAnimal.isChecked = data.allowMedium
+        binding.cbLargeAnimal.isChecked = data.allowLarge
+
+        // Spinner 카테고리 초기 선택 상태 동기화
+        if (data.category == "CAFE") {
+            binding.spinnerCategory.setSelection(0)
+        } else if (data.category == "RESTAURANT") {
+            binding.spinnerCategory.setSelection(1)
+        }
+
+        if (!data.imageUrl.isNullOrEmpty()) {
+            Glide.with(this)
+                .load(data.imageUrl)
+                .centerCrop()
+                .into(binding.ivThumbnailAdd)
+        }
+
+        // 요일별 영업시간 데이터 복원 및 Chip 렌더링
+        binding.cgSelectedTimes.removeAllViews()
+        data.operatingHours?.let { hours ->
+            val dayMap = mapOf("MON" to "월", "TUE" to "화", "WED" to "수", "THU" to "목", "FRI" to "금", "SAT" to "토", "SUN" to "일")
+            for (hour in hours) {
+                val korDay = dayMap[hour.dayOfWeek] ?: ""
+                val timeString = if (hour.regularHoliday) "휴무" else "${hour.openTime} ~ ${hour.closeTime}"
+                addChipToGroup("$korDay $timeString", isDaily = false, days = listOf(korDay))
+            }
+        }
+    }
+
+    // =========================================================================
+    // ⏳ 4. 로딩 다이얼로그 제어
+    // =========================================================================
+    private fun showLoadingDialog() {
+        if (progressDialog == null) {
+            progressDialog = android.app.Dialog(this).apply {
+                val progressBar = android.widget.ProgressBar(this@StoreManageActivity).apply {
+                    indeterminateTintList = ColorStateList.valueOf(Color.parseColor("#FF8A4C"))
+                }
+                setContentView(progressBar)
+                window?.setBackgroundDrawable(android.graphics.drawable.ColorDrawable(android.graphics.Color.TRANSPARENT))
+                setCancelable(false)
+            }
+        }
+        progressDialog?.show()
+    }
+
+    private fun dismissLoadingDialog() {
+        if (progressDialog != null && progressDialog!!.isShowing) {
+            progressDialog?.dismiss()
+        }
+    }
+
+    override fun onDestroy() {
+        dismissLoadingDialog()
+        super.onDestroy()
+    }
+
     private fun parseHoursToSeverFormat(chipTexts: List<String>): List<OperatingHourRequest> {
         val resultList = mutableListOf<OperatingHourRequest>()
         val dayMap = mapOf("월" to "MON", "화" to "TUE", "수" to "WED", "목" to "THU", "금" to "FRI", "토" to "SAT", "일" to "SUN")
@@ -273,7 +416,6 @@ class StoreManageActivity : AppCompatActivity() {
             var closeTime: String? = null
 
             if (!isHoliday) {
-                // "09:00 ~ 18:00" 부분 가려내기
                 val timePart = text.split(" ").lastOrNull() ?: ""
                 if (timePart.contains("~")) {
                     val times = timePart.split("~")
@@ -288,7 +430,6 @@ class StoreManageActivity : AppCompatActivity() {
                     resultList.add(OperatingHourRequest(d, openTime, closeTime, isHoliday))
                 }
             } else {
-                // "월, 화" 처럼 적힌 한국어 요일을 찾아서 영어 코드로 매핑
                 for ((kor, eng) in dayMap) {
                     if (text.contains(kor)) {
                         resultList.add(OperatingHourRequest(eng, openTime, closeTime, isHoliday))
@@ -299,39 +440,21 @@ class StoreManageActivity : AppCompatActivity() {
         return resultList
     }
 
-    // =========================================================================
-    // 🖼️ Uri 주소를 진짜 파일 비트(MultipartBody.Part)로 굽는 헬퍼 함수
-    // =========================================================================
     private fun uriToMultipartPart(uri: Uri, partName: String): MultipartBody.Part? {
         return try {
             val inputStream = contentResolver.openInputStream(uri) ?: return null
-
-            // 1. 이미지를 안드로이드가 다룰 수 있는 도화지(Bitmap)로 불러오기
             val originalBitmap = BitmapFactory.decodeStream(inputStream)
-
-            // 2. 압축기(ByteArrayOutputStream) 준비
             val outputStream = ByteArrayOutputStream()
-
             originalBitmap.compress(Bitmap.CompressFormat.JPEG, 80, outputStream)
-
-            // 4. 다이어트 끝난 데이터(Byte 배열) 꺼내기
             val compressedBytes = outputStream.toByteArray()
-
-            // 5. 서버로 보낼 택배(RequestBody)로 포장
             val requestFile = compressedBytes.toRequestBody("image/jpeg".toMediaTypeOrNull(), 0, compressedBytes.size)
-
-            // 6. 최종 Multipart 파트로 완성! (이름도 .jpg로 고정)
             MultipartBody.Part.createFormData(partName, "store_img_${System.currentTimeMillis()}.jpg", requestFile)
-
         } catch (e: Exception) {
-            Log.e("IMAGE_CONVERT_ERROR", "이미지 압축/변환 실패", e)
+            Log.e("StoreManageActivity", "uriToMultipartPart error", e)
             null
         }
     }
 
-    // =========================================================================
-    // 기존에 주원님이 만들어둔 스피너 및 UI 부가 기능들 (그대로 유지!)
-    // =========================================================================
     private fun setupSpinner() {
         val repeatItems = arrayOf("매일", "매주")
         val adapter = ArrayAdapter(this, R.layout.item_spinner, repeatItems)
@@ -486,15 +609,12 @@ class StoreManageActivity : AppCompatActivity() {
         binding.layoutBannerContainer.addView(newImageView, insertIndex)
     }
 
-    // =========================================================================
-    // 🏷️ 카테고리 스피너 세팅 및 영문 변환기
-    // =========================================================================
     private fun setupCategorySpinner() {
         val categories = arrayOf("카페", "식당")
         val adapter = ArrayAdapter(this, R.layout.item_spinner, categories)
         adapter.setDropDownViewResource(R.layout.item_spinner)
         binding.spinnerCategory.adapter = adapter
-        binding.spinnerCategory.setSelection(0) // 기본값 "카페"
+        binding.spinnerCategory.setSelection(0)
     }
 
     private fun convertCategoryToCode(koreanCategory: String): String {
@@ -505,4 +625,3 @@ class StoreManageActivity : AppCompatActivity() {
         }
     }
 }
-

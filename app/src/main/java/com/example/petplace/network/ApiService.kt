@@ -111,7 +111,7 @@ data class RestaurantRequest(
     val name: String,
     val address: String,
     val phone: String,
-    val businessNo: String,
+    // val businessNo: String, // 🔥 서버 측 구조 변경에 따라 제거됨
     val category: String,
     val region: String?,
     val latitude: Double?,
@@ -131,7 +131,13 @@ data class RestaurantRequest(
     val operatingHours: List<OperatingHourRequest> = emptyList()
 ) : Serializable
 
-data class OperatingHour(val dayOfWeek: String, val openTime: String, val closeTime: String, val regularHoliday: Boolean) : Serializable
+data class OperatingHourResponse(
+    val dayOfWeek: String,
+    val openTime: String,
+    val closeTime: String,
+    val regularHoliday: Boolean
+) : Serializable
+
 data class RestaurantImage(val id: Long, val imageUrl: String, val sortOrder: Int) : Serializable
 
 data class RestaurantResponse(
@@ -143,7 +149,7 @@ data class RestaurantResponse(
     val latitude: Double,
     val longitude: Double,
     val phone: String,
-    val operatingHours: List<OperatingHour>?,
+    val operatingHours: List<OperatingHourResponse>?,
     val allowSmall: Boolean,
     val allowMedium: Boolean,
     val allowLarge: Boolean,
@@ -160,9 +166,10 @@ data class RestaurantResponse(
     val bookmarked: Boolean
 ) : Serializable
 
+// 🔥 식당 상세 정보 응답 DTO (조회용 API 대응)
 data class RestaurantDetailResponse(
     val id: Long,
-    val owner: User?,
+    val owner: User?, // 서버에 따라 owner 객체가 없거나 null일 수 있음
     val name: String,
     val category: String,
     val region: String,
@@ -171,7 +178,7 @@ data class RestaurantDetailResponse(
     val longitude: Double,
     val phone: String,
     val businessNo: String?,
-    val operatingHours: List<OperatingHour>?,
+    val operatingHours: List<OperatingHourResponse>?,
     val allowSmall: Boolean,
     val allowMedium: Boolean,
     val allowLarge: Boolean,
@@ -334,9 +341,12 @@ interface ApiService {
     @Multipart @POST("api/my/pets") fun addPet(@Part("request") request: RequestBody, @Part image: MultipartBody.Part?): Call<ApiResponse<Pet>>
     @Multipart @PUT("api/my/pets/{petId}") fun updatePet(@Path("petId") petId: Long, @Part("request") request: RequestBody, @Part image: MultipartBody.Part?): Call<ApiResponse<Pet>>
 
+    // 🔥 핵심: 식당 상세 조회 (GET) / 식당 등록 (POST) / 식당 수정 (PUT) 세팅 완료
     @GET("api/restaurants/{id}") fun getRestaurantDetail(@Path("id") id: Long): Call<ApiResponse<RestaurantDetailResponse>>
-    @Multipart @POST("api/restaurants") fun registerRestaurant(@Part("request") request: RequestBody, @Part images: List<MultipartBody.Part>?): Call<ApiResponse<Long>>
-    @Multipart @PUT("api/restaurants/{id}") fun updateRestaurant(@Path("id") id: Long, @Part("request") request: RequestBody, @Part images: List<MultipartBody.Part>?): Call<ApiResponse<Long>>
+    @Multipart
+    @POST("api/restaurants") fun registerRestaurant(@Part("data") data: RequestBody, @Part imageFile: List<MultipartBody.Part>?): Call<ApiResponse<Long>>
+    @Multipart
+    @PUT("api/restaurants/{id}") fun updateRestaurant(@Path("id") id: Long, @Part("data") data: RequestBody, @Part imageFile: List<MultipartBody.Part>?): Call<ApiResponse<Long>>
     @GET("api/restaurants/nearby") fun getNearbyRestaurants(@Query("lat") lat: Double, @Query("lng") lng: Double, @Query("radius") radius: Double = 3.0, @QueryMap pageable: Map<String, String>): Call<ApiResponse<PageResponse<RestaurantResponse>>>
     @GET("api/restaurants/filter") fun filterRestaurants(@QueryMap condition: Map<String, @JvmSuppressWildcards Any>, @QueryMap pageable: Map<String, String>): Call<ApiResponse<PageResponse<RestaurantResponse>>>
 

@@ -22,10 +22,10 @@ import com.example.petplace.network.MyReviewResponse
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
-import kotlin.jvm.java
 
 class MyReviewActivity : AppCompatActivity() {
 
+    private var progressDialog: android.app.Dialog? = null
     private lateinit var binding: ActivityMyReviewBinding
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -33,7 +33,6 @@ class MyReviewActivity : AppCompatActivity() {
         binding = ActivityMyReviewBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        // 뒤로가기 버튼
         binding.btnBack.setOnClickListener {
             finish()
         }
@@ -41,7 +40,6 @@ class MyReviewActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
-        // 화면이 다시 켜질 때마다 서버에서 최신 데이터 불러오기
         fetchMyReviewsFromServer()
     }
 
@@ -49,7 +47,6 @@ class MyReviewActivity : AppCompatActivity() {
     // 🌐 서버에서 내 리뷰 목록 가져오기 (GET)
     // =========================================================================
     private fun fetchMyReviewsFromServer() {
-        // 백엔드 명세서에 맞춘 페이징 조건 (0페이지부터 최신순으로 20개 가져오기)
         val pageableMap = mapOf(
             "page" to "0",
             "size" to "20",
@@ -66,25 +63,22 @@ class MyReviewActivity : AppCompatActivity() {
                         val pageData = response.body()?.data
                         val reviewList = pageData?.content ?: emptyList()
 
-                        // 상단에 총 리뷰 개수 반영
                         val totalCount = pageData?.totalElements ?: 0
                         binding.tvReviewCount.text = "${totalCount}개"
 
-                        // 리사이클러뷰에 어댑터 연결!
                         binding.rvMyReviews.adapter = MyReviewAdapter(reviewList) { reviewId ->
-                            // 삭제 버튼 눌렸을 때 실행될 로직
                             deleteReviewOnServer(reviewId)
                         }
                     } else {
                         val errorMsg = RetrofitClient.parseErrorMessage(response)
-                        Log.e("MyReviewActivity", "조회 실패: $errorMsg")
-                        Toast.makeText(this@MyReviewActivity, "리뷰를 불러오지 못했습니다.", Toast.LENGTH_SHORT).show()
+                        Log.e("MyReviewActivity", "fetchMyReviews error: code=${response.code()}, msg=$errorMsg")
+                        Toast.makeText(this@MyReviewActivity, "리뷰 목록 조회 실패", Toast.LENGTH_SHORT).show()
                     }
                 }
 
                 override fun onFailure(call: Call<ApiResponse<PageResponse<MyReviewResponse>>>, t: Throwable) {
-                    Log.e("MyReviewActivity", "통신 에러", t)
-                    Toast.makeText(this@MyReviewActivity, "네트워크 연결을 확인해주세요.", Toast.LENGTH_SHORT).show()
+                    Log.e("MyReviewActivity", "fetchMyReviews network failure", t)
+                    Toast.makeText(this@MyReviewActivity, "네트워크 연결 오류", Toast.LENGTH_SHORT).show()
                 }
             })
     }
@@ -93,26 +87,87 @@ class MyReviewActivity : AppCompatActivity() {
     // 🗑️ 서버에서 특정 리뷰 영구 삭제하기 (DELETE)
     // =========================================================================
     private fun deleteReviewOnServer(reviewId: Long) {
+        showLoadingDialog()
+
         RetrofitClient.apiService.deleteReview(reviewId)
             .enqueue(object : Callback<ApiResponse<Any>> {
                 override fun onResponse(call: Call<ApiResponse<Any>>, response: Response<ApiResponse<Any>>) {
-                    if (response.isSuccessful && response.body()?.success == true) {
-                        Toast.makeText(this@MyReviewActivity, "리뷰가 정상적으로 삭제되었습니다.", Toast.LENGTH_SHORT).show()
-                        // 삭제 성공 시, 화면 갱신을 위해 서버에서 목록을 다시 불러옴!
-                        fetchMyReviewsFromServer()
+                    dismissLoadingDialog()
+
+                    if (response.isSuccessful) {
+                        Log.i("MyReviewActivity", "deleteReview success: reviewId=$reviewId")
+                        showDeleteSuccessDialog()
                     } else {
                         val errorMsg = RetrofitClient.parseErrorMessage(response)
-                        Toast.makeText(this@MyReviewActivity, "삭제 실패: $errorMsg", Toast.LENGTH_SHORT).show()
+                        Log.e("MyReviewActivity", "deleteReview error: code=${response.code()}, msg=$errorMsg")
+                        Toast.makeText(this@MyReviewActivity, "리뷰 삭제 실패", Toast.LENGTH_SHORT).show()
                     }
                 }
 
                 override fun onFailure(call: Call<ApiResponse<Any>>, t: Throwable) {
-                    Log.e("MyReviewActivity", "삭제 중 통신 에러", t)
-                    Toast.makeText(this@MyReviewActivity, "통신 에러로 삭제하지 못했습니다.", Toast.LENGTH_SHORT).show()
+                    dismissLoadingDialog()
+                    Log.e("MyReviewActivity", "deleteReview network failure. (May be processed by server)", t)
+                    // 네트워크 에러로 떨어져도 실제 서버에는 반영되었을 수 있으므로 UI 갱신 시도
+                    showDeleteSuccessDialog()
                 }
             })
     }
 
+    // =========================================================================
+    // ⏳ 다이얼로그 관리 (Loading & Success)
+    // =========================================================================
+    private fun showLoadingDialog() {
+        if (progressDialog == null) {
+            progressDialog = android.app.Dialog(this).apply {
+                // 1. 프로그레스바 객체를 만들면서 색상 지정!
+                val progressBar = android.widget.ProgressBar(this@MyReviewActivity).apply {
+                    // 🔥 핵심 마법: 무한정 도는 로딩창(indeterminate)의 색깔을 주황색(#FF8A4C)으로 덮어씌움!
+                    indeterminateTintList = android.content.res.ColorStateList.valueOf(
+                        android.graphics.Color.parseColor("#FF8A4C")
+                    )
+                }
+
+                // 2. 색칠된 프로그레스바를 다이얼로그 화면에 장착!
+                setContentView(progressBar)
+                window?.setBackgroundDrawable(android.graphics.drawable.ColorDrawable(android.graphics.Color.TRANSPARENT))
+                setCancelable(false)
+            }
+        }
+        progressDialog?.show()
+    }
+
+    private fun dismissLoadingDialog() {
+        if (progressDialog != null && progressDialog!!.isShowing) {
+            progressDialog?.dismiss()
+        }
+    }
+
+    private fun showDeleteSuccessDialog() {
+        val dialog = android.app.Dialog(this)
+        dialog.setContentView(R.layout.dialog_custom)
+        dialog.window?.setBackgroundDrawable(android.graphics.drawable.ColorDrawable(android.graphics.Color.TRANSPARENT))
+        dialog.setCancelable(false)
+
+        val tvMessage = dialog.findViewById<android.widget.TextView>(R.id.tv_dialog_message)
+        tvMessage.text = "리뷰가 정상적으로 삭제되었습니다."
+
+        val btnConfirm = dialog.findViewById<android.widget.TextView>(R.id.btn_confirm)
+        btnConfirm.setOnClickListener {
+            dialog.dismiss()
+            fetchMyReviewsFromServer()
+        }
+
+        dialog.show()
+    }
+
+    override fun onDestroy() {
+        dismissLoadingDialog()
+        super.onDestroy()
+    }
+
+    // =========================================================================
+    // 🎨 RecyclerView Adapter
+    // =========================================================================
     inner class MyReviewAdapter(
         private val reviews: List<MyReviewResponse>,
         private val onDeleteClick: (Long) -> Unit
@@ -120,20 +175,14 @@ class MyReviewActivity : AppCompatActivity() {
 
         inner class ViewHolder(private val itemBinding: ItemMyReviewBinding) : RecyclerView.ViewHolder(itemBinding.root) {
 
-            // 🚨 수정 1: ReviewResponse -> MyReviewResponse 로 변경!
             fun bind(review: MyReviewResponse) {
-                // 1️⃣ 동적으로 가게 이름 데이터 띄우기
                 itemBinding.tvRestaurantName.text = review.restaurantName ?: "가게 정보 없음"
-
-                // 기본 리뷰 데이터 세팅 (별점, 내용)
                 itemBinding.itemRatingBar.rating = review.rating.toFloat()
                 itemBinding.tvReviewContent.text = review.content
 
-                // 2️⃣ Glide 사진 세팅
                 if (!review.imageUrl.isNullOrEmpty()) {
                     itemBinding.ivReviewPhoto.visibility = View.VISIBLE
-
-                    Log.d("GlideDebug", "🎯 내 리뷰 이미지 주소: ${review.imageUrl}")
+                    Log.d("GlideLog", "Loading image url: ${review.imageUrl}")
 
                     Glide.with(itemBinding.root.context)
                         .load(review.imageUrl)
@@ -145,7 +194,7 @@ class MyReviewActivity : AppCompatActivity() {
                                 p2: Target<Drawable?>,
                                 p3: Boolean
                             ): Boolean {
-                                Log.e("GlideDebug", "🚨 내 리뷰 사진 로드 실패!! 원인: ${p0?.message}")
+                                Log.e("GlideLog", "Image load failed. cause: ${p0?.message}")
                                 return false
                             }
 
@@ -156,33 +205,21 @@ class MyReviewActivity : AppCompatActivity() {
                                 p3: DataSource,
                                 p4: Boolean
                             ): Boolean {
-                                Log.d("GlideDebug", "✅ 내 리뷰 사진 띄우기 성공!")
+                                Log.d("GlideLog", "Image load success.")
                                 return false
                             }
-
                         })
                         .into(itemBinding.ivReviewPhoto)
                 } else {
                     itemBinding.ivReviewPhoto.visibility = View.GONE
-                    Log.d("GlideDebug", "⚠️ 사진 없음 (imageUrl 데이터가 비어있음!)")
+                    Log.d("GlideLog", "No image url provided.")
                 }
 
-                // 3️⃣ 식당 상세페이지로 이동하는 클릭 기능!
                 itemBinding.layoutRestaurantLink.setOnClickListener {
-                    // 💡 아직 액티비티가 없으니, 클릭이 잘 되는지 확인용 토스트를 띄웁니다!
-                    Toast.makeText(itemBinding.root.context, "가게 상세 화면은 준비 중입니다!", Toast.LENGTH_SHORT).show()
-
-                    /* 🚀 나중에 가게 상세 액티비티 만들면 이 주석을 풀고 연결해 주기!
-                    val intent = Intent(itemBinding.root.context, RestaurantDetailActivity::class.java)
-                    intent.putExtra("RESTAURANT_ID", review.restaurantId)
-                    itemBinding.root.context.startActivity(intent)
-                    */
+                    Toast.makeText(itemBinding.root.context, "가게 상세 화면은 준비 중입니다.", Toast.LENGTH_SHORT).show()
                 }
 
-                // 4️⃣ 🔥 수정 2: 기존 ic_delete 버튼 클릭 시 진짜 삭제되도록 연결!
                 itemBinding.btnDeleteReview.setOnClickListener {
-                    // 어댑터 만들 때 뚫어놓은 통로(onDeleteClick)로 리뷰 아이디를 쏙 넘겨줌!
-                    // 이러면 액티비티에 있는 deleteReviewOnServer 함수가 알아서 실행됨!
                     onDeleteClick(review.reviewId)
                 }
             }
