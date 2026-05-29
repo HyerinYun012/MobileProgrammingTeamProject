@@ -2,6 +2,7 @@ package com.gabojameong.petplace
 
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.constraintlayout.widget.ConstraintLayout
@@ -34,6 +35,8 @@ class PlaceInfoActivity : AppCompatActivity() {
 
         restaurantId = restaurant!!.id
         isBookmarked = restaurant!!.bookmarked
+
+        recordRecentShop(restaurantId)
         
         initUI(restaurant!!)
         initFragmentNavigation()
@@ -131,5 +134,22 @@ class PlaceInfoActivity : AppCompatActivity() {
             putExtra("isBookmarked", isBookmarked)
         }
         setResult(RESULT_OK, data)
+    }
+
+    private fun recordRecentShop(restaurantId: Long) {
+        apiService.addRecentView(restaurantId).enqueue(object : Callback<ApiResponse<Any>> {
+            override fun onResponse(call: Call<ApiResponse<Any>>, response: Response<ApiResponse<Any>>) {
+                if (response.isSuccessful && response.body()?.success == true) {
+                    Log.d("RecentShop", "최근 본 가게 등록 성공: $restaurantId")
+                } else {
+                    val errorMsg = response.body()?.message ?: "서버 오류"
+                    Log.e("RecentShop", "최근 본 가게 등록 실패: $errorMsg (Code: ${response.code()})")
+                }
+            }
+
+            override fun onFailure(call: Call<ApiResponse<Any>>, t: Throwable) {
+                Log.e("RecentShop", "최근 본 가게 등록 통신 에러", t)
+            }
+        })
     }
 }

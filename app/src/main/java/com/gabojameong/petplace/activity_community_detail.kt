@@ -16,13 +16,13 @@ import androidx.recyclerview.widget.RecyclerView
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
+import com.bumptech.glide.Glide
 
 class activity_community_detail : AppCompatActivity() {
 
     private var postId: Long = -1L
     private var postAuthorId: Long = -1L
     private var currentUserId: Long = -1L
-    // 현재 게시글의 이미지 URL 목록 — 수정 화면에 그대로 전달
     private var currentPostImageUrls: ArrayList<String> = arrayListOf()
 
     private lateinit var ivPostAuthorProfile: ImageView
@@ -88,7 +88,6 @@ class activity_community_detail : AppCompatActivity() {
         findViewById<ImageView>(R.id.imageView7).setOnClickListener { finish() }
         btnCommentSubmit.setOnClickListener { submitComment() }
 
-        // 수정 버튼 — 현재 이미지 URL 목록을 그대로 전달
         btnEditPost.setOnClickListener {
             val intent = Intent(this, activity_write_community::class.java).apply {
                 putExtra("POST_ID", postId)
@@ -175,7 +174,6 @@ class activity_community_detail : AppCompatActivity() {
             btnReportPost.visibility = View.VISIBLE
         }
 
-        // 이미지 목록 저장 및 표시 (다중 이미지 지원)
         val images = post.imageUrls?.filter { it.isNotBlank() } ?: emptyList()
         currentPostImageUrls = ArrayList(images)
 

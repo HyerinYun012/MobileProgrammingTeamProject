@@ -7,8 +7,10 @@ import android.widget.ImageView
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 
-class PostImageAdapter(private val imageUrls: List<String>) :
-    RecyclerView.Adapter<PostImageAdapter.PostImageViewHolder>() {
+class PostImageAdapter(
+    private val imageUrls: List<String>,
+    private val onImageClick: ((String) -> Unit)? = null
+) : RecyclerView.Adapter<PostImageAdapter.PostImageViewHolder>() {
 
     class PostImageViewHolder(view: View) : RecyclerView.ViewHolder(view) {
         val ivImage: ImageView = view.findViewById(R.id.iv_post_image)
@@ -23,14 +25,17 @@ class PostImageAdapter(private val imageUrls: List<String>) :
 
     override fun onBindViewHolder(holder: PostImageViewHolder, position: Int) {
         val url = imageUrls[position]
-        
-        // 열람 모드에서는 삭제 버튼을 숨김 (레이아웃 기본값이 gone이므로 확실히 하기 위해 한 번 더 설정)
         holder.btnRemove.visibility = View.GONE
-        
+
         Glide.with(holder.itemView.context)
             .load(url)
             .placeholder(R.color.search_background)
+            .error(R.color.search_background)
             .into(holder.ivImage)
+
+        holder.ivImage.setOnClickListener {
+            onImageClick?.invoke(url)
+        }
     }
 
     override fun getItemCount(): Int = imageUrls.size

@@ -25,7 +25,6 @@ class LoginActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        // 1. 자동 로그인 체크
         val sharedPref = getSharedPreferences("PetPlacePref", Context.MODE_PRIVATE)
         val savedToken = sharedPref.getString("jwt_token", null)
         if (savedToken != null) {
@@ -39,7 +38,6 @@ class LoginActivity : AppCompatActivity() {
         binding = ActivityLoginBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        // 2. 저장된 아이디 불러오기
         val savedId = sharedPref.getString("saved_id", null)
         if (savedId != null) {
             binding.editTextPhone.setText(savedId)
@@ -197,6 +195,7 @@ class LoginActivity : AppCompatActivity() {
                     editor.putString("jwt_token", token)
                     editor.putLong("userId", profile.id)
                     editor.putString("nickname", profile.nickname)
+                    editor.putString("userRole", profile.role) // role 저장
                     editor.apply()
                     
                     Toast.makeText(applicationContext, "${profile.nickname}님, 환영합니다!", Toast.LENGTH_SHORT).show()

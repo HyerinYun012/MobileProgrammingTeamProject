@@ -2,7 +2,13 @@
     <string name="app_name">펫플레이스</string>
     <string name="login">로그인</string>
     <string name="signup">회원가입</string>
-    <string name="my">MY</string>
+    <string name="my">My</string>
+    <string name="user_suffix">님</string>
+    <string name="attention_list">관심목록</string>
+    <string name="recent_shops">최근 본 가게</string>
+    <string name="my_reviews">내 리뷰</string>
+    <string name="pet_registration">펫 등록</string>
+    <string name="one_on_one_inquiry">1:1 문의</string>
     <string name="hint_id">아이디를 입력해주세요.</string>
     <string name="hint_pw">비밀번호를 입력해주세요.</string>
     <string name="save_id">아이디 저장</string>

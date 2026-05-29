@@ -2,6 +2,7 @@ import java.util.Properties
 
 plugins {
     alias(libs.plugins.android.application)
+    // alias(libs.plugins.google.services)
 }
 
 val localProperties = Properties().apply { rootProject.file("local.properties").inputStream().use { load(it) } }
@@ -67,6 +68,7 @@ android {
 }
 
 dependencies {
+    implementation(libs.androidx.activity.ktx)
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
     implementation(libs.material)
@@ -80,6 +82,11 @@ dependencies {
     implementation(libs.androidx.navigation.ui.ktx)
     implementation("com.google.android.flexbox:flexbox:3.0.0")
     implementation(libs.androidx.fragment)
+    
+    // Firebase
+    implementation(platform(libs.firebase.bom))
+    implementation(libs.firebase.auth)
+
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

@@ -17,6 +17,7 @@ class owner_mypage : AppCompatActivity() {
     private lateinit var ivProfile: ImageView
     private lateinit var tvName: TextView
     private lateinit var btnEditProfile: ImageView
+    private lateinit var btnInquiry: Button
 
     private var userType: String = "OWNER"
 
@@ -43,6 +44,7 @@ class owner_mypage : AppCompatActivity() {
         ivProfile = findViewById(R.id.imageView6)
         tvName = findViewById(R.id.textView4)
         btnEditProfile = findViewById(R.id.imageView9)
+        btnInquiry = findViewById(R.id.button5)
     }
 
     private fun setupListeners() {
@@ -57,8 +59,7 @@ class owner_mypage : AppCompatActivity() {
         findViewById<TextView>(R.id.textView5)?.setOnClickListener { goToEditProfile() }
         findViewById<ImageView>(R.id.imageView7)?.setOnClickListener { finish() }
 
-        // 1:1 문의 버튼 → 문의 목록 화면으로 이동
-        findViewById<Button>(R.id.button5)?.setOnClickListener {
+        btnInquiry.setOnClickListener {
             startActivity(Intent(this, activity_inquirelist::class.java))
         }
     }

@@ -4,7 +4,94 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/main"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    tools:context=".activity_community_list">
+    android:layout_height="match_parent">
+
+    <View
+        android:id="@+id/top_view_line"
+        android:layout_width="0dp"
+        android:layout_height="1dp"
+        android:background="#E0E0E0"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <ImageView
+        android:id="@+id/imageView7"
+        android:layout_width="23dp"
+        android:layout_height="31dp"
+        android:layout_marginStart="20dp"
+        android:layout_marginTop="25dp"
+        android:contentDescription="@null"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:srcCompat="@drawable/mypage_leftarrow" />
+
+
+    <TextView
+        android:id="@+id/textView3"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="24dp"
+        android:fontFamily="@font/nanum_gothic_extra_bold"
+        android:text="커뮤니티"
+        android:textColor="#FF8243"
+        android:textSize="25sp"
+        android:textStyle="bold"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <ImageView
+        android:id="@+id/imageView10"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:contentDescription="@null"
+        android:scaleType="fitXY"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/textView3"
+        app:srcCompat="@drawable/line" />
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rv_community_list"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_marginTop="10dp"
+        app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/imageView10"
+        tools:listitem="@layout/activity_item_community_post" />
+
+    <ImageButton
+        android:id="@+id/btn_write"
+        android:layout_width="171dp"
+        android:layout_height="81dp"
+        android:layout_marginEnd="20dp"
+        android:layout_marginBottom="20dp"
+        android:background="@android:color/transparent"
+        android:contentDescription="@null"
+        android:scaleType="fitCenter"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:srcCompat="@drawable/rectangleinquire" />
+
+    <TextView
+        android:id="@+id/tv_write_label"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:elevation="2dp"
+        android:fontFamily="@font/nanum_gothic_bold"
+        android:text="+ 글 쓰기"
+        android:textColor="@color/white"
+        android:textSize="25sp"
+        app:layout_constraintBottom_toBottomOf="@+id/btn_write"
+        app:layout_constraintEnd_toEndOf="@+id/btn_write"
+        app:layout_constraintHorizontal_bias="0.384"
+        app:layout_constraintStart_toStartOf="@+id/btn_write"
+        app:layout_constraintTop_toTopOf="@+id/btn_write"
+        app:layout_constraintVertical_bias="0.454" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
