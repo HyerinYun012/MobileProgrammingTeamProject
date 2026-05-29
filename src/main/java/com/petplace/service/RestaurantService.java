@@ -2,6 +2,7 @@ package com.petplace.service;
 
 import com.petplace.dto.request.RestaurantFilterRequest;
 import com.petplace.dto.request.RestaurantRequest;
+import com.petplace.dto.request.RestaurantUpdateRequest;
 import com.petplace.dto.response.RestaurantResponse;
 import com.petplace.entity.Restaurant;
 import com.petplace.entity.RestaurantImage;
@@ -151,12 +152,8 @@ public class RestaurantService {
         return restaurant.getId();
     }
 
-    /**
-     * 장소 정보 및 이미지 수정
-     * ★ 규칙 4 적용: 커밋(기존 파일 청소) 및 롤백(수정 중 새로 등록된 유령 파일 청소) 양방향 완벽 동기화
-     */
     @Transactional(rollbackFor = Exception.class)
-    public Long update(Long id, Long ownerId, RestaurantRequest req, List<MultipartFile> newImages) {
+    public Long update(Long id, Long ownerId, RestaurantUpdateRequest req, List<MultipartFile> newImages) { // 🌟 파라미터 타입 변경
         Restaurant restaurant = restaurantRepository.findById(id)
                 .orElseThrow(() -> new BusinessException(ErrorCode.RESTAURANT_NOT_FOUND));
 
@@ -166,14 +163,9 @@ public class RestaurantService {
 
         validateOwnerVerified(restaurant.getOwner());
 
-        if (restaurantRepository.existsByBusinessNoAndIdNot(req.getBusinessNo(), id)) {
-            throw new BusinessException(ErrorCode.DUPLICATE_BUSINESS_NUMBER);
-        }
-
         // 2. 엔티티 정보 갱신
         restaurant.update(
-                req.getName(), req.getAddress(), req.getPhone(), req.getBusinessNo(),
-                req.toOperatingHourEntities(),
+                req.getName(), req.getAddress(), req.getPhone(), req.toOperatingHourEntities(),
                 req.isHasIndoor(), req.isHasOutdoor(), req.isHasRestroom(),
                 req.isAllowSmall(), req.isAllowMedium(), req.isAllowLarge()
         );

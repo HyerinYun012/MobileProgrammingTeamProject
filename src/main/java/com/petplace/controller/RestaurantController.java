@@ -2,6 +2,7 @@ package com.petplace.controller;
 
 import com.petplace.dto.request.RestaurantFilterRequest;
 import com.petplace.dto.request.RestaurantRequest;
+import com.petplace.dto.request.RestaurantUpdateRequest;
 import com.petplace.dto.response.ApiResponse;
 import com.petplace.dto.response.RestaurantResponse;
 import com.petplace.service.RestaurantService;
@@ -46,7 +47,7 @@ public class RestaurantController {
     @io.swagger.v3.oas.annotations.media.Schema(description = "장소 수정 폼 데이터")
     public static class RestaurantUpdateForm {
         @Schema(description = "가게 수정 정보 (JSON)", implementation = RestaurantRequest.class)
-        public RestaurantRequest data;
+        public RestaurantUpdateRequest data;
 
         @Schema(description = "장소 이미지 파일 리스트", type = "array", implementation = MultipartFile.class)
         public List<MultipartFile> imageFile;
@@ -141,10 +142,10 @@ public class RestaurantController {
     public ResponseEntity<ApiResponse<Long>> update(
             @AuthenticationPrincipal Long ownerId,
             @Parameter(description = "장소 ID") @PathVariable Long id,
-            @Valid @RequestPart("data") RestaurantRequest req,
+            @Valid @RequestPart("data") RestaurantUpdateRequest req, // 🌟 변경
             @RequestPart(value = "imageFile", required = false) List<MultipartFile> images
     ) {
-        Long updatedId = restaurantService.update(id, ownerId, req, images);
+        Long updatedId = restaurantService.update(id, ownerId, req, images); // 🌟 흐름 연결
         return ResponseEntity.ok(ApiResponse.success("장소 정보가 수정되었습니다.", updatedId));
     }
 }
