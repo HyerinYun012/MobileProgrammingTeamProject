@@ -9,6 +9,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List; // 💡 List 임포트 추가
+import java.util.Optional;
 
 @Repository
 public interface RestaurantRepository extends JpaRepository<Restaurant, Long>, RestaurantRepositoryCustom {
@@ -18,6 +19,9 @@ public interface RestaurantRepository extends JpaRepository<Restaurant, Long>, R
      * 특정 사장님의 승인을 진행할 때 제출한 모든 사업자 정보를 확인하기 위해 사용됩니다.
      */
     List<Restaurant> findAllByOwnerId(Long ownerId);
+
+    @Query("select r from Restaurant r left join fetch r.images where r.id = :id")
+    Optional<Restaurant> findByIdWithImages(@Param("id") Long id);
 
     /**
      * 사업자 번호 중복 여부 확인 (신규 등록용)

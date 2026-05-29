@@ -57,7 +57,7 @@ public class RestaurantService {
      * 가게 상세 정보 조회 (북마크 여부 결합 및 비로그인 대응)
      */
     public RestaurantResponse getRestaurantDetail(Long id, Long userId) {
-        Restaurant restaurant = restaurantRepository.findById(id)
+        Restaurant restaurant = restaurantRepository.findByIdWithImages(id)
                 .orElseThrow(() -> new BusinessException(ErrorCode.RESTAURANT_NOT_FOUND));
 
         RestaurantResponse response = RestaurantResponse.from(restaurant);
@@ -153,7 +153,7 @@ public class RestaurantService {
     }
 
     @Transactional(rollbackFor = Exception.class)
-    public Long update(Long id, Long ownerId, RestaurantUpdateRequest req, List<MultipartFile> newImages) { // 🌟 파라미터 타입 변경
+    public Long update(Long id, Long ownerId, RestaurantUpdateRequest req, List<MultipartFile> newImages) {
         Restaurant restaurant = restaurantRepository.findById(id)
                 .orElseThrow(() -> new BusinessException(ErrorCode.RESTAURANT_NOT_FOUND));
 
@@ -163,34 +163,48 @@ public class RestaurantService {
 
         validateOwnerVerified(restaurant.getOwner());
 
-        // 2. 엔티티 정보 갱신
+        // 2. 엔티티 기본 정보 및 영업시간 갱신
         restaurant.update(
                 req.getName(), req.getAddress(), req.getPhone(), req.toOperatingHourEntities(),
                 req.isHasIndoor(), req.isHasOutdoor(), req.isHasRestroom(),
                 req.isAllowSmall(), req.isAllowMedium(), req.isAllowLarge()
         );
 
-        // 💡 해결 포인트: final로 선언하고 객체 재할당(=)을 하지 않음!
         final List<String> oldImageUrls = new ArrayList<>();
         final List<String> newlyUploadedFiles = new ArrayList<>();
 
-        // 3. 이미지 교체 로직 진행
+        // 3. [핵심 수정] 이미지 전체 교체 로직 흐름 정밀화
         if (newImages != null && !newImages.isEmpty()) {
-            // 변수 재할당 대신 기존 리스트에 .addAll()로 값만 추가 (Effectively Final 만족)
+            // ⓐ 지워질 기존 S3 파일 주소 백업
             oldImageUrls.addAll(restaurant.getImages().stream()
                     .map(RestaurantImage::getImageUrl)
                     .collect(Collectors.toList()));
 
-            // 파일 업로드 헬퍼 호출
-            uploadFilesAndCreateEntities(restaurant, newImages, newlyUploadedFiles);
-            restaurant.updateImages(restaurant.getImages());
+            // ⓑ 기존 자식 엔티티 리스트를 깨끗하게 비워서 고립 (orphanRemoval=true 가 작동하여 DB Delete 유도)
+            restaurant.getImages().clear();
+
+            // ⓒ 임시 리스트를 만들어 S3 새 업로드 및 새 엔티티 생성 진행
+            List<RestaurantImage> freshImages = new ArrayList<>();
+            int order = 0;
+            for (MultipartFile file : newImages) {
+                if (file != null && !file.isEmpty()) {
+                    String imageUrl = fileService.uploadFile(file);
+                    if (imageUrl != null) {
+                        newlyUploadedFiles.add(imageUrl);
+                        // 순수 객체 생성 (아직 레스토랑 내부 리스트에 add 하지 않음)
+                        freshImages.add(new RestaurantImage(imageUrl, restaurant, order++));
+                    }
+                }
+            }
+
+            // ⓓ 완벽히 필터링된 새 이미지 엔티티 세트만 온전히 주입
+            restaurant.updateImages(freshImages);
         }
 
-        // 4. 트랜잭션 커밋-롤백 양방향 동기화 대책 (이제 컴파일 에러가 발생하지 않습니다)
+        // 4. 트랜잭션 동기화 (기존 동일)
         TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
             @Override
             public void afterCommit() {
-                // 성공 시: 구버전 S3 파일 청소 (리스트가 비어있으면 루프를 돌지 않으므로 안전함)
                 for (String imageUrl : oldImageUrls) {
                     fileService.deleteFile(imageUrl);
                 }
@@ -198,7 +212,6 @@ public class RestaurantService {
 
             @Override
             public void afterCompletion(int status) {
-                // 실패 시: 롤백되었다면 이번 요청으로 새롭게 올라간 유령 파일들만 추적 삭제
                 if (status == STATUS_ROLLED_BACK) {
                     newlyUploadedFiles.forEach(fileService::deleteFile);
                 }
@@ -206,27 +219,5 @@ public class RestaurantService {
         });
 
         return restaurant.getId();
-    }
-
-    /**
-     * 파일 업로드 및 연관관계 동기화 헬퍼 (null 반환 예외 가드 및 새 업로드 추적 연동 확장)
-     */
-    private void uploadFilesAndCreateEntities(Restaurant restaurant, List<MultipartFile> images, List<String> newlyUploadedFiles) {
-        if (images == null || images.isEmpty()) return;
-
-        int order = 0;
-        for (MultipartFile file : images) {
-            // 💡 규칙 4: 비어있는 파일 유입 차단 방어 코드
-            if (file != null && !file.isEmpty()) {
-                String imageUrl = fileService.uploadFile(file);
-
-                // 🌟 [핵심 null 반환 예외 방어]: S3가 URL을 확실히 반환했을 때만 연관관계 형성 및 추적 리스트 등록
-                if (imageUrl != null) {
-                    newlyUploadedFiles.add(imageUrl); // 수정 롤백 대응용 리스트에 보관
-                    RestaurantImage imgEntity = new RestaurantImage(imageUrl, restaurant, order++);
-                    restaurant.addImage(imgEntity);
-                }
-            }
-        }
     }
 }
