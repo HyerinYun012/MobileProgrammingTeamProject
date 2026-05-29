@@ -39,7 +39,10 @@ class CustomerMypageActivity : AppCompatActivity() {
             startActivity(Intent(this, AttentionPage::class.java))
         }
         binding.button4.setOnClickListener {
-            // 최근 본 가게로 이동
+            startActivity(Intent(this, RecentShopActivity::class.java))
+        }
+        binding.button5.setOnClickListener {
+            startActivity(Intent(this, InquiryListActivity::class.java))
         }
         binding.button6.setOnClickListener {
             // 내 리뷰로 이동

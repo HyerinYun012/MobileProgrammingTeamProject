@@ -115,8 +115,16 @@ class OwnerInquiryAnswerActivity : AppCompatActivity() {
 
     private fun reportInquiry() {
         if (inquiryId == -1L) return
-        RetrofitClient.apiService.getGeneralInquiries(mapOf("page" to "0", "size" to "1")) // placeholder — no report API yet
-        Toast.makeText(this, "신고가 접수되었습니다.", Toast.LENGTH_SHORT).show()
+        RetrofitClient.apiService.reportOwnerInquiry(inquiryId)
+            .enqueue(object : retrofit2.Callback<ApiResponse<Any>> {
+                override fun onResponse(call: retrofit2.Call<ApiResponse<Any>>, response: retrofit2.Response<ApiResponse<Any>>) {
+                    Toast.makeText(this@OwnerInquiryAnswerActivity,
+                        if (response.isSuccessful) "신고가 접수되었습니다." else "신고 실패", Toast.LENGTH_SHORT).show()
+                }
+                override fun onFailure(call: retrofit2.Call<ApiResponse<Any>>, t: Throwable) {
+                    Toast.makeText(this@OwnerInquiryAnswerActivity, "네트워크 오류", Toast.LENGTH_SHORT).show()
+                }
+            })
     }
 
     private fun setEditMode() {

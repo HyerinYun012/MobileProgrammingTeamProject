@@ -56,7 +56,9 @@ class OwnerMypageActivity : AppCompatActivity() {
         binding.button9.setOnClickListener {
             val intent = Intent(this, NoticeManageActivity::class.java)
             startActivity(intent)
-            //공지관리 액티비티로 이동
+        }
+        binding.button5.setOnClickListener {
+            startActivity(Intent(this, InquiryListActivity::class.java))
         }
         binding.ivLogout.setOnClickListener {
             RetrofitClient.logout()

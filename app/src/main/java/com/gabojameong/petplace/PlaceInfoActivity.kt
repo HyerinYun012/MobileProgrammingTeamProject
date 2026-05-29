@@ -38,7 +38,9 @@ class PlaceInfoActivity : AppCompatActivity() {
 
         restaurantId = restaurant!!.id
         isBookmarked = restaurant!!.bookmarked
-        
+
+        recordRecentShop(restaurantId)
+
         initUI(restaurant!!)
         initFragmentNavigation()
 
@@ -127,6 +129,14 @@ class PlaceInfoActivity : AppCompatActivity() {
         binding.btnBookmark.setBackgroundResource(
             if (isBookmarked) R.drawable.icon_heart else R.drawable.icon_heart_empty
         )
+    }
+
+    private fun recordRecentShop(id: Long) {
+        if (id <= 0) return
+        RetrofitClient.apiService.addRecentView(id).enqueue(object : retrofit2.Callback<ApiResponse<Any>> {
+            override fun onResponse(call: retrofit2.Call<ApiResponse<Any>>, response: retrofit2.Response<ApiResponse<Any>>) {}
+            override fun onFailure(call: retrofit2.Call<ApiResponse<Any>>, t: Throwable) {}
+        })
     }
 
     private fun setBookmarkResult() {

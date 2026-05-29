@@ -413,6 +413,7 @@ interface ApiService {
     @GET("api/my/bookmarks") fun getBookmarks(@QueryMap pageable: Map<String, String>): Call<ApiResponse<PageResponse<BookmarkResponse>>>
     @POST("api/my/bookmarks/{restaurantId}") fun toggleBookmark(@Path("restaurantId") restaurantId: Long): Call<ApiResponse<Boolean>>
     @POST("api/my/recent/{restaurantId}") fun addRecentView(@Path("restaurantId") restaurantId:Long):Call<ApiResponse<Any>>
+    @GET("api/my/recent") fun getRecentViews(@QueryMap pageable: Map<String, String>): Call<ApiResponse<PageResponse<RecentViewResponse>>>
     @GET("api/my/reviews") fun getMyReviews(@QueryMap pageable: Map<String, String>): Call<ApiResponse<PageResponse<MyReviewResponse>>>
 
     // 당장은 미사용이나 삭제없이일단 주석처리
@@ -463,6 +464,7 @@ interface ApiService {
     @DELETE("api/admin/owners/{ownerId}/reject") fun rejectOwner(@Path("ownerId") ownerId: Long): Call<ApiResponse<Any>>
 
     @GET("api/owner/restaurants") fun getMyRestaurants(): Call<ApiResponse<List<OwnerRestaurantSummary>>>
+    @POST("api/owner/inquiries/{inquiryId}/report") fun reportOwnerInquiry(@Path("inquiryId") inquiryId: Long): Call<ApiResponse<Any>>
 
     @GET("api/owner/inquiries") fun getGeneralInquiries(@QueryMap pageable: Map<String, String>): Call<ApiResponse<PageResponse<InquiryResponse>>>
     @GET("api/owner/inquiries/{inquiryId}") fun getGeneralInquiryDetail(@Path("inquiryId") inquiryId: Long): Call<ApiResponse<InquiryDetailResponse>>

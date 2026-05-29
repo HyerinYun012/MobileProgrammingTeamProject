@@ -79,6 +79,7 @@
         <activity android:name=".ImageDetailActivity" android:exported="false" />
 
         <activity android:name=".AttentionPage" android:exported="false" />
+        <activity android:name=".RecentShopActivity" android:exported="false" />
         <activity android:name=".InquiryListActivity" android:exported="false" />
         <activity android:name=".InquiryWriteActivity" android:exported="false" android:windowSoftInputMode="adjustResize" />
         <activity android:name=".CustomerInquiryAnswerActivity" android:exported="false" />
