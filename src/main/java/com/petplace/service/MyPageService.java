@@ -115,7 +115,8 @@ public class MyPageService {
                         review.getRestaurant().getName(),
                         review.getContent(),
                         review.getRating(),
-                        review.getCreatedAt()
+                        review.getCreatedAt(),
+                        review.getImageUrl()
                 ));
     }
 }

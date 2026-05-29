@@ -21,5 +21,8 @@ public record MyReviewResponse(
         int rating,
 
         @Schema(description = "리뷰 등록 일시")
-        LocalDateTime createdAt
+        LocalDateTime createdAt,
+
+        @Schema(description = "메뉴 이미지 URL (등록 안 된 경우 null)", example = "https://petplace-bucket.s3.amazonaws.com/menus/puppuccino.jpg")
+        String imageUrl
 ) {}
