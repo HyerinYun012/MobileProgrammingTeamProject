@@ -97,13 +97,24 @@
                 android:textSize="18sp" />
 
             <TextView
+                android:id="@+id/tv_community_empty"
                 android:layout_width="match_parent"
-                android:layout_height="150dp"
+                android:layout_height="100dp"
                 android:fontFamily="@font/nanum_gothic_regular"
                 android:gravity="center"
-                android:text="신고 접수된 게시글이 없습니다."
+                android:text="신고 접수된 게시글/댓글이 없습니다."
                 android:textColor="#888888"
-                android:textSize="15sp" />
+                android:textSize="15sp"
+                android:visibility="gone" />
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rv_community_reports"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="20dp"
+                android:nestedScrollingEnabled="false"
+                app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+                tools:listitem="@layout/item_review_report" />
 
         </LinearLayout>
     </ScrollView>

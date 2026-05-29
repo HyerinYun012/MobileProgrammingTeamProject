@@ -3,6 +3,7 @@ package com.gabojameong.petplace
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
+import android.view.View
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.gabojameong.petplace.databinding.ActivityReportManageBinding
@@ -14,6 +15,7 @@ class ReportManageActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityReportManageBinding
     private lateinit var reviewAdapter: ReviewReportAdapter
+    private lateinit var communityAdapter: CommunityReportAdapter
     private val apiService = RetrofitClient.apiService
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -23,8 +25,25 @@ class ReportManageActivity : AppCompatActivity() {
 
         binding.btnBack.setOnClickListener { finish() }
 
-        setupRecyclerView()
+        setupReviewRecyclerView()
+        setupCommunityRecyclerView()
         loadReportedReviews()
+        loadCommunityReports()
+    }
+
+    // ─── 리뷰 신고 ────────────────────────────────────────────────────────────────
+
+    private fun setupReviewRecyclerView() {
+        reviewAdapter = ReviewReportAdapter(
+            onDeleteClick = { reviewId -> deleteReview(reviewId) },
+            onCompleteClick = { reportId -> completeReview(reportId) },
+            onItemClick = { item ->
+                val intent = Intent(this, ReviewReadActivity::class.java)
+                intent.putExtra("RESTAURANT_ID", item.restaurantId)
+                startActivity(intent)
+            }
+        )
+        binding.rvReviewReports.adapter = reviewAdapter
     }
 
     private fun loadReportedReviews() {
@@ -35,35 +54,15 @@ class ReportManageActivity : AppCompatActivity() {
             ) {
                 if (response.isSuccessful) {
                     val reports = response.body()?.data?.content ?: emptyList()
-                    // status가 COMPLETED인 항목 제외
-                    val filteredReports = reports.filter { it.status != "COMPLETED" }
-                    reviewAdapter.setData(filteredReports)
+                    reviewAdapter.setData(reports.filter { it.status != "COMPLETED" })
                 } else {
-                    Toast.makeText(applicationContext, "신고 목록을 불러오지 못했습니다.", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(applicationContext, "리뷰 신고 목록 로드 실패", Toast.LENGTH_SHORT).show()
                 }
             }
-
             override fun onFailure(call: Call<ApiResponse<PageResponse<ReviewReportItem>>>, t: Throwable) {
-                Log.e("ReportManage", "Error loading reports", t)
+                Log.e("ReportManage", "Error loading review reports", t)
             }
         })
-    }
-
-    private fun setupRecyclerView() {
-        reviewAdapter = ReviewReportAdapter(
-            onDeleteClick = { reviewId ->
-                deleteReview(reviewId)
-            },
-            onCompleteClick = { reportId ->
-                completeReview(reportId)
-            },
-            onItemClick = { item ->
-                val intent = Intent(this, ReviewReadActivity::class.java)
-                intent.putExtra("RESTAURANT_ID", item.restaurantId)
-                startActivity(intent)
-            }
-        )
-        binding.rvReviewReports.adapter = reviewAdapter
     }
 
     private fun deleteReview(reviewId: Long) {
@@ -77,7 +76,6 @@ class ReportManageActivity : AppCompatActivity() {
                 }
             }
             override fun onFailure(call: Call<ApiResponse<Any>>, t: Throwable) {
-                Log.e("ReportManage", "Error deleting review", t)
                 Toast.makeText(applicationContext, "네트워크 오류가 발생했습니다.", Toast.LENGTH_SHORT).show()
             }
         })
@@ -88,14 +86,102 @@ class ReportManageActivity : AppCompatActivity() {
             override fun onResponse(call: Call<ApiResponse<Any>>, response: Response<ApiResponse<Any>>) {
                 if (response.isSuccessful) {
                     Toast.makeText(applicationContext, "신고를 완료처리 하였습니다.", Toast.LENGTH_SHORT).show()
-                    loadReportedReviews() // 목록 새로고침
+                    loadReportedReviews()
                 } else {
                     Toast.makeText(applicationContext, "처리에 실패했습니다.", Toast.LENGTH_SHORT).show()
                 }
             }
-
             override fun onFailure(call: Call<ApiResponse<Any>>, t: Throwable) {
-                Log.e("ReportManage", "Error completing report", t)
+                Toast.makeText(applicationContext, "네트워크 오류가 발생했습니다.", Toast.LENGTH_SHORT).show()
+            }
+        })
+    }
+
+    // ─── 커뮤니티 신고 (게시글 / 댓글) ───────────────────────────────────────────
+
+    private fun setupCommunityRecyclerView() {
+        communityAdapter = CommunityReportAdapter(
+            onDeleteClick = { item -> deleteCommunityContent(item) },
+            onCompleteClick = { reportId -> completeCommunityReport(reportId) }
+        )
+        binding.rvCommunityReports.adapter = communityAdapter
+    }
+
+    private fun loadCommunityReports() {
+        apiService.getCommunityReports().enqueue(object : Callback<ApiResponse<List<CommunityReportRequest>>> {
+            override fun onResponse(
+                call: Call<ApiResponse<List<CommunityReportRequest>>>,
+                response: Response<ApiResponse<List<CommunityReportRequest>>>
+            ) {
+                if (response.isSuccessful) {
+                    val reports = response.body()?.data ?: emptyList()
+                    val pending = reports.filter { it.status != "COMPLETED" }
+                    communityAdapter.setData(pending)
+
+                    if (pending.isEmpty()) {
+                        binding.tvCommunityEmpty.visibility = View.VISIBLE
+                        binding.rvCommunityReports.visibility = View.GONE
+                    } else {
+                        binding.tvCommunityEmpty.visibility = View.GONE
+                        binding.rvCommunityReports.visibility = View.VISIBLE
+                    }
+                } else {
+                    binding.tvCommunityEmpty.visibility = View.VISIBLE
+                    Toast.makeText(applicationContext, "커뮤니티 신고 목록 로드 실패", Toast.LENGTH_SHORT).show()
+                }
+            }
+            override fun onFailure(call: Call<ApiResponse<List<CommunityReportRequest>>>, t: Throwable) {
+                Log.e("ReportManage", "Error loading community reports", t)
+                binding.tvCommunityEmpty.visibility = View.VISIBLE
+            }
+        })
+    }
+
+    private fun deleteCommunityContent(item: CommunityReportRequest) {
+        if (item.commentId != null) {
+            // 댓글 삭제
+            apiService.adminDeleteCommunityComment(item.commentId).enqueue(object : Callback<ApiResponse<Any>> {
+                override fun onResponse(call: Call<ApiResponse<Any>>, response: Response<ApiResponse<Any>>) {
+                    if (response.isSuccessful) {
+                        Toast.makeText(applicationContext, "댓글이 삭제되었습니다.", Toast.LENGTH_SHORT).show()
+                        loadCommunityReports()
+                    } else {
+                        Toast.makeText(applicationContext, "댓글 삭제에 실패했습니다.", Toast.LENGTH_SHORT).show()
+                    }
+                }
+                override fun onFailure(call: Call<ApiResponse<Any>>, t: Throwable) {
+                    Toast.makeText(applicationContext, "네트워크 오류가 발생했습니다.", Toast.LENGTH_SHORT).show()
+                }
+            })
+        } else {
+            // 게시글 삭제
+            apiService.adminDeleteCommunityPost(item.postId).enqueue(object : Callback<ApiResponse<Any>> {
+                override fun onResponse(call: Call<ApiResponse<Any>>, response: Response<ApiResponse<Any>>) {
+                    if (response.isSuccessful) {
+                        Toast.makeText(applicationContext, "게시글이 삭제되었습니다.", Toast.LENGTH_SHORT).show()
+                        loadCommunityReports()
+                    } else {
+                        Toast.makeText(applicationContext, "게시글 삭제에 실패했습니다.", Toast.LENGTH_SHORT).show()
+                    }
+                }
+                override fun onFailure(call: Call<ApiResponse<Any>>, t: Throwable) {
+                    Toast.makeText(applicationContext, "네트워크 오류가 발생했습니다.", Toast.LENGTH_SHORT).show()
+                }
+            })
+        }
+    }
+
+    private fun completeCommunityReport(reportId: Long) {
+        apiService.completeCommunityReport(reportId).enqueue(object : Callback<ApiResponse<Any>> {
+            override fun onResponse(call: Call<ApiResponse<Any>>, response: Response<ApiResponse<Any>>) {
+                if (response.isSuccessful) {
+                    Toast.makeText(applicationContext, "신고를 완료처리 하였습니다.", Toast.LENGTH_SHORT).show()
+                    loadCommunityReports()
+                } else {
+                    Toast.makeText(applicationContext, "처리에 실패했습니다.", Toast.LENGTH_SHORT).show()
+                }
+            }
+            override fun onFailure(call: Call<ApiResponse<Any>>, t: Throwable) {
                 Toast.makeText(applicationContext, "네트워크 오류가 발생했습니다.", Toast.LENGTH_SHORT).show()
             }
         })
