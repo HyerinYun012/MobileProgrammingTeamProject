@@ -17,6 +17,9 @@ public interface RecentSearchRepository extends JpaRepository<RecentSearch, Long
      */
     Page<RecentSearch> findByUser_Id(Long userId, Pageable pageable);
 
+    // 특정 유저의 검색 기록을 모두 삭제하는 메서드
+    void deleteByUserId(Long userId);
+
     // 삭제 및 수정 연산은 메모리 부담이 없으므로 그대로 유지합니다.
     void deleteByUser_IdAndKeyword(Long userId, String keyword);
 

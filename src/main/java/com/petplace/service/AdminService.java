@@ -30,6 +30,7 @@ public class AdminService {
     private final CommentRepository commentRepository;
     private final CommunityReportRepository communityReportRepository;
     private final RestaurantRepository restaurantRepository;
+    private final RecentSearchRepository recentSearchRepository;
 
     /**
      * 사장님 승인
@@ -49,6 +50,8 @@ public class AdminService {
         User owner = userRepository.findById(ownerId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.OWNER_NOT_FOUND));
         userRepository.delete(owner);
+
+        recentSearchRepository.deleteByUserId(ownerId);
 
         log.warn("Admin {} rejected and deleted owner account: {}", adminId, ownerId);
     }
