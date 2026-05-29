@@ -83,8 +83,11 @@ data class User(
 
 data class UserProfileResponse(
     val id: Long,
-    val email: String?,
+    val name: String?,
     val nickname: String,
+    val loginId: String?,
+    val email: String?,
+    val phone: String?,
     val profileImageUrl: String?,
     val role: String
 ) : Serializable
@@ -290,15 +293,16 @@ data class InquiryResponse(
 data class InquiryDetailResponse(
     val id: Long,
     val userName: String? = null,
-    val email: String? = null,
     val title: String? = null,
     val category: String? = null,
     val content: String? = null,
-    val imageUrl: String? = null,
+    val imageUrls: List<String>? = null,
     val answer: String? = null,
     val status: String,
     val createdAt: String,
-)
+    val restaurantId: Long? = null,
+    val restaurantName: String? = null
+) : Serializable
 
 // --- 7. Owner Restaurant ---
 data class OwnerRestaurantSummary(
@@ -393,7 +397,7 @@ interface ApiService {
     @POST("api/community/comments/{commentId}/report") fun reportComment(@Path("commentId") commentId: Long, @Body request: CommunityReportBody): Call<ApiResponse<Any>>
 
     @GET("api/my/profile") fun getProfile(): Call<ApiResponse<UserProfileResponse>>
-    @Multipart @PUT("api/my/profile") fun updateProfile(@Part("data") data: RequestBody, @Part profileImage: MultipartBody.Part?): Call<ApiResponse<Any>>
+    @Multipart @PUT("api/my/profile") fun updateProfile(@Part("request") request: RequestBody, @Part profileImage: MultipartBody.Part?): Call<ApiResponse<Any>>
     @GET("api/my/bookmarks") fun getBookmarks(@QueryMap pageable: Map<String, String>): Call<ApiResponse<PageResponse<BookmarkResponse>>>
     @POST("api/my/bookmarks/{restaurantId}") fun toggleBookmark(@Path("restaurantId") restaurantId: Long): Call<ApiResponse<Boolean>>
     @POST("api/my/recent/{restaurantId}") fun addRecentView(@Path("restaurantId") restaurantId:Long):Call<ApiResponse<Any>>
@@ -422,11 +426,11 @@ interface ApiService {
 
     @GET("api/reviews/restaurant/{restaurantId}") fun getReviews(@Path("restaurantId") restaurantId: Long, @QueryMap pageable: Map<String, String>): Call<ApiResponse<PageResponse<ReviewResponse>>>
     //@GET("api/reviews/{reviewId}") fun getReviewDetail(@Path("reviewId") reviewId: Long): Call<ApiResponse<ReviewDetailResponse>>
-    @POST("api/reviews/restaurant/{restaurantId}") fun writeReview(@Path("restaurantId") restaurantId: Long, @Part("request") request: RequestBody, @Part imageFile: MultipartBody.Part?): Call<ApiResponse<Any>>
+    @Multipart @POST("api/reviews/restaurant/{restaurantId}") fun writeReview(@Path("restaurantId") restaurantId: Long, @Part("data") request: RequestBody, @Part imageFile: MultipartBody.Part?): Call<ApiResponse<Any>>
     @DELETE("api/reviews/{reviewId}") fun deleteReview(@Path("reviewId") reviewId: Long): Call<ApiResponse<Any>>
     @POST("api/reviews/{reviewId}/report") fun reportReview(@Path("reviewId") reviewId: Long, @Body reason: Map<String, String>): Call<ApiResponse<Any>>
 
-    @POST("api/inquiries") fun submitInquiry(@Body request: RequestBody): Call<ApiResponse<Any>>
+    @Multipart @POST("api/inquiries") fun submitInquiry(@Part("data") data: RequestBody, @Part images: List<MultipartBody.Part>): Call<ApiResponse<Any>>
     @GET("api/inquiries/my") fun getMyInquiries(@QueryMap pageable: Map<String, String>): Call<ApiResponse<PageResponse<InquiryResponse>>>
     @GET("api/inquiries/{inquiryId}") fun getInquiryDetail(@Path("inquiryId") inquiryId: Long): Call<ApiResponse<InquiryDetailResponse>>
 
@@ -449,5 +453,5 @@ interface ApiService {
 
     @GET("api/owner/inquiries") fun getGeneralInquiries(@QueryMap pageable: Map<String, String>): Call<ApiResponse<PageResponse<InquiryResponse>>>
     @GET("api/owner/inquiries/{inquiryId}") fun getGeneralInquiryDetail(@Path("inquiryId") inquiryId: Long): Call<ApiResponse<InquiryDetailResponse>>
-    @PATCH("api/owner/inquiries{inquiries}/complete") fun completeGeneralInquiry(@Path("inquiryId") inquiryId: Long, @Body reply: Map<String, String>): Call<ApiResponse<Any>>
+    @PATCH("api/owner/inquiries/{inquiryId}/complete") fun completeGeneralInquiry(@Path("inquiryId") inquiryId: Long, @Body reply: Map<String, String>): Call<ApiResponse<Any>>
 }

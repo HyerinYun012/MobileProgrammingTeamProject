@@ -197,6 +197,7 @@ class LoginActivity : AppCompatActivity() {
                     editor.putString("jwt_token", token)
                     editor.putLong("userId", profile.id)
                     editor.putString("nickname", profile.nickname)
+                    editor.putString("userRole", profile.role)
                     editor.apply()
                     
                     Toast.makeText(applicationContext, "${profile.nickname}님, 환영합니다!", Toast.LENGTH_SHORT).show()
