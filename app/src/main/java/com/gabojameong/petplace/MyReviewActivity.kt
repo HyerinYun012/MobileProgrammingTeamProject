@@ -47,8 +47,10 @@ class MyReviewActivity : AppCompatActivity() {
                 response: Response<ApiResponse<PageResponse<MyReviewResponse>>>
             ) {
                 if (response.isSuccessful) {
-                    val reviews = response.body()?.data?.content ?: emptyList()
-                    binding.tvReviewCount.text = "${reviews.size}개"
+                    val pageData = response.body()?.data
+                    val reviews = pageData?.content ?: emptyList()
+                    // 서버 전체 개수 표시 (현재 페이지 로드된 수가 아닌 실제 총합)
+                    binding.tvReviewCount.text = "${pageData?.totalElements ?: reviews.size}개"
 
                     binding.rvMyReviews.adapter = MyReviewAdapter(reviews) { reviewId ->
                         deleteReview(reviewId)
@@ -90,6 +92,17 @@ class MyReviewActivity : AppCompatActivity() {
         inner class ViewHolder(private val itemBinding: ItemMyReviewBinding) : RecyclerView.ViewHolder(itemBinding.root) {
 
             fun bind(review: MyReviewResponse) {
+                // 가게 이름
+                itemBinding.tvStoreName.text = review.restaurantName
+
+                // 가게 이름 클릭 → 상세페이지 이동
+                itemBinding.icArrowRight.setOnClickListener {
+                    startActivity(
+                        android.content.Intent(this@MyReviewActivity, PlaceInfoActivity::class.java)
+                            .putExtra("restaurantId", review.restaurantId)
+                    )
+                }
+
                 itemBinding.itemRatingBar.rating = review.rating.toFloat()
                 itemBinding.tvReviewContent.text = review.content
 

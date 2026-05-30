@@ -1,8 +1,11 @@
 package com.gabojameong.petplace
 
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.net.Uri
 import android.os.Bundle
 import android.widget.Toast
+import java.io.ByteArrayOutputStream
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
@@ -68,6 +71,11 @@ class ReviewWriteActivity : AppCompatActivity() {
                 return@setOnClickListener
             }
 
+            if (content.length < 5) {
+                showCustomDialog("리뷰는 최소 5자 이상 작성해주세요.")
+                return@setOnClickListener
+            }
+
             if (restaurantId == -1L) {
                 Toast.makeText(this, "장소 정보가 없습니다.", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
@@ -109,16 +117,26 @@ class ReviewWriteActivity : AppCompatActivity() {
         })
     }
 
+    // Bitmap JPEG 60% 압축 → 서버 업로드 용량 절약
     private fun getFileFromUri(uri: Uri): File {
-        val inputStream = contentResolver.openInputStream(uri)
-        val file = File(cacheDir, "temp_review_${System.currentTimeMillis()}.jpg")
-        val outputStream = FileOutputStream(file)
-
-        inputStream?.use { input ->
-            outputStream.use { output ->
-                input.copyTo(output)
+        return try {
+            val bitmap = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.P) {
+                android.graphics.ImageDecoder.decodeBitmap(
+                    android.graphics.ImageDecoder.createSource(contentResolver, uri)
+                )
+            } else {
+                BitmapFactory.decodeStream(contentResolver.openInputStream(uri))
             }
+            val tempFile = File(cacheDir, "review_image_${System.currentTimeMillis()}.jpg")
+            val outputStream = ByteArrayOutputStream()
+            bitmap.compress(Bitmap.CompressFormat.JPEG, 60, outputStream)
+            tempFile.writeBytes(outputStream.toByteArray())
+            tempFile
+        } catch (e: Exception) {
+            // fallback: 원본 스트림 복사
+            val file = File(cacheDir, "temp_review_${System.currentTimeMillis()}.jpg")
+            contentResolver.openInputStream(uri)?.use { it.copyTo(file.outputStream()) }
+            file
         }
-        return file
     }
 }

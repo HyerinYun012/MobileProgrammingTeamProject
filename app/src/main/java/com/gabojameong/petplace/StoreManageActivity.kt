@@ -1,7 +1,12 @@
 package com.gabojameong.petplace
 
+import android.app.Activity
+import android.content.Intent
 import android.content.res.ColorStateList
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.graphics.Color
+import android.location.Geocoder
 import android.net.Uri
 import android.os.Bundle
 import android.util.Log
@@ -17,6 +22,8 @@ import androidx.appcompat.app.AppCompatActivity
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
+import java.io.ByteArrayOutputStream
+import java.util.Locale
 import com.bumptech.glide.Glide
 import com.gabojameong.petplace.databinding.ActivityStoreManageBinding
 import com.google.android.material.chip.Chip
@@ -38,6 +45,21 @@ class StoreManageActivity : AppCompatActivity() {
     private var restaurantId: Long = -1L
     private var originalData: RestaurantDetailResponse? = null
     private val myRestaurants = mutableListOf<OwnerRestaurantSummary>()
+
+    // 주소 검색 결과
+    private var finalLatitude: Double = 0.0
+    private var finalLongitude: Double = 0.0
+    private var finalRegionCode: String = "ETC"
+
+    private val addressLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+        if (result.resultCode == Activity.RESULT_OK) {
+            val fullAddress = result.data?.getStringExtra("address") ?: ""
+            val dongName   = result.data?.getStringExtra("dong") ?: ""
+            binding.etStoreAddress.setText(fullAddress)
+            convertAddressToCoordinates(fullAddress)
+            finalRegionCode = convertDongToRegionCode(dongName)
+        }
+    }
 
     // 이미지 관리 변수
     private var thumbnailUri: Uri? = null
@@ -95,11 +117,59 @@ class StoreManageActivity : AppCompatActivity() {
         binding.btnBack.setOnClickListener { finish() }
 
         setupSpinner()
+        setupCategorySpinner()
         setupTimePicker()
 
-        binding.ivSaveButton.setOnClickListener {
-            saveStoreInfo()
+        binding.ivSaveButton.setOnClickListener { saveStoreInfo() }
+
+        binding.btnSearchAddress.setOnClickListener {
+            addressLauncher.launch(Intent(this, AddressSearchActivity::class.java))
         }
+    }
+
+    private fun convertAddressToCoordinates(address: String) {
+        try {
+            val geocoder = Geocoder(this, Locale.KOREA)
+            val addresses = geocoder.getFromLocationName(address, 1)
+            if (!addresses.isNullOrEmpty()) {
+                finalLatitude  = addresses[0].latitude
+                finalLongitude = addresses[0].longitude
+            }
+        } catch (e: Exception) {
+            Log.e("StoreManage", "좌표 변환 실패", e)
+        }
+    }
+
+    private fun convertDongToRegionCode(dong: String): String = when {
+        dong.contains("대야")  -> "DAEYA"
+        dong.contains("신천")  -> "SINCHEON"
+        dong.contains("신현")  -> "SINHYEON"
+        dong.contains("은행")  -> "EUNHAENG"
+        dong.contains("매화")  -> "MAEHWA"
+        dong.contains("목감")  -> "MOKGAM"
+        dong.contains("군자")  -> "GUNJA"
+        dong.contains("월곶")  -> "WOLGOT"
+        dong.contains("정왕")  -> "JEONGWANG"
+        dong.contains("거북섬") -> "GEOBUKSEOM"
+        dong.contains("배곧")  -> "BAEGOT"
+        dong.contains("과림")  -> "GWARIM"
+        dong.contains("연성")  -> "YEONSEONG"
+        dong.contains("능곡")  -> "NEUNGGOK"
+        dong.contains("장곡")  -> "JANGGOK"
+        else -> "ETC"
+    }
+
+    private fun setupCategorySpinner() {
+        val categories = arrayOf("카페", "식당")
+        val adapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, categories)
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+        binding.spinnerCategory.adapter = adapter
+    }
+
+    private fun convertCategoryToCode(kor: String) = when (kor) {
+        "카페" -> "CAFE"
+        "식당" -> "RESTAURANT"
+        else   -> "ETC"
     }
 
     private fun fetchMyRestaurants() {
@@ -263,15 +333,22 @@ class StoreManageActivity : AppCompatActivity() {
             }
         }
 
+        // 주소 검색을 통해 lat/lng/region 이 갱신됐으면 우선 사용, 없으면 기존 데이터 fallback
+        val lat  = if (finalLatitude  != 0.0) finalLatitude  else originalData?.latitude
+        val lng  = if (finalLongitude != 0.0) finalLongitude else originalData?.longitude
+        val region = if (finalRegionCode != "ETC") finalRegionCode else originalData?.region ?: "ETC"
+        val category = convertCategoryToCode(binding.spinnerCategory.selectedItem?.toString() ?: "카페")
+            .takeIf { it != "ETC" } ?: originalData?.category ?: "CAFE"
+
         val request = RestaurantRequest(
             name = name,
             address = address,
             phone = phone,
             businessNo = originalData?.businessNo ?: "",
-            category = originalData?.category ?: "CAFE",
-            region = originalData?.region,
-            latitude = originalData?.latitude,
-            longitude = originalData?.longitude,
+            category = category,
+            region = region,
+            latitude = lat,
+            longitude = lng,
             hasFence = binding.cbFence.isChecked,
             hasArtificialGrass = binding.cbArtificialGrass.isChecked,
             hasNaturalGrass = binding.cbNaturalGrass.isChecked,
@@ -287,14 +364,8 @@ class StoreManageActivity : AppCompatActivity() {
         val requestBody = gson.toJson(request).toRequestBody("application/json".toMediaTypeOrNull())
 
         val imageParts = mutableListOf<MultipartBody.Part>()
-        thumbnailUri?.let { uri ->
-            val file = getFileFromUri(uri)
-            imageParts.add(MultipartBody.Part.createFormData("images", file.name, file.asRequestBody("image/*".toMediaTypeOrNull())))
-        }
-        bannerUriList.forEach { uri ->
-            val file = getFileFromUri(uri)
-            imageParts.add(MultipartBody.Part.createFormData("images", file.name, file.asRequestBody("image/*".toMediaTypeOrNull())))
-        }
+        thumbnailUri?.let { uri -> uriToMultipartPart(uri, "imageFile")?.let { imageParts.add(it) } }
+        bannerUriList.forEach { uri -> uriToMultipartPart(uri, "imageFile")?.let { imageParts.add(it) } }
 
         val imagePartsArg = if (imageParts.isEmpty()) null else imageParts
 
@@ -349,12 +420,20 @@ class StoreManageActivity : AppCompatActivity() {
         else -> day
     }
 
-    private fun getFileFromUri(uri: Uri): File {
-        val inputStream = contentResolver.openInputStream(uri)
-        val file = File(cacheDir, "temp_${System.currentTimeMillis()}.jpg")
-        val outputStream = FileOutputStream(file)
-        inputStream?.copyTo(outputStream)
-        return file
+    // Bitmap JPEG 80% 압축 → 서버 업로드 용량 절약
+    private fun uriToMultipartPart(uri: Uri, partName: String): MultipartBody.Part? {
+        return try {
+            val inputStream = contentResolver.openInputStream(uri) ?: return null
+            val originalBitmap = BitmapFactory.decodeStream(inputStream)
+            val outputStream = ByteArrayOutputStream()
+            originalBitmap.compress(Bitmap.CompressFormat.JPEG, 80, outputStream)
+            val bytes = outputStream.toByteArray()
+            val requestFile = bytes.toRequestBody("image/jpeg".toMediaTypeOrNull(), 0, bytes.size)
+            MultipartBody.Part.createFormData(partName, "store_img_${System.currentTimeMillis()}.jpg", requestFile)
+        } catch (e: Exception) {
+            Log.e("StoreManage", "이미지 압축 실패", e)
+            null
+        }
     }
 
     private fun addBannerImageFromUrl(url: String) {
