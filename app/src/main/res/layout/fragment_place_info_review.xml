@@ -89,33 +89,26 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/hsvImageReviews" />
 
-    <ImageView
-        android:id="@+id/ivRecentReview"
-        android:layout_width="70dp"
-        android:layout_height="70dp"
-        android:layout_marginStart="5dp"
-        android:elevation="3dp"
-        android:scaleType="centerCrop"
-        app:layout_constraintBottom_toBottomOf="@+id/btnRecentReview"
-        app:layout_constraintStart_toStartOf="@+id/btnRecentReview"
-        app:layout_constraintTop_toTopOf="@+id/btnRecentReview" />
+    <!-- 최근 리뷰 목록 (프로필 사진 포함, 코드에서 동적 추가) -->
+    <LinearLayout
+        android:id="@+id/ll_recent_reviews"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:orientation="vertical"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/tvAllReviews"
+        app:layout_constraintWidth_percent="0.95" />
 
     <androidx.appcompat.widget.AppCompatButton
         android:id="@+id/btnRecentReview"
         android:layout_width="0dp"
-        android:layout_height="80dp"
-        android:layout_marginTop="8dp"
-        android:background="@drawable/bg_chip_gray"
-        android:backgroundTint="@color/bright_gray"
-        android:elevation="2dp"
-        android:paddingStart="90dp"
-        android:paddingEnd="16dp"
-        android:text="아직 등록된 리뷰가 없습니다."
-        android:textAlignment="viewStart"
-        android:textColor="@color/black"
+        android:layout_height="0dp"
+        android:visibility="gone"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/tvAllReviews"
+        app:layout_constraintTop_toBottomOf="@+id/ll_recent_reviews"
         app:layout_constraintWidth_percent="0.9" />
 
     <androidx.appcompat.widget.AppCompatButton

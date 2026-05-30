@@ -4,14 +4,20 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
 import android.util.Log
+import android.util.TypedValue
+import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.LinearLayout
+import android.widget.RatingBar
+import android.widget.TextView
+import androidx.core.content.ContextCompat
 import androidx.core.net.toUri
 import androidx.fragment.app.Fragment
 import com.bumptech.glide.Glide
+import com.bumptech.glide.load.resource.bitmap.CircleCrop
 import com.gabojameong.petplace.databinding.FragmentPlaceInfoReviewBinding
 import retrofit2.Call
 import retrofit2.Callback
@@ -80,15 +86,22 @@ class PlaceInfoReviewFragment : Fragment() {
     }
 
     private fun updateReviewUI(reviews: List<ReviewResponse>) {
+        binding.llRecentReviews.removeAllViews()
+
         if (reviews.isEmpty()) {
             binding.tvRate.text = "0.0 · "
             binding.tvRateCount.text = "0개 평점"
-            binding.btnRecentReview.text = "아직 등록된 리뷰가 없습니다."
-            binding.ivRecentReview.visibility = View.GONE
-            binding.btnRecentReview.setPadding(dpToPx(16), 0, dpToPx(16), 0)
-            
             binding.tvImageReviews.visibility = View.GONE
             binding.hsvImageReviews.visibility = View.GONE
+
+            val emptyTv = TextView(requireContext()).apply {
+                text = "아직 등록된 리뷰가 없습니다."
+                textSize = 14f
+                setTextColor(ContextCompat.getColor(requireContext(), R.color.gray))
+                gravity = Gravity.CENTER
+                setPadding(dpToPx(16), dpToPx(20), dpToPx(16), dpToPx(20))
+            }
+            binding.llRecentReviews.addView(emptyTv)
             return
         }
 
@@ -96,55 +109,114 @@ class PlaceInfoReviewFragment : Fragment() {
         binding.tvRate.text = String.format("%.1f · ", avgRate)
         binding.tvRateCount.text = "${reviews.size}개 평점"
 
-        val recentReview = reviews[0]
-        binding.btnRecentReview.text = getString(R.string.best_review_format, recentReview.writerName ?: "익명", recentReview.content)
-        
-        if (!recentReview.imageUrl.isNullOrEmpty()) {
-            binding.ivRecentReview.visibility = View.VISIBLE
-            binding.btnRecentReview.setPadding(dpToPx(90), 0, dpToPx(16), 0)
-            Glide.with(this)
-                .load(recentReview.imageUrl)
-                .centerCrop()
-                .into(binding.ivRecentReview)
-        } else {
-            binding.ivRecentReview.visibility = View.GONE
-            binding.btnRecentReview.setPadding(dpToPx(16), 0, dpToPx(16), 0)
+        // 최근 리뷰 최대 3개 → 프로필 사진 포함 카드로 표시
+        reviews.take(3).forEach { review ->
+            binding.llRecentReviews.addView(buildReviewCard(review))
         }
 
+        // 사진 리뷰 가로 갤러리
         binding.llImageReviews.removeAllViews()
         val imageReviews = reviews.filter { !it.imageUrl.isNullOrEmpty() }
-        
+
         if (imageReviews.isEmpty()) {
             binding.tvImageReviews.visibility = View.GONE
             binding.hsvImageReviews.visibility = View.GONE
         } else {
             binding.tvImageReviews.visibility = View.VISIBLE
             binding.hsvImageReviews.visibility = View.VISIBLE
-            
+
             for (review in imageReviews) {
-                val imageView = ImageView(requireContext().applicationContext).apply {
+                val iv = ImageView(requireContext()).apply {
                     val size = dpToPx(120)
-                    layoutParams = LinearLayout.LayoutParams(size, size).apply {
-                        setMargins(0, 0, dpToPx(10), 0)
-                    }
+                    layoutParams = LinearLayout.LayoutParams(size, size).apply { setMargins(0, 0, dpToPx(10), 0) }
                     scaleType = ImageView.ScaleType.CENTER_CROP
                     clipToOutline = true
                     setOnClickListener {
-                        val intent = Intent(requireContext(), ReviewReadActivity::class.java).apply {
-                            putExtra("RESTAURANT_ID", currentRestaurantId)
-                        }
-                        startActivity(intent)
+                        startActivity(Intent(requireContext(), ReviewReadActivity::class.java)
+                            .putExtra("RESTAURANT_ID", currentRestaurantId))
                     }
                 }
-                
-                Glide.with(this)
-                    .load(review.imageUrl)
-                    .centerCrop()
-                    .into(imageView)
-                
-                binding.llImageReviews.addView(imageView)
+                Glide.with(this).load(review.imageUrl).centerCrop().into(iv)
+                binding.llImageReviews.addView(iv)
             }
         }
+    }
+
+    /** 프로필 사진 + 닉네임 + 별점 + 내용을 담은 리뷰 카드 뷰를 코드로 생성 */
+    private fun buildReviewCard(review: ReviewResponse): View {
+        val ctx = requireContext()
+        val card = LinearLayout(ctx).apply {
+            orientation = LinearLayout.HORIZONTAL
+            gravity = Gravity.TOP
+            setPadding(dpToPx(12), dpToPx(12), dpToPx(12), dpToPx(12))
+            layoutParams = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+            ).apply { setMargins(0, 0, 0, dpToPx(8)) }
+            background = ContextCompat.getDrawable(ctx, R.drawable.bg_round_gray)
+            setOnClickListener {
+                startActivity(Intent(ctx, ReviewReadActivity::class.java)
+                    .putExtra("RESTAURANT_ID", currentRestaurantId))
+            }
+        }
+
+        // 프로필 원형 이미지
+        val profileSize = dpToPx(40)
+        val ivProfile = ImageView(ctx).apply {
+            layoutParams = LinearLayout.LayoutParams(profileSize, profileSize).apply { setMargins(0, 0, dpToPx(12), 0) }
+            scaleType = ImageView.ScaleType.CENTER_CROP
+        }
+        Glide.with(this)
+            .load(review.writerProfileUrl)
+            .placeholder(R.drawable.icon_pfp1)
+            .error(R.drawable.icon_pfp1)
+            .transform(CircleCrop())
+            .into(ivProfile)
+
+        // 우측: 닉네임 + 별점 + 내용
+        val right = LinearLayout(ctx).apply {
+            orientation = LinearLayout.VERTICAL
+            layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
+        }
+
+        val tvName = TextView(ctx).apply {
+            text = review.writerName ?: "익명"
+            setTextSize(TypedValue.COMPLEX_UNIT_SP, 14f)
+            setTypeface(null, android.graphics.Typeface.BOLD)
+            setTextColor(ContextCompat.getColor(ctx, R.color.black))
+        }
+
+        val ratingBar = RatingBar(ctx, null, android.R.attr.ratingBarStyleSmall).apply {
+            numStars = 5
+            rating = review.rating.toFloat()
+            isIndicator = true
+            layoutParams = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.WRAP_CONTENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+            ).apply { topMargin = dpToPx(2) }
+            progressTintList = android.content.res.ColorStateList.valueOf(
+                ContextCompat.getColor(ctx, R.color.orange))
+        }
+
+        val tvContent = TextView(ctx).apply {
+            text = review.content
+            setTextSize(TypedValue.COMPLEX_UNIT_SP, 13f)
+            setTextColor(ContextCompat.getColor(ctx, R.color.black))
+            maxLines = 2
+            ellipsize = android.text.TextUtils.TruncateAt.END
+            layoutParams = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+            ).apply { topMargin = dpToPx(4) }
+        }
+
+        right.addView(tvName)
+        right.addView(ratingBar)
+        right.addView(tvContent)
+
+        card.addView(ivProfile)
+        card.addView(right)
+        return card
     }
 
     private fun dpToPx(dp: Int): Int {

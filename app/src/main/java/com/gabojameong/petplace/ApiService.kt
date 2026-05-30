@@ -212,6 +212,7 @@ data class ReviewResponse(
     val content: String,
     val imageUrl: String?,
     val writerName: String?,
+    val writerProfileUrl: String? = null,
     val createdAt: String
 ) : Serializable
 
