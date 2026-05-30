@@ -27,6 +27,9 @@ public class ReviewResponse {
     @Schema(description = "리뷰 작성자 닉네임", example = "초코엄마")
     private String writerName;
 
+    @Schema(description = "리뷰 작성자 프로필 이미지 URL (없는 경우 null)")
+    private String writerProfileUrl;
+
     @Schema(description = "리뷰 작성 일시", example = "2026-05-27T10:20:00")
     private LocalDateTime createdAt;
 
@@ -40,6 +43,7 @@ public class ReviewResponse {
                 .content(review.getContent())
                 .imageUrl(review.getImageUrl())
                 .writerName(review.getUser() != null ? review.getUser().getNickname() : "알 수 없음")
+                .writerProfileUrl(review.getUser() != null ? review.getUser().getProfileUrl() : null)
                 .createdAt(review.getCreatedAt())
                 .build();
     }
