@@ -17,6 +17,8 @@ public interface ReviewReportRepository extends JpaRepository<ReviewReport, Long
 
     void deleteByReviewId(Long reviewId);
 
+    void deleteByOwnerId(Long ownerId);
+
     @Modifying
     @Query("DELETE FROM ReviewReport rr WHERE rr.review.restaurant.id = :restaurantId")
     void deleteAllByRestaurantId(@Param("restaurantId") Long restaurantId);

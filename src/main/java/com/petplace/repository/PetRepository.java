@@ -15,4 +15,6 @@ public interface PetRepository extends JpaRepository<Pet, Long> {
      * @return Page<Pet> 페이징 처리된 반려동물 목록
      */
     Page<Pet> findAllByUserId(Long userId, Pageable pageable);
+
+    void deleteByUserId(Long userId);
 }

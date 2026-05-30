@@ -35,4 +35,6 @@ public interface RecentViewRepository extends JpaRepository<RecentView, Long> {
             "  ) AS temp" +
             ")", nativeQuery = true)
     void deleteOldRecords(@Param("userId") Long userId, @Param("limit") int limit);
+
+    void deleteByUserId(Long userId);
 }

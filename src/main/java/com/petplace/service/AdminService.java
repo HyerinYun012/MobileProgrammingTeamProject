@@ -33,6 +33,9 @@ public class AdminService {
     private final RecentSearchRepository recentSearchRepository;
     private final NoticeRepository noticeRepository;
     private final BookmarkRepository bookmarkRepository;
+    private final SocialAuthRepository socialAuthRepository;
+    private final RecentViewRepository recentViewRepository;
+    private final PetRepository petRepository;
 
     /**
      * 사장님 승인
@@ -75,10 +78,15 @@ public class AdminService {
         // 5. 식당 삭제 (images, reviews, menus, operatingHours 자동 cascade)
         restaurantRepository.deleteAll(restaurants);
 
-        // 6. 최근 검색어 삭제
-        recentSearchRepository.deleteByUserId(ownerId);
+        // 6. 사용자 본인 데이터 삭제 (User FK 참조)
+        socialAuthRepository.deleteByUserId(ownerId);  // 소셜 로그인 정보
+        recentViewRepository.deleteByUserId(ownerId);   // 최근 본 가게
+        petRepository.deleteByUserId(ownerId);          // 반려동물 정보
+        bookmarkRepository.deleteAllByUserId(ownerId);  // 북마크 (고객 역할)
+        reportRepository.deleteByOwnerId(ownerId);      // 신고한 리뷰 신고 내역
+        recentSearchRepository.deleteByUserId(ownerId); // 최근 검색어
 
-        // 7. 사용자 삭제
+        // 7. 사용자 삭제 (LocalAuth cascade ✓)
         userRepository.delete(owner);
 
         log.warn("Admin {} rejected and deleted owner account: {}", adminId, ownerId);
