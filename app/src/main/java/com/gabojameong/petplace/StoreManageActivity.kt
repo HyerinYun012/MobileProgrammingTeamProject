@@ -370,26 +370,38 @@ class StoreManageActivity : AppCompatActivity() {
         }
 
         // --- 영업시간 Chip 데이터 파싱 ---
+        // Chip 형식: "토 오전 02:00 ~ 오후 04:00" / "월, 화 오전 09:00 ~ 오후 06:00" / "토 휴무"
         val operatingHours = mutableListOf<OperatingHourRequest>()
         for (i in 0 until binding.cgSelectedTimes.childCount) {
             val chip = binding.cgSelectedTimes.getChildAt(i) as Chip
             val text = chip.text.toString()
-
             val isHoliday = text.contains("휴무")
-            val timePart = if (!isHoliday) text.substringAfterLast(" ") else null
-            val timeSplit = timePart?.split(" ~ ")
-            val openTime = if (!isHoliday) timeSplit?.getOrNull(0) else null
-            val closeTime = if (!isHoliday) timeSplit?.getOrNull(1) else null
 
-            val daysPart = text.substringBefore(if (isHoliday) " 휴무" else " $timePart")
-            val days = if (daysPart == "매일") {
-                listOf("MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN")
+            if (isHoliday) {
+                // "토 휴무" / "월, 화 휴무" / "매일 휴무"
+                val daysStr = text.replace(" 휴무", "").trim()
+                val days = if (daysStr == "매일") listOf("MON","TUE","WED","THU","FRI","SAT","SUN")
+                           else daysStr.split(",").map { dayToEng(it.trim()) }
+                days.forEach { operatingHours.add(OperatingHourRequest(it, null, null, true)) }
             } else {
-                daysPart.split(", ").map { dayToEng(it) }
-            }
+                // "토 오전 02:00 ~ 오후 04:00" → " ~ " 기준으로 분리
+                val tildeIdx = text.indexOf(" ~ ")
+                if (tildeIdx == -1) continue
+                val leftPart = text.substring(0, tildeIdx)   // "토 오전 02:00"
+                val rightPart = text.substring(tildeIdx + 3) // "오후 04:00"
 
-            days.forEach { day ->
-                operatingHours.add(OperatingHourRequest(day, openTime, closeTime, isHoliday))
+                // leftPart 에서 마지막 2토큰이 오전/오후 + 시간, 그 앞이 요일
+                val leftTokens = leftPart.split(" ")
+                if (leftTokens.size < 3) continue
+                val openTimeKor  = "${leftTokens[leftTokens.size - 2]} ${leftTokens.last()}"
+                val daysStr = leftTokens.dropLast(2).joinToString(" ")
+
+                val openTime  = koreanTimeTo24h(openTimeKor)
+                val closeTime = koreanTimeTo24h(rightPart.trim())
+
+                val days = if (daysStr.trim() == "매일") listOf("MON","TUE","WED","THU","FRI","SAT","SUN")
+                           else daysStr.split(",").map { dayToEng(it.trim()) }.filter { it.isNotEmpty() }
+                days.forEach { operatingHours.add(OperatingHourRequest(it, openTime, closeTime, false)) }
             }
         }
 
@@ -478,6 +490,21 @@ class StoreManageActivity : AppCompatActivity() {
                         Toast.makeText(this@StoreManageActivity, "수정 실패: ${t.message}", Toast.LENGTH_SHORT).show()
                     }
                 })
+        }
+    }
+
+    /** "오전 02:00" / "오후 04:00" → "02:00:00" / "16:00:00" (24시간) */
+    private fun koreanTimeTo24h(korTime: String): String {
+        return try {
+            val parts = korTime.trim().split(" ")
+            val ampm = parts[0]
+            val (hourStr, minStr) = parts[1].split(":")
+            var hour = hourStr.toInt()
+            if (ampm == "오후" && hour != 12) hour += 12
+            if (ampm == "오전" && hour == 12) hour = 0
+            "${hour.toString().padStart(2, '0')}:$minStr:00"
+        } catch (e: Exception) {
+            korTime
         }
     }
 
