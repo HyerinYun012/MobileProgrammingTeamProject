@@ -347,7 +347,10 @@ class StoreManageActivity : AppCompatActivity() {
             }
             // openTime/closeTime이 null이면 Gson이 String에 null 주입 → "null~null" 방지
             if (!hour.regularHoliday && (hour.openTime == null || hour.closeTime == null)) return@forEach
-            val timeStr = if (hour.regularHoliday) "휴무" else "${hour.openTime} ~ ${hour.closeTime}"
+            // 서버가 "HH:mm:ss" 형식으로 주면 초를 제거해서 chip 표시
+            val openStr = hour.openTime?.take(5) ?: ""
+            val closeStr = hour.closeTime?.take(5) ?: ""
+            val timeStr = if (hour.regularHoliday) "휴무" else "$openStr ~ $closeStr"
             addChipToGroup("$dayKor $timeStr", false, listOf(dayKor))
             addedWeeklyDays.add(dayKor)
         }
@@ -392,12 +395,30 @@ class StoreManageActivity : AppCompatActivity() {
 
                 // leftPart 에서 마지막 2토큰이 오전/오후 + 시간, 그 앞이 요일
                 val leftTokens = leftPart.split(" ")
-                if (leftTokens.size < 3) continue
-                val openTimeKor  = "${leftTokens[leftTokens.size - 2]} ${leftTokens.last()}"
-                val daysStr = leftTokens.dropLast(2).joinToString(" ")
+                if (leftTokens.size < 2) continue
 
-                val openTime  = koreanTimeTo24h(openTimeKor)
-                val closeTime = koreanTimeTo24h(rightPart.trim())
+                // 오전/오후 형식(시간피커): "토 오전 10:00" → 마지막 2토큰이 시간
+                // 24시간 형식(DB복원):    "토 10:00"      → 마지막 1토큰이 시간
+                val isKoreanAmPm = leftTokens.size >= 3 &&
+                    (leftTokens[leftTokens.size - 2] == "오전" || leftTokens[leftTokens.size - 2] == "오후")
+
+                val openTime: String
+                val daysStr: String
+                if (isKoreanAmPm) {
+                    val openTimeKor = "${leftTokens[leftTokens.size - 2]} ${leftTokens.last()}"
+                    daysStr = leftTokens.dropLast(2).joinToString(" ")
+                    openTime = koreanTimeTo24h(openTimeKor)
+                } else {
+                    daysStr = leftTokens.dropLast(1).joinToString(" ")
+                    openTime = leftTokens.last().take(5)  // "HH:MM:SS" → "HH:MM"
+                }
+
+                val rightTrimmed = rightPart.trim()
+                val closeTime = if (rightTrimmed.startsWith("오전") || rightTrimmed.startsWith("오후")) {
+                    koreanTimeTo24h(rightTrimmed)
+                } else {
+                    rightTrimmed.take(5)  // "HH:MM:SS" → "HH:MM"
+                }
 
                 val days = if (daysStr.trim() == "매일") listOf("MON","TUE","WED","THU","FRI","SAT","SUN")
                            else daysStr.split(",").map { dayToEng(it.trim()) }.filter { it.isNotEmpty() }
