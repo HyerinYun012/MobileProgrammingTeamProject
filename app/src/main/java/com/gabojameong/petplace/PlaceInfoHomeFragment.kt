@@ -35,8 +35,9 @@ class PlaceInfoHomeFragment : Fragment(R.layout.fragment_place_info_home) {
         binding.textViewAddress.text = res.address
         binding.textViewPhone.text = formatPhoneNumber(res.phone)
 
-        // 영업 상태 및 오늘 시간 업데이트
+        // 오늘 영업 상태 + 전체 스케줄
         updateWorkingStatus(res.operatingHours)
+        showFullSchedule(res.operatingHours)
 
         val (iconRes, sizeText) = when {
             res.allowSmall && res.allowMedium && res.allowLarge -> R.drawable.icon_large_cap to "모든 견종 가능"
@@ -162,6 +163,73 @@ class PlaceInfoHomeFragment : Fragment(R.layout.fragment_place_info_home) {
             binding.textViewIsWorking.text = "정보 오류 · "
             binding.textViewTime.text = "-"
             binding.textViewIsWorking.setTextColor(ContextCompat.getColor(requireContext(), R.color.gray))
+        }
+    }
+
+    private fun showFullSchedule(hours: List<OperatingHour>?) {
+        binding.llOperatingHours.removeAllViews()
+        if (hours.isNullOrEmpty()) return
+
+        val dayOrder = listOf("MON","TUE","WED","THU","FRI","SAT","SUN")
+        val dayKorMap = mapOf(
+            "MON" to "월", "TUE" to "화", "WED" to "수", "THU" to "목",
+            "FRI" to "금", "SAT" to "토", "SUN" to "일"
+        )
+        val fmt = DateTimeFormatter.ofPattern("HH:mm")
+
+        // 요일 순서대로 정렬해서 표시
+        val sorted = hours.sortedBy { dayOrder.indexOf(it.dayOfWeek.uppercase()) }
+
+        // 오늘 요일 (강조 표시용)
+        val todayEng = when (java.util.Calendar.getInstance().get(java.util.Calendar.DAY_OF_WEEK)) {
+            java.util.Calendar.MONDAY    -> "MON"
+            java.util.Calendar.TUESDAY   -> "TUE"
+            java.util.Calendar.WEDNESDAY -> "WED"
+            java.util.Calendar.THURSDAY  -> "THU"
+            java.util.Calendar.FRIDAY    -> "FRI"
+            java.util.Calendar.SATURDAY  -> "SAT"
+            java.util.Calendar.SUNDAY    -> "SUN"
+            else -> ""
+        }
+
+        sorted.forEach { hour ->
+            val row = android.widget.LinearLayout(requireContext()).apply {
+                orientation = android.widget.LinearLayout.HORIZONTAL
+                setPadding(0, 2, 0, 2)
+            }
+
+            val dayKor = dayKorMap[hour.dayOfWeek.uppercase()] ?: hour.dayOfWeek
+            val isToday = hour.dayOfWeek.equals(todayEng, ignoreCase = true)
+
+            val tvDay = android.widget.TextView(requireContext()).apply {
+                text = "${dayKor}요일"
+                textSize = 14f
+                setTypeface(null, android.graphics.Typeface.BOLD)
+                setTextColor(
+                    if (isToday) androidx.core.content.ContextCompat.getColor(requireContext(), R.color.orange)
+                    else androidx.core.content.ContextCompat.getColor(requireContext(), R.color.black)
+                )
+                layoutParams = android.widget.LinearLayout.LayoutParams(120, android.widget.LinearLayout.LayoutParams.WRAP_CONTENT)
+            }
+
+            val tvTime = android.widget.TextView(requireContext()).apply {
+                text = if (hour.regularHoliday) "정기휴무"
+                else {
+                    val open = parseLocalTime(hour.openTime)
+                    val close = parseLocalTime(hour.closeTime)
+                    if (open != null && close != null) "${open.format(fmt)} - ${close.format(fmt)}"
+                    else "-"
+                }
+                textSize = 14f
+                setTextColor(
+                    if (isToday) androidx.core.content.ContextCompat.getColor(requireContext(), R.color.orange)
+                    else androidx.core.content.ContextCompat.getColor(requireContext(), R.color.black)
+                )
+            }
+
+            row.addView(tvDay)
+            row.addView(tvTime)
+            binding.llOperatingHours.addView(row)
         }
     }
 
