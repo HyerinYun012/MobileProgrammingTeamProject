@@ -101,7 +101,7 @@ class PlaceInfoActivity : AppCompatActivity() {
     private fun initUI(restaurant: RestaurantResponse) {
         binding.textViewLocation.text = restaurant.name
 
-        val imageUrl = restaurant.imageUrl
+        val imageUrl = restaurant.imageUrls?.firstOrNull() ?: restaurant.imageUrl
         Glide.with(this)
             .load(imageUrl)
             .placeholder(R.mipmap.icon)
