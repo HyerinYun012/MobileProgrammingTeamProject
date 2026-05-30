@@ -14,6 +14,9 @@ import android.widget.Toast
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
 import com.bumptech.glide.Glide
 import com.gabojameong.petplace.databinding.ActivityStoreManageBinding
 import com.google.android.material.chip.Chip
@@ -37,6 +40,7 @@ class StoreManageActivity : AppCompatActivity() {
 
     private var restaurantId: Long = -1L
     private var originalData: RestaurantDetailResponse? = null
+    private val myRestaurants = mutableListOf<OwnerRestaurantSummary>()
 
     // 이미지 관리 변수
     private var thumbnailUri: Uri? = null
@@ -75,6 +79,7 @@ class StoreManageActivity : AppCompatActivity() {
         restaurantId = intent.getLongExtra("RESTAURANT_ID", -1L)
 
         setupUI()
+        fetchMyRestaurants()
         if (restaurantId != -1L) {
             loadStoreDetail()
         }
@@ -97,6 +102,48 @@ class StoreManageActivity : AppCompatActivity() {
 
         binding.ivSaveButton.setOnClickListener {
             saveStoreInfo()
+        }
+    }
+
+    private fun fetchMyRestaurants() {
+        RetrofitClient.apiService.getMyRestaurants()
+            .enqueue(object : Callback<ApiResponse<List<OwnerRestaurantSummary>>> {
+                override fun onResponse(call: Call<ApiResponse<List<OwnerRestaurantSummary>>>, response: Response<ApiResponse<List<OwnerRestaurantSummary>>>) {
+                    if (response.isSuccessful && response.body()?.success == true) {
+                        myRestaurants.clear()
+                        myRestaurants.addAll(response.body()?.data ?: emptyList())
+                        setupRestaurantSpinner()
+                    }
+                }
+                override fun onFailure(call: Call<ApiResponse<List<OwnerRestaurantSummary>>>, t: Throwable) {
+                    Log.e("StoreManage", "업장 목록 로드 실패", t)
+                }
+            })
+    }
+
+    private fun setupRestaurantSpinner() {
+        val names = mutableListOf("업장을 선택해주세요")
+        names.addAll(myRestaurants.map { it.name })
+        val adapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, names)
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+        binding.spinnerRestaurant.adapter = adapter
+
+        // intent로 받은 ID가 있으면 해당 업장으로 Spinner 초기화
+        if (restaurantId != -1L) {
+            val idx = myRestaurants.indexOfFirst { it.id == restaurantId }
+            if (idx >= 0) binding.spinnerRestaurant.setSelection(idx + 1)
+        }
+
+        binding.spinnerRestaurant.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+            override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
+                if (position == 0) {
+                    restaurantId = -1L
+                } else {
+                    restaurantId = myRestaurants[position - 1].id
+                    loadStoreDetail()
+                }
+            }
+            override fun onNothingSelected(parent: AdapterView<*>?) {}
         }
     }
 

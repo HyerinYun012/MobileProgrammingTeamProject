@@ -10,6 +10,8 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.Window
+import android.widget.AdapterView
+import android.widget.ArrayAdapter
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.Toast
@@ -28,27 +30,58 @@ class OwnerReviewManageActivity : AppCompatActivity() {
     private lateinit var binding: ActivityOwnerReviewManageBinding
     private val apiService = RetrofitClient.apiService
     private var restaurantId: Long = -1L
+    private val myRestaurants = mutableListOf<OwnerRestaurantSummary>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityOwnerReviewManageBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        // 인텐트로부터 식당 ID 수신
-        restaurantId = intent.getLongExtra("RESTAURANT_ID", -1L)
         binding.btnBack.setOnClickListener { finish() }
+        fetchMyRestaurants()
     }
 
-    override fun onResume() {
-        super.onResume()
-        loadReviews()
+    private fun fetchMyRestaurants() {
+        RetrofitClient.apiService.getMyRestaurants()
+            .enqueue(object : retrofit2.Callback<ApiResponse<List<OwnerRestaurantSummary>>> {
+                override fun onResponse(call: retrofit2.Call<ApiResponse<List<OwnerRestaurantSummary>>>, response: retrofit2.Response<ApiResponse<List<OwnerRestaurantSummary>>>) {
+                    if (response.isSuccessful && response.body()?.success == true) {
+                        myRestaurants.clear()
+                        myRestaurants.addAll(response.body()?.data ?: emptyList())
+                        setupSpinner()
+                    }
+                }
+                override fun onFailure(call: retrofit2.Call<ApiResponse<List<OwnerRestaurantSummary>>>, t: Throwable) {
+                    Log.e("OwnerReview", "업장 목록 로드 실패", t)
+                }
+            })
+    }
+
+    private fun setupSpinner() {
+        val names = mutableListOf("업장을 선택해주세요")
+        names.addAll(myRestaurants.map { it.name })
+        val adapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, names)
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+        binding.spinnerRestaurant.adapter = adapter
+
+        binding.spinnerRestaurant.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+            override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
+                if (position == 0) {
+                    restaurantId = -1L
+                    binding.tvEmpty.visibility = View.VISIBLE
+                    binding.rvOwnerReviews.visibility = View.GONE
+                    binding.layoutCount.visibility = View.GONE
+                } else {
+                    restaurantId = myRestaurants[position - 1].id
+                    loadReviews()
+                }
+            }
+            override fun onNothingSelected(parent: AdapterView<*>?) {}
+        }
     }
 
     private fun loadReviews() {
-        if (restaurantId == -1L) {
-            Toast.makeText(this, "장소 정보가 없습니다.", Toast.LENGTH_SHORT).show()
-            return
-        }
+        if (restaurantId == -1L) return
 
         val pageable = mapOf("page" to "0", "size" to "100")
         apiService.getReviews(restaurantId, pageable).enqueue(object : Callback<ApiResponse<PageResponse<ReviewResponse>>> {
@@ -59,8 +92,18 @@ class OwnerReviewManageActivity : AppCompatActivity() {
                 if (response.isSuccessful) {
                     val reviews = response.body()?.data?.content ?: emptyList()
                     binding.tvReviewCount.text = "${reviews.size}개"
-                    binding.rvOwnerReviews.adapter = OwnerReviewAdapter(reviews) { reviewId ->
-                        showReportDialog(reviewId)
+                    if (reviews.isEmpty()) {
+                        binding.tvEmpty.text = "등록된 리뷰가 없습니다."
+                        binding.tvEmpty.visibility = View.VISIBLE
+                        binding.rvOwnerReviews.visibility = View.GONE
+                        binding.layoutCount.visibility = View.GONE
+                    } else {
+                        binding.tvEmpty.visibility = View.GONE
+                        binding.rvOwnerReviews.visibility = View.VISIBLE
+                        binding.layoutCount.visibility = View.VISIBLE
+                        binding.rvOwnerReviews.adapter = OwnerReviewAdapter(reviews) { reviewId ->
+                            showReportDialog(reviewId)
+                        }
                     }
                 }
             }

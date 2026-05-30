@@ -6,6 +6,8 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.AdapterView
+import android.widget.ArrayAdapter
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -22,50 +24,91 @@ class NoticeManageActivity : AppCompatActivity() {
     private lateinit var binding: ActivityNoticeManageBinding
     private val apiService = RetrofitClient.apiService
     private var restaurantId: Long = -1L
+    private val myRestaurants = mutableListOf<OwnerRestaurantSummary>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityNoticeManageBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        // 인텐트에서 식당 ID를 받아옴 (수정 시 필수)
-        restaurantId = intent.getLongExtra("RESTAURANT_ID", -1L)
-        if (restaurantId == -1L) {
-            Toast.makeText(this, "업장 정보를 확인할 수 없습니다.", Toast.LENGTH_SHORT).show()
-            finish()
-            return
-        }
-
         binding.rvNotices.layoutManager = LinearLayoutManager(this)
         binding.btnBack.setOnClickListener { finish() }
-
-        // 공지 작성 버튼
         binding.btnWriteNotice.setOnClickListener {
-            val intent = Intent(this, NoticeWriteActivity::class.java).apply {
-                putExtra("RESTAURANT_ID", restaurantId)
+            if (restaurantId == -1L) {
+                Toast.makeText(this, "먼저 업장을 선택해주세요.", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
             }
-            startActivity(intent)
+            startActivity(Intent(this, NoticeWriteActivity::class.java)
+                .putExtra("RESTAURANT_ID", restaurantId))
         }
+
+        fetchMyRestaurants()
     }
 
     override fun onResume() {
         super.onResume()
-        loadNotices()
+        if (restaurantId != -1L) loadNotices()
     }
+
+    // ─── 업장 Spinner ──────────────────────────────────────────────
+
+    private fun fetchMyRestaurants() {
+        RetrofitClient.apiService.getMyRestaurants()
+            .enqueue(object : Callback<ApiResponse<List<OwnerRestaurantSummary>>> {
+                override fun onResponse(call: Call<ApiResponse<List<OwnerRestaurantSummary>>>, response: Response<ApiResponse<List<OwnerRestaurantSummary>>>) {
+                    if (response.isSuccessful && response.body()?.success == true) {
+                        myRestaurants.clear()
+                        myRestaurants.addAll(response.body()?.data ?: emptyList())
+                        setupSpinner()
+                    }
+                }
+                override fun onFailure(call: Call<ApiResponse<List<OwnerRestaurantSummary>>>, t: Throwable) {
+                    Log.e("NoticeManage", "업장 목록 로드 실패", t)
+                }
+            })
+    }
+
+    private fun setupSpinner() {
+        val names = mutableListOf("업장을 선택해주세요")
+        names.addAll(myRestaurants.map { it.name })
+        val adapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, names)
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+        binding.spinnerRestaurant.adapter = adapter
+
+        binding.spinnerRestaurant.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+            override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
+                if (position == 0) {
+                    restaurantId = -1L
+                    binding.tvEmpty.visibility = View.VISIBLE
+                    binding.rvNotices.visibility = View.GONE
+                } else {
+                    restaurantId = myRestaurants[position - 1].id
+                    loadNotices()
+                }
+            }
+            override fun onNothingSelected(parent: AdapterView<*>?) {}
+        }
+    }
+
+    // ─── 공지 목록 로드 ────────────────────────────────────────────
 
     private fun loadNotices() {
         val pageable = mapOf("page" to "0", "size" to "50")
         apiService.getNotices(restaurantId, pageable).enqueue(object : Callback<ApiResponse<PageResponse<NoticeResponse>>> {
-            override fun onResponse(
-                call: Call<ApiResponse<PageResponse<NoticeResponse>>>,
-                response: Response<ApiResponse<PageResponse<NoticeResponse>>>
-            ) {
+            override fun onResponse(call: Call<ApiResponse<PageResponse<NoticeResponse>>>, response: Response<ApiResponse<PageResponse<NoticeResponse>>>) {
                 if (response.isSuccessful) {
                     val notices = response.body()?.data?.content ?: emptyList()
-                    binding.rvNotices.adapter = NoticeAdapter(notices)
+                    if (notices.isEmpty()) {
+                        binding.tvEmpty.text = "등록된 공지가 없습니다."
+                        binding.tvEmpty.visibility = View.VISIBLE
+                        binding.rvNotices.visibility = View.GONE
+                    } else {
+                        binding.tvEmpty.visibility = View.GONE
+                        binding.rvNotices.visibility = View.VISIBLE
+                        binding.rvNotices.adapter = NoticeAdapter(notices)
+                    }
                 }
             }
-
             override fun onFailure(call: Call<ApiResponse<PageResponse<NoticeResponse>>>, t: Throwable) {
                 Log.e("NoticeManage", "Error loading notices", t)
             }
@@ -76,9 +119,7 @@ class NoticeManageActivity : AppCompatActivity() {
         apiService.deleteNotice(noticeId).enqueue(object : Callback<ApiResponse<Any>> {
             override fun onResponse(call: Call<ApiResponse<Any>>, response: Response<ApiResponse<Any>>) {
                 if (response.isSuccessful) {
-                    this@NoticeManageActivity.showCustomDialog("공지가 삭제되었습니다.") {
-                        loadNotices()
-                    }
+                    this@NoticeManageActivity.showCustomDialog("공지가 삭제되었습니다.") { loadNotices() }
                 }
             }
             override fun onFailure(call: Call<ApiResponse<Any>>, t: Throwable) {
@@ -91,24 +132,17 @@ class NoticeManageActivity : AppCompatActivity() {
         inner class ViewHolder(private val itemBinding: ItemNoticeManageBinding) : RecyclerView.ViewHolder(itemBinding.root) {
             fun bind(notice: NoticeResponse) {
                 itemBinding.tvNoticeTitle.text = notice.title
-
                 if (!notice.thumbnailUrl.isNullOrEmpty()) {
                     itemBinding.ivNoticeBanner.visibility = View.VISIBLE
                     Glide.with(itemView.context).load(notice.thumbnailUrl).into(itemBinding.ivNoticeBanner)
                 } else {
                     itemBinding.ivNoticeBanner.visibility = View.GONE
                 }
-
-                itemBinding.btnDeleteNotice.setOnClickListener {
-                    deleteNotice(notice.id)
-                }
-
+                itemBinding.btnDeleteNotice.setOnClickListener { deleteNotice(notice.id) }
                 itemView.setOnClickListener {
-                    val intent = Intent(this@NoticeManageActivity, NoticeWriteActivity::class.java).apply {
-                        putExtra("NOTICE_ID", notice.id)
-                        putExtra("RESTAURANT_ID", restaurantId)
-                    }
-                    startActivity(intent)
+                    startActivity(Intent(this@NoticeManageActivity, NoticeWriteActivity::class.java)
+                        .putExtra("NOTICE_ID", notice.id)
+                        .putExtra("RESTAURANT_ID", restaurantId))
                 }
             }
         }
