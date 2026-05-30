@@ -427,7 +427,7 @@ interface ApiService {
 
     @GET("api/restaurants/{id}") fun getRestaurantDetail(@Path("id") id: Long): Call<ApiResponse<RestaurantDetailResponse>>
     @Multipart @POST("api/restaurants") fun registerRestaurant(@Part("data") data: RequestBody, @Part images: List<MultipartBody.Part>?): Call<ApiResponse<Long>>
-    @Multipart @PUT("api/restaurants/{id}") fun updateRestaurant(@Path("id") id: Long, @Part("request") request: RequestBody, @Part images: List<MultipartBody.Part>?): Call<ApiResponse<Long>>
+    @Multipart @PUT("api/restaurants/{id}") fun updateRestaurant(@Path("id") id: Long, @Part("data") request: RequestBody, @Part images: List<MultipartBody.Part>?): Call<ApiResponse<Long>>
     @GET("api/restaurants/nearby") fun getNearbyRestaurants(@Query("lat") lat: Double, @Query("lng") lng: Double, @Query("radius") radius: Double = 3.0, @QueryMap pageable: Map<String, String>): Call<ApiResponse<PageResponse<RestaurantResponse>>>
     @GET("api/restaurants/filter") fun filterRestaurants(@QueryMap condition: Map<String, @JvmSuppressWildcards Any>, @QueryMap pageable: Map<String, String>): Call<ApiResponse<PageResponse<RestaurantResponse>>>
     @GET("api/search/search") fun getAllRestaurants(@Query("keyword") keyword: String, @Query("size") size: Int): Call<ApiResponse<PageResponse<RestaurantResponse>>>
