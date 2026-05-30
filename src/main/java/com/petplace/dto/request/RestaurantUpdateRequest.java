@@ -63,7 +63,7 @@ public class RestaurantUpdateRequest {
 
     /* 🌟 [추가된 필드] 프론트엔드에서 삭제하지 않고 남겨둔 기존 S3 이미지 URL 주소 리스트 */
     @Schema(description = "유지할 기존 S3 이미지 URL 목록", example = "[\"https://s3.../img1.jpg\", \"https://s3.../img2.jpg\"]")
-    private List<String> existingImageUrls = new ArrayList<>();
+    private List<String> existingImageUrls = null; // null=클라이언트 미전송→기존유지, []=전체삭제
 
     public List<OperatingHour> toOperatingHourEntities() {
         if (this.operatingHours == null) return new ArrayList<>();

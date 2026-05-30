@@ -190,7 +190,10 @@ public class RestaurantService {
         List<RestaurantImage> imagesToKeep = new ArrayList<>();
 
         for (RestaurantImage img : currentImages) {
-            if (req.getExistingImageUrls() != null && req.getExistingImageUrls().contains(img.getImageUrl())) {
+            // existingImageUrls == null: 클라이언트가 필드 미전송 → 기존 이미지 전체 유지
+            // existingImageUrls == []: 모두 삭제
+            // existingImageUrls == [...]: 목록에 있는 것만 유지
+            if (req.getExistingImageUrls() == null || req.getExistingImageUrls().contains(img.getImageUrl())) {
                 imagesToKeep.add(img);
             } else {
                 urlsToDelete.add(img.getImageUrl());
