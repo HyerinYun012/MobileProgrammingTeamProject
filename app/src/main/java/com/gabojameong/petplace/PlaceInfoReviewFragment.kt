@@ -153,7 +153,7 @@ class PlaceInfoReviewFragment : Fragment() {
                 LinearLayout.LayoutParams.MATCH_PARENT,
                 LinearLayout.LayoutParams.WRAP_CONTENT
             ).apply { setMargins(0, 0, 0, dpToPx(8)) }
-            background = ContextCompat.getDrawable(ctx, R.drawable.bg_round_gray)
+            setBackgroundColor(ContextCompat.getColor(ctx, R.color.bright_gray))
             setOnClickListener {
                 startActivity(Intent(ctx, ReviewReadActivity::class.java)
                     .putExtra("RESTAURANT_ID", currentRestaurantId))
