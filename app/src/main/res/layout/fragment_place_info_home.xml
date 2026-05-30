@@ -1,431 +1,430 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
-
-    <Button
-        android:id="@+id/btn_open_map"
-        android:layout_width="0dp"
-        android:layout_height="48dp"
-        android:layout_marginHorizontal="20dp"
-        android:layout_marginTop="12dp"
-        android:backgroundTint="#FF8A4C"
-        android:drawableStart="@drawable/icon_map_marker"
-        android:drawablePadding="8dp"
-        android:fontFamily="@font/nanum_gothic_bold"
-        android:text="지도로 위치 확인하기"
-        android:textColor="#FFFFFF"
-        android:textSize="15sp"
-        app:cornerRadius="10dp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintWidth_percent="0.9" />
+    android:layout_height="match_parent"
+    android:fillViewport="true">
 
     <LinearLayout
-        android:id="@+id/linearLayout1"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="4dp"
-        android:orientation="horizontal"
-        app:layout_constraintStart_toStartOf="@+id/btn_open_map"
-        app:layout_constraintTop_toBottomOf="@+id/btn_open_map">
-
-        <ImageView
-            android:id="@+id/imageViewIcon1"
-            android:layout_width="24dp"
-            android:layout_height="24dp"
-            app:srcCompat="@drawable/icon_marker" />
-
-        <TextView
-            android:id="@+id/textViewAddress"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:fontFamily="@font/nanum_gothic_bold"
-            android:text="[Address]"
-            android:textColor="@color/black"
-            android:textSize="20sp" />
-
-    </LinearLayout>
-
-    <LinearLayout
-        android:id="@+id/linearLayout2"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="4dp"
-        android:orientation="horizontal"
-        app:layout_constraintStart_toStartOf="@+id/linearLayout1"
-        app:layout_constraintTop_toBottomOf="@+id/linearLayout1">
-
-        <ImageView
-            android:id="@+id/imageViewIcon2"
-            android:layout_width="24dp"
-            android:layout_height="24dp"
-            app:srcCompat="@drawable/icon_phone" />
-
-        <TextView
-            android:id="@+id/textViewPhone"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:fontFamily="@font/nanum_gothic_bold"
-            android:text="010-xxxx-xxxx"
-            android:textColor="@color/black"
-            android:textSize="20sp" />
-
-    </LinearLayout>
-
-    <LinearLayout
-        android:id="@+id/linearLayout3"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="4dp"
-        android:orientation="horizontal"
-        app:layout_constraintStart_toStartOf="@+id/linearLayout2"
-        app:layout_constraintTop_toBottomOf="@+id/linearLayout2">
-
-        <ImageView
-            android:id="@+id/imageViewIcon3"
-            android:layout_width="24dp"
-            android:layout_height="24dp"
-            app:srcCompat="@drawable/icon_clock" />
-
-        <TextView
-            android:id="@+id/textViewIsWorking"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:fontFamily="@font/nanum_gothic_bold"
-            android:text="영업중/영업종료 · "
-            android:textColor="@color/orange"
-            android:textSize="20sp" />
-
-        <TextView
-            android:id="@+id/textViewTime"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:fontFamily="@font/nanum_gothic_bold"
-            android:text="매일 11:00 - 21:00"
-            android:textColor="@color/black"
-            android:textSize="20sp" />
-
-    </LinearLayout>
-
-    <!-- 전체 영업시간 스케줄 (요일별 동적 추가) -->
-    <LinearLayout
-        android:id="@+id/ll_operating_hours"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="2dp"
-        android:orientation="vertical"
-        android:paddingStart="28dp"
-        app:layout_constraintStart_toStartOf="@+id/linearLayout3"
-        app:layout_constraintTop_toBottomOf="@+id/linearLayout3" />
-
-    <View
-        android:id="@+id/verticalLine2"
-        android:layout_width="0dp"
-        android:layout_height="2dp"
-        android:background="#E0E0E0"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/ll_operating_hours"
-        android:layout_marginTop="12dp" />
-
-    <TextView
-        android:id="@+id/textView1"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
-        android:fontFamily="@font/nanum_gothic_extra_bold"
-        android:text="꼭 읽어 주세요!"
-        android:textColor="@color/orange"
-        android:textSize="16sp"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/verticalLine2" />
-
-    <com.google.android.flexbox.FlexboxLayout
-        android:id="@+id/flexboxFacilities"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        app:flexDirection="row"
-        app:flexWrap="wrap"
-        app:layout_constraintTop_toBottomOf="@+id/textView1">
+        android:orientation="vertical"
+        android:paddingBottom="24dp">
 
-        <!-- 견종 크기 -->
-        <androidx.constraintlayout.widget.ConstraintLayout
-            android:id="@+id/layoutDogSize"
-            android:layout_width="80dp"
+        <!-- 지도 버튼 -->
+        <Button
+            android:id="@+id/btn_open_map"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:layout_marginHorizontal="20dp"
+            android:layout_marginTop="12dp"
+            android:backgroundTint="#FF8A4C"
+            android:drawableStart="@drawable/icon_map_marker"
+            android:drawablePadding="8dp"
+            android:fontFamily="@font/nanum_gothic_bold"
+            android:text="지도로 위치 확인하기"
+            android:textColor="#FFFFFF"
+            android:textSize="15sp"
+            app:cornerRadius="10dp" />
+
+        <!-- 주소 -->
+        <LinearLayout
+            android:id="@+id/linearLayout1"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_margin="8dp">
+            android:layout_marginHorizontal="4dp"
+            android:layout_marginTop="4dp"
+            android:orientation="horizontal">
+
             <ImageView
-                android:id="@+id/imageViewDogSize"
-                android:layout_width="50dp"
-                android:layout_height="50dp"
-                android:background="@drawable/bg_round_white"
-                android:backgroundTint="@color/bright_gray"
-                android:elevation="4dp"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent"
-                app:srcCompat="@drawable/icon_small" />
+                android:id="@+id/imageViewIcon1"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                app:srcCompat="@drawable/icon_marker" />
 
             <TextView
-                android:id="@+id/textViewDogSize"
-                android:layout_width="wrap_content"
+                android:id="@+id/textViewAddress"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
+                android:layout_weight="1"
                 android:fontFamily="@font/nanum_gothic_bold"
-                android:text="견종"
+                android:text="[Address]"
                 android:textColor="@color/black"
-                android:textSize="12sp"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/imageViewDogSize" />
-        </androidx.constraintlayout.widget.ConstraintLayout>
+                android:textSize="20sp" />
+        </LinearLayout>
 
-        <!-- 울타리 -->
-        <androidx.constraintlayout.widget.ConstraintLayout
-            android:id="@+id/layoutFence"
-            android:layout_width="80dp"
+        <!-- 전화번호 -->
+        <LinearLayout
+            android:id="@+id/linearLayout2"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_margin="8dp">
+            android:layout_marginHorizontal="4dp"
+            android:layout_marginTop="4dp"
+            android:orientation="horizontal">
+
             <ImageView
-                android:id="@+id/imageViewFence"
-                android:layout_width="50dp"
-                android:layout_height="50dp"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent"
-                android:background="@drawable/bg_round_white"
-                android:backgroundTint="@color/bright_gray"
-                android:elevation="4dp"
-                app:srcCompat="@drawable/icon_fence_legacy" />
+                android:id="@+id/imageViewIcon2"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                app:srcCompat="@drawable/icon_phone" />
+
             <TextView
+                android:id="@+id/textViewPhone"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
                 android:fontFamily="@font/nanum_gothic_bold"
-                android:text="울타리"
+                android:text="010-xxxx-xxxx"
                 android:textColor="@color/black"
-                android:textSize="12sp"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/imageViewFence" />
-        </androidx.constraintlayout.widget.ConstraintLayout>
+                android:textSize="20sp" />
+        </LinearLayout>
 
-        <!-- 실내 -->
-        <androidx.constraintlayout.widget.ConstraintLayout
-            android:id="@+id/layoutIndoor"
-            android:layout_width="80dp"
+        <!-- 오늘 영업 상태 -->
+        <LinearLayout
+            android:id="@+id/linearLayout3"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_margin="8dp">
+            android:layout_marginHorizontal="4dp"
+            android:layout_marginTop="4dp"
+            android:orientation="horizontal">
+
             <ImageView
-                android:id="@+id/imageViewIndoor"
-                android:layout_width="50dp"
-                android:layout_height="50dp"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent"
-                android:background="@drawable/bg_round_white"
-                android:backgroundTint="@color/bright_gray"
-                android:elevation="4dp"
-                app:srcCompat="@drawable/icon_indoor_legacy" />
+                android:id="@+id/imageViewIcon3"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                app:srcCompat="@drawable/icon_clock" />
+
             <TextView
+                android:id="@+id/textViewIsWorking"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
                 android:fontFamily="@font/nanum_gothic_bold"
-                android:text="실내"
-                android:textColor="@color/black"
-                android:textSize="12sp"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/imageViewIndoor" />
-        </androidx.constraintlayout.widget.ConstraintLayout>
+                android:text="영업중/영업종료 · "
+                android:textColor="@color/orange"
+                android:textSize="20sp" />
 
-        <!-- 실외 -->
-        <androidx.constraintlayout.widget.ConstraintLayout
-            android:id="@+id/layoutOutdoor"
-            android:layout_width="80dp"
+            <TextView
+                android:id="@+id/textViewTime"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:fontFamily="@font/nanum_gothic_bold"
+                android:text="매일 11:00 - 21:00"
+                android:textColor="@color/black"
+                android:textSize="20sp" />
+        </LinearLayout>
+
+        <!-- 전체 영업시간 스케줄 (요일별 동적 추가) -->
+        <LinearLayout
+            android:id="@+id/ll_operating_hours"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_margin="8dp">
-            <ImageView
-                android:id="@+id/imageViewOutdoor"
-                android:layout_width="50dp"
-                android:layout_height="50dp"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent"
-                android:background="@drawable/bg_round_white"
-                android:backgroundTint="@color/bright_gray"
-                android:elevation="4dp"
-                app:srcCompat="@drawable/icon_outdoor_legacy" />
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
-                android:fontFamily="@font/nanum_gothic_bold"
-                android:text="실외"
-                android:textColor="@color/black"
-                android:textSize="12sp"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/imageViewOutdoor" />
-        </androidx.constraintlayout.widget.ConstraintLayout>
+            android:layout_marginTop="2dp"
+            android:orientation="vertical"
+            android:paddingStart="28dp" />
 
-        <!-- 인조잔디 -->
-        <androidx.constraintlayout.widget.ConstraintLayout
-            android:id="@+id/layoutArtificialGrass"
-            android:layout_width="80dp"
+        <!-- 구분선 -->
+        <View
+            android:id="@+id/verticalLine2"
+            android:layout_width="match_parent"
+            android:layout_height="2dp"
+            android:layout_marginTop="12dp"
+            android:background="#E0E0E0" />
+
+        <!-- 꼭 읽어 주세요 -->
+        <TextView
+            android:id="@+id/textView1"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_margin="8dp">
-            <ImageView
-                android:id="@+id/imageViewArtificialGrass"
-                android:layout_width="50dp"
-                android:layout_height="50dp"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent"
-                android:background="@drawable/bg_round_white"
-                android:backgroundTint="@color/bright_gray"
-                android:elevation="4dp"
-                app:srcCompat="@drawable/icon_artificial_grass_legacy" />
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
-                android:fontFamily="@font/nanum_gothic_bold"
-                android:text="인조잔디"
-                android:textColor="@color/black"
-                android:textSize="12sp"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/imageViewArtificialGrass" />
-        </androidx.constraintlayout.widget.ConstraintLayout>
+            android:layout_marginStart="4dp"
+            android:layout_marginTop="16dp"
+            android:fontFamily="@font/nanum_gothic_extra_bold"
+            android:text="꼭 읽어 주세요!"
+            android:textColor="@color/orange"
+            android:textSize="16sp" />
 
-        <!-- 천연잔디 -->
-        <androidx.constraintlayout.widget.ConstraintLayout
-            android:id="@+id/layoutNaturalGrass"
-            android:layout_width="80dp"
+        <!-- 시설 아이콘 -->
+        <com.google.android.flexbox.FlexboxLayout
+            android:id="@+id/flexboxFacilities"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_margin="8dp">
-            <ImageView
-                android:id="@+id/imageViewNaturalGrass"
-                android:layout_width="50dp"
-                android:layout_height="50dp"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent"
-                android:background="@drawable/bg_round_white"
-                android:backgroundTint="@color/bright_gray"
-                android:elevation="4dp"
-                app:srcCompat="@drawable/icon_natural_grass" />
-            <TextView
-                android:layout_width="wrap_content"
+            android:layout_marginTop="8dp"
+            app:flexDirection="row"
+            app:flexWrap="wrap">
+
+            <!-- 견종 크기 -->
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:id="@+id/layoutDogSize"
+                android:layout_width="80dp"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
-                android:fontFamily="@font/nanum_gothic_bold"
-                android:text="천연잔디"
-                android:textColor="@color/black"
-                android:textSize="12sp"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/imageViewNaturalGrass" />
-        </androidx.constraintlayout.widget.ConstraintLayout>
+                android:layout_margin="8dp">
+                <ImageView
+                    android:id="@+id/imageViewDogSize"
+                    android:layout_width="50dp"
+                    android:layout_height="50dp"
+                    android:background="@drawable/bg_round_white"
+                    android:backgroundTint="@color/bright_gray"
+                    android:elevation="4dp"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:srcCompat="@drawable/icon_small" />
+                <TextView
+                    android:id="@+id/textViewDogSize"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:fontFamily="@font/nanum_gothic_bold"
+                    android:text="견종"
+                    android:textColor="@color/black"
+                    android:textSize="12sp"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@+id/imageViewDogSize" />
+            </androidx.constraintlayout.widget.ConstraintLayout>
 
-        <!-- 간식판매 -->
-        <androidx.constraintlayout.widget.ConstraintLayout
-            android:id="@+id/layoutSnack"
-            android:layout_width="80dp"
-            android:layout_height="wrap_content"
-            android:layout_margin="8dp">
-            <ImageView
-                android:id="@+id/imageViewSnack"
-                android:layout_width="50dp"
-                android:layout_height="50dp"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent"
-                android:background="@drawable/bg_round_white"
-                android:backgroundTint="@color/bright_gray"
-                android:elevation="4dp"
-                app:srcCompat="@drawable/icon_snack_legacy" />
-            <TextView
-                android:layout_width="wrap_content"
+            <!-- 울타리 -->
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:id="@+id/layoutFence"
+                android:layout_width="80dp"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
-                android:fontFamily="@font/nanum_gothic_bold"
-                android:text="간식구비"
-                android:textColor="@color/black"
-                android:textSize="12sp"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/imageViewSnack" />
-        </androidx.constraintlayout.widget.ConstraintLayout>
+                android:layout_margin="8dp">
+                <ImageView
+                    android:id="@+id/imageViewFence"
+                    android:layout_width="50dp"
+                    android:layout_height="50dp"
+                    android:background="@drawable/bg_round_white"
+                    android:backgroundTint="@color/bright_gray"
+                    android:elevation="4dp"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:srcCompat="@drawable/icon_fence" />
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:fontFamily="@font/nanum_gothic_bold"
+                    android:text="울타리"
+                    android:textColor="@color/black"
+                    android:textSize="12sp"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@+id/imageViewFence" />
+            </androidx.constraintlayout.widget.ConstraintLayout>
 
-        <!-- 주차가능 -->
-        <androidx.constraintlayout.widget.ConstraintLayout
-            android:id="@+id/layoutParking"
-            android:layout_width="80dp"
-            android:layout_height="wrap_content"
-            android:layout_margin="8dp">
-            <ImageView
-                android:id="@+id/imageViewParking"
-                android:layout_width="50dp"
-                android:layout_height="50dp"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent"
-                android:background="@drawable/bg_round_white"
-                android:backgroundTint="@color/bright_gray"
-                android:elevation="4dp"
-                app:srcCompat="@drawable/icon_parking" />
-            <TextView
-                android:layout_width="wrap_content"
+            <!-- 실내 -->
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:id="@+id/layoutIndoor"
+                android:layout_width="80dp"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
-                android:fontFamily="@font/nanum_gothic_bold"
-                android:text="주차가능"
-                android:textColor="@color/black"
-                android:textSize="12sp"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/imageViewParking" />
-        </androidx.constraintlayout.widget.ConstraintLayout>
+                android:layout_margin="8dp">
+                <ImageView
+                    android:id="@+id/imageViewIndoor"
+                    android:layout_width="50dp"
+                    android:layout_height="50dp"
+                    android:background="@drawable/bg_round_white"
+                    android:backgroundTint="@color/bright_gray"
+                    android:elevation="4dp"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:srcCompat="@drawable/icon_indoor" />
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:fontFamily="@font/nanum_gothic_bold"
+                    android:text="실내"
+                    android:textColor="@color/black"
+                    android:textSize="12sp"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@+id/imageViewIndoor" />
+            </androidx.constraintlayout.widget.ConstraintLayout>
 
-        <!-- 화장실 -->
-        <androidx.constraintlayout.widget.ConstraintLayout
-            android:id="@+id/layoutRestroom"
-            android:layout_width="80dp"
-            android:layout_height="wrap_content"
-            android:layout_margin="8dp">
-            <ImageView
-                android:id="@+id/imageViewRestroom"
-                android:layout_width="50dp"
-                android:layout_height="50dp"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent"
-                android:background="@drawable/bg_round_white"
-                android:backgroundTint="@color/bright_gray"
-                android:elevation="4dp"
-                app:srcCompat="@drawable/icon_restroom" />
-            <TextView
-                android:layout_width="wrap_content"
+            <!-- 실외 -->
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:id="@+id/layoutOutdoor"
+                android:layout_width="80dp"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
-                android:fontFamily="@font/nanum_gothic_bold"
-                android:text="화장실"
-                android:textColor="@color/black"
-                android:textSize="12sp"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/imageViewRestroom" />
-        </androidx.constraintlayout.widget.ConstraintLayout>
+                android:layout_margin="8dp">
+                <ImageView
+                    android:id="@+id/imageViewOutdoor"
+                    android:layout_width="50dp"
+                    android:layout_height="50dp"
+                    android:background="@drawable/bg_round_white"
+                    android:backgroundTint="@color/bright_gray"
+                    android:elevation="4dp"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:srcCompat="@drawable/icon_outdoor" />
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:fontFamily="@font/nanum_gothic_bold"
+                    android:text="실외"
+                    android:textColor="@color/black"
+                    android:textSize="12sp"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@+id/imageViewOutdoor" />
+            </androidx.constraintlayout.widget.ConstraintLayout>
 
-    </com.google.android.flexbox.FlexboxLayout>
+            <!-- 인조잔디 -->
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:id="@+id/layoutArtificialGrass"
+                android:layout_width="80dp"
+                android:layout_height="wrap_content"
+                android:layout_margin="8dp">
+                <ImageView
+                    android:id="@+id/imageViewArtificialGrass"
+                    android:layout_width="50dp"
+                    android:layout_height="50dp"
+                    android:background="@drawable/bg_round_white"
+                    android:backgroundTint="@color/bright_gray"
+                    android:elevation="4dp"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:srcCompat="@drawable/icon_artificial_grass" />
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:fontFamily="@font/nanum_gothic_bold"
+                    android:text="인조잔디"
+                    android:textColor="@color/black"
+                    android:textSize="12sp"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@+id/imageViewArtificialGrass" />
+            </androidx.constraintlayout.widget.ConstraintLayout>
 
-</androidx.constraintlayout.widget.ConstraintLayout>
+            <!-- 천연잔디 -->
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:id="@+id/layoutNaturalGrass"
+                android:layout_width="80dp"
+                android:layout_height="wrap_content"
+                android:layout_margin="8dp">
+                <ImageView
+                    android:id="@+id/imageViewNaturalGrass"
+                    android:layout_width="50dp"
+                    android:layout_height="50dp"
+                    android:background="@drawable/bg_round_white"
+                    android:backgroundTint="@color/bright_gray"
+                    android:elevation="4dp"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:srcCompat="@drawable/icon_natural_grass" />
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:fontFamily="@font/nanum_gothic_bold"
+                    android:text="천연잔디"
+                    android:textColor="@color/black"
+                    android:textSize="12sp"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@+id/imageViewNaturalGrass" />
+            </androidx.constraintlayout.widget.ConstraintLayout>
+
+            <!-- 간식구비 -->
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:id="@+id/layoutSnack"
+                android:layout_width="80dp"
+                android:layout_height="wrap_content"
+                android:layout_margin="8dp">
+                <ImageView
+                    android:id="@+id/imageViewSnack"
+                    android:layout_width="50dp"
+                    android:layout_height="50dp"
+                    android:background="@drawable/bg_round_white"
+                    android:backgroundTint="@color/bright_gray"
+                    android:elevation="4dp"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:srcCompat="@drawable/icon_snack" />
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:fontFamily="@font/nanum_gothic_bold"
+                    android:text="간식구비"
+                    android:textColor="@color/black"
+                    android:textSize="12sp"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@+id/imageViewSnack" />
+            </androidx.constraintlayout.widget.ConstraintLayout>
+
+            <!-- 주차가능 -->
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:id="@+id/layoutParking"
+                android:layout_width="80dp"
+                android:layout_height="wrap_content"
+                android:layout_margin="8dp">
+                <ImageView
+                    android:id="@+id/imageViewParking"
+                    android:layout_width="50dp"
+                    android:layout_height="50dp"
+                    android:background="@drawable/bg_round_white"
+                    android:backgroundTint="@color/bright_gray"
+                    android:elevation="4dp"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:srcCompat="@drawable/icon_parking" />
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:fontFamily="@font/nanum_gothic_bold"
+                    android:text="주차가능"
+                    android:textColor="@color/black"
+                    android:textSize="12sp"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@+id/imageViewParking" />
+            </androidx.constraintlayout.widget.ConstraintLayout>
+
+            <!-- 화장실 -->
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:id="@+id/layoutRestroom"
+                android:layout_width="80dp"
+                android:layout_height="wrap_content"
+                android:layout_margin="8dp">
+                <ImageView
+                    android:id="@+id/imageViewRestroom"
+                    android:layout_width="50dp"
+                    android:layout_height="50dp"
+                    android:background="@drawable/bg_round_white"
+                    android:backgroundTint="@color/bright_gray"
+                    android:elevation="4dp"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:srcCompat="@drawable/icon_restroom" />
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:fontFamily="@font/nanum_gothic_bold"
+                    android:text="화장실"
+                    android:textColor="@color/black"
+                    android:textSize="12sp"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@+id/imageViewRestroom" />
+            </androidx.constraintlayout.widget.ConstraintLayout>
+
+        </com.google.android.flexbox.FlexboxLayout>
+
+    </LinearLayout>
+
+</androidx.core.widget.NestedScrollView>
