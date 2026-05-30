@@ -204,11 +204,13 @@ class StoreManageActivity : AppCompatActivity() {
         binding.spinnerRestaurant.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
             override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
                 if (position == 0) {
-                    // 새로 만들기: 폼 초기화
+                    // 새로 만들기: 폼 초기화 + 사업자번호 입력 표시
                     restaurantId = -1L
                     originalData = null
                     clearForm()
+                    binding.layoutBusinessNo.visibility = View.VISIBLE
                 } else {
+                    binding.layoutBusinessNo.visibility = View.GONE
                     restaurantId = myRestaurants[position - 1].id
                     loadStoreDetail()
                 }
@@ -219,6 +221,7 @@ class StoreManageActivity : AppCompatActivity() {
 
     private fun clearForm() {
         binding.etStoreName.text?.clear()
+        binding.etBusinessNo.text?.clear()
         binding.etStoreAddress.text?.clear()
         binding.etStorePhone.text?.clear()
         binding.cbSmallAnimal.isChecked = false
@@ -352,11 +355,23 @@ class StoreManageActivity : AppCompatActivity() {
         val category = convertCategoryToCode(binding.spinnerCategory.selectedItem?.toString() ?: "카페")
             .takeIf { it != "ETC" } ?: originalData?.category ?: "CAFE"
 
+        // 새로 만들기: 입력된 사업자번호 사용 / 기존 수정: 서버 데이터 유지
+        val businessNo = if (restaurantId == -1L) {
+            val input = binding.etBusinessNo.text.toString().trim()
+            if (input.isEmpty()) {
+                Toast.makeText(this, "사업자등록번호를 입력해주세요.", Toast.LENGTH_SHORT).show()
+                return
+            }
+            input
+        } else {
+            originalData?.businessNo ?: ""
+        }
+
         val request = RestaurantRequest(
             name = name,
             address = address,
             phone = phone,
-            businessNo = originalData?.businessNo ?: "",
+            businessNo = businessNo,
             category = category,
             region = region,
             latitude = lat,

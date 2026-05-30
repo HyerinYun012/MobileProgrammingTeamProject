@@ -186,6 +186,37 @@
                 android:textColor="#000000"
                 android:textColorHint="#CCCCCC" android:textSize="16sp" />
 
+            <!-- 새로 만들기 시에만 표시 -->
+            <LinearLayout
+                android:id="@+id/layout_business_no"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:visibility="gone">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="8dp"
+                    android:fontFamily="@font/nanum_gothic_bold"
+                    android:text="사업자등록번호"
+                    android:textColor="#000000"
+                    android:textSize="18sp" />
+
+                <EditText
+                    android:id="@+id/et_business_no"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="24dp"
+                    android:backgroundTint="#CCCCCC"
+                    android:fontFamily="@font/nanum_gothic_regular"
+                    android:hint="000-00-00000"
+                    android:inputType="number"
+                    android:textColor="#000000"
+                    android:textColorHint="#CCCCCC"
+                    android:textSize="16sp" />
+            </LinearLayout>
+
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
