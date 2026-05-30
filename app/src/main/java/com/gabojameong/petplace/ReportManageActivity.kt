@@ -102,16 +102,21 @@ class ReportManageActivity : AppCompatActivity() {
     private fun setupCommunityRecyclerView() {
         communityAdapter = CommunityReportAdapter(
             onDeleteClick = { item -> deleteCommunityContent(item) },
-            onCompleteClick = { reportId -> completeCommunityReport(reportId) }
+            onCompleteClick = { reportId -> completeCommunityReport(reportId) },
+            onItemClick = { postId ->
+                val intent = Intent(this, CommunityDetailActivity::class.java)
+                intent.putExtra("POST_ID", postId)
+                startActivity(intent)
+            }
         )
         binding.rvCommunityReports.adapter = communityAdapter
     }
 
     private fun loadCommunityReports() {
-        apiService.getCommunityReports("PENDING").enqueue(object : Callback<ApiResponse<PageResponse<CommunityReportRequest>>> {
+        apiService.getCommunityReports("PENDING").enqueue(object : Callback<ApiResponse<PageResponse<CommunityReportResponse>>> {
             override fun onResponse(
-                call: Call<ApiResponse<PageResponse<CommunityReportRequest>>>,
-                response: Response<ApiResponse<PageResponse<CommunityReportRequest>>>
+                call: Call<ApiResponse<PageResponse<CommunityReportResponse>>>,
+                response: Response<ApiResponse<PageResponse<CommunityReportResponse>>>
             ) {
                 if (response.isSuccessful) {
                     val reports = response.body()?.data?.content ?: emptyList()
@@ -130,14 +135,14 @@ class ReportManageActivity : AppCompatActivity() {
                     Toast.makeText(applicationContext, "커뮤니티 신고 목록 로드 실패", Toast.LENGTH_SHORT).show()
                 }
             }
-            override fun onFailure(call: Call<ApiResponse<PageResponse<CommunityReportRequest>>>, t: Throwable) {
+            override fun onFailure(call: Call<ApiResponse<PageResponse<CommunityReportResponse>>>, t: Throwable) {
                 Log.e("ReportManage", "Error loading community reports", t)
                 binding.tvCommunityEmpty.visibility = View.VISIBLE
             }
         })
     }
 
-    private fun deleteCommunityContent(item: CommunityReportRequest) {
+    private fun deleteCommunityContent(item: CommunityReportResponse) {
         if (item.commentId != null) {
             // 댓글 삭제
             apiService.adminDeleteCommunityComment(item.commentId).enqueue(object : Callback<ApiResponse<Any>> {
