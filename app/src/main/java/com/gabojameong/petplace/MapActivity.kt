@@ -195,8 +195,11 @@ class MapActivity : AppCompatActivity(), OnMapReadyCallback {
         marker.isIconPerspectiveEnabled = true
         marker.onClickListener = Overlay.OnClickListener {
             Log.d("MapActivity", "마커 클릭: ${restaurant.name}")
-            val intent = Intent(this, PlaceInfoActivity::class.java)
-            intent.putExtra("restaurant", restaurant)
+            val intent = Intent(this, PlaceInfoActivity::class.java).apply {
+                putExtra("restaurant", restaurant)
+                // REORDER_TO_FRONT: 스택에 PlaceInfoActivity가 이미 있으면 앞으로 가져옴
+                flags = Intent.FLAG_ACTIVITY_REORDER_TO_FRONT
+            }
             startActivity(intent)
             true
         }

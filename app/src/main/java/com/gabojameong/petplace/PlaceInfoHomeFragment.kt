@@ -42,10 +42,13 @@ class PlaceInfoHomeFragment : Fragment(R.layout.fragment_place_info_home) {
         binding.staticMapView.visibility = View.VISIBLE
 
         // Naver Static Map API
-        val w = 800; val h = 400
+        // pos 파라미터의 공백은 %20으로 인코딩해야 API가 정상 파싱함
+        val posEncoded = "${lng}%20${lat}"
         val url = "https://naveropenapi.apigw.ntruss.com/map-static/v2/raster" +
-                "?w=$w&h=$h&center=$lng,$lat&level=16" +
-                "&markers=type:d|size:mid|pos:$lng $lat"
+                "?w=800&h=400&center=$lng,$lat&level=16" +
+                "&markers=type:d|size:mid|pos:$posEncoded"
+
+        Log.d("StaticMap", "URL: $url")
 
         val glideUrl = GlideUrl(
             url,
@@ -61,12 +64,14 @@ class PlaceInfoHomeFragment : Fragment(R.layout.fragment_place_info_home) {
             .error(R.drawable.bg_round_gray)
             .into(binding.staticMapView)
 
-        // 클릭 → MapActivity (해당 좌표로 이동)
+        // 클릭 → MapActivity
+        // REORDER_TO_FRONT: 스택에 MapActivity가 이미 있으면 새 인스턴스 생성 없이 앞으로 가져옴
         binding.staticMapView.setOnClickListener {
             val intent = Intent(requireContext(), MapActivity::class.java).apply {
                 putExtra("target_lat", lat)
                 putExtra("target_lng", lng)
                 putExtra("target_name", res.name)
+                flags = Intent.FLAG_ACTIVITY_REORDER_TO_FRONT
             }
             startActivity(intent)
         }
