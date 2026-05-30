@@ -493,7 +493,7 @@ class StoreManageActivity : AppCompatActivity() {
         }
     }
 
-    /** "오전 02:00" / "오후 04:00" → "02:00:00" / "16:00:00" (24시간) */
+    /** "오전 02:00" / "오후 04:00" → "02:00" / "16:00" (서버 @JsonFormat "HH:mm") */
     private fun koreanTimeTo24h(korTime: String): String {
         return try {
             val parts = korTime.trim().split(" ")
@@ -502,7 +502,7 @@ class StoreManageActivity : AppCompatActivity() {
             var hour = hourStr.toInt()
             if (ampm == "오후" && hour != 12) hour += 12
             if (ampm == "오전" && hour == 12) hour = 0
-            "${hour.toString().padStart(2, '0')}:$minStr:00"
+            "${hour.toString().padStart(2, '0')}:$minStr"
         } catch (e: Exception) {
             korTime
         }
