@@ -7,6 +7,7 @@ import android.content.pm.PackageManager
 import android.graphics.PointF
 import android.os.Bundle
 import android.util.Log
+import android.widget.ImageButton
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
@@ -64,8 +65,54 @@ class MapActivity : AppCompatActivity(), OnMapReadyCallback {
         binding.btnSearch.setOnClickListener {
             startActivity(Intent(this, SearchActivity::class.java))
         }
-        
-        // 현위치 버튼
+        binding.btnMypage.setOnClickListener {
+            val sharedPref = getSharedPreferences("PetPlacePref", Context.MODE_PRIVATE)
+            val token = sharedPref.getString("jwt_token", null)
+            if (token != null) {
+                RetrofitClient.apiService.getProfile().enqueue(object : Callback<ApiResponse<UserProfileResponse>> {
+                    override fun onResponse(
+                        call: Call<ApiResponse<UserProfileResponse>>,
+                        response: Response<ApiResponse<UserProfileResponse>>
+                    ) {
+                        if (response.isSuccessful && response.body()?.success == true) {
+                            val profile = response.body()?.data
+                            val role = profile?.role?.uppercase()
+
+                            Log.d("MainActivity", "User role: $role")
+
+                            val intent = when (role) {
+                                "CUSTOMER" -> Intent(applicationContext, CustomerMypageActivity::class.java)
+                                "OWNER" -> Intent(applicationContext, OwnerMypageActivity::class.java)
+                                "ADMIN" -> Intent(applicationContext, AdminMyPageActivity::class.java)
+                                else -> {
+                                    Toast.makeText(applicationContext, "알 수 없는 사용자 권한입니다: $role", Toast.LENGTH_SHORT).show()
+                                    null
+                                }
+                            }
+
+                            intent?.let {
+                                // 프로필 정보를 인텐트에 담아서 전달 (중복 호출 방지)
+                                it.putExtra("user_profile", profile)
+                                startActivity(it)
+                            }
+                        } else {
+                            val errorMsg = RetrofitClient.parseErrorMessage(response)
+                            Toast.makeText(applicationContext, "$errorMsg", Toast.LENGTH_SHORT).show()
+                            RetrofitClient.logout()
+                        }
+                    }
+
+                    override fun onFailure(call: Call<ApiResponse<UserProfileResponse>>, t: Throwable) {
+                        Log.e("MainActivity", "Profile load failed", t)
+                        Toast.makeText(applicationContext, "네트워크 오류: ${t.message}", Toast.LENGTH_SHORT).show()
+                    }
+                })
+            } else {
+                Toast.makeText(applicationContext, "로그인이 필요한 서비스입니다.", Toast.LENGTH_SHORT).show()
+                val intent = Intent(this, LoginActivity::class.java)
+                startActivity(intent)
+            }
+        }
         binding.btnLocation.setOnClickListener {
             naverMap?.let {
                 it.locationTrackingMode = if (it.locationTrackingMode == LocationTrackingMode.None) {
@@ -95,13 +142,8 @@ class MapActivity : AppCompatActivity(), OnMapReadyCallback {
         val targetName = intent.getStringExtra("target_name")
 
         if (targetLat != 0.0 && targetLng != 0.0) {
-            val targetPos = LatLng(targetLat, targetLng)
-            naverMap.moveCamera(CameraUpdate.scrollAndZoomTo(targetPos, 16.0))
-            Marker().apply {
-                position = targetPos
-                captionText = targetName ?: ""
-                this.map = naverMap
-            }
+            // 카메라만 이동 (마커는 fetchNearbyRestaurants가 자동으로 추가)
+            naverMap.moveCamera(CameraUpdate.scrollAndZoomTo(LatLng(targetLat, targetLng), 16.0))
         } else {
             val siheung = LatLng(37.3801, 126.8030)
             naverMap.moveCamera(CameraUpdate.scrollAndZoomTo(siheung, 13.0))
@@ -207,6 +249,7 @@ class MapActivity : AppCompatActivity(), OnMapReadyCallback {
         markers.add(marker)
         addedRestaurantIds.add(restaurant.id)
     }
+
     /*
     private fun clearMarkers() {
         markers.forEach { it.map = null }
