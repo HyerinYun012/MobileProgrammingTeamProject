@@ -88,8 +88,29 @@ class PlaceInfoHomeFragment : Fragment(R.layout.fragment_place_info_home) {
         val todayHour = hours.find { it.dayOfWeek.startsWith(dayOfWeek, ignoreCase = true) }
         
         if (todayHour == null) {
-            binding.textViewIsWorking.text = "정보 없음 · "
-            binding.textViewTime.text = "-"
+            // 영업 정보가 등록되어 있지만 오늘은 휴무인 경우
+            binding.textViewIsWorking.text = "오늘 휴무 · "
+            // 다음 영업일 찾아서 표시
+            val dayOrder = listOf("MON","TUE","WED","THU","FRI","SAT","SUN")
+            val todayIdx = dayOrder.indexOf(dayOfWeek)
+            val nextHour = (1..6).mapNotNull { offset ->
+                val nextDay = dayOrder[(todayIdx + offset) % 7]
+                hours.find { it.dayOfWeek.equals(nextDay, ignoreCase = true) && !it.regularHoliday }
+            }.firstOrNull()
+            if (nextHour != null) {
+                val nextDayKor = when (nextHour.dayOfWeek.uppercase()) {
+                    "MON" -> "월"; "TUE" -> "화"; "WED" -> "수"; "THU" -> "목"
+                    "FRI" -> "금"; "SAT" -> "토"; "SUN" -> "일"; else -> nextHour.dayOfWeek
+                }
+                val open = parseLocalTime(nextHour.openTime)
+                val close = parseLocalTime(nextHour.closeTime)
+                val fmt = java.time.format.DateTimeFormatter.ofPattern("HH:mm")
+                binding.textViewTime.text = if (open != null && close != null)
+                    "${nextDayKor}요일 ${open.format(fmt)} - ${close.format(fmt)}"
+                else "${nextDayKor}요일"
+            } else {
+                binding.textViewTime.text = "-"
+            }
             binding.textViewIsWorking.setTextColor(ContextCompat.getColor(requireContext(), R.color.gray))
             return
         }
