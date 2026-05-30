@@ -45,7 +45,7 @@ class CustomerMypageActivity : AppCompatActivity() {
             startActivity(Intent(this, InquiryListActivity::class.java))
         }
         binding.button6.setOnClickListener {
-            // 내 리뷰로 이동
+            startActivity(Intent(this, MyReviewActivity::class.java))
         }
         // 커뮤니티 버튼이 있다면 아래 id를 실제 버튼 id로 교체하세요
         runCatching {
