@@ -109,8 +109,8 @@ class PlaceInfoReviewFragment : Fragment() {
         binding.tvRate.text = String.format("%.1f · ", avgRate)
         binding.tvRateCount.text = "${reviews.size}개 평점"
 
-        // 최근 리뷰 최대 3개 → 프로필 사진 포함 카드로 표시
-        reviews.take(3).forEach { review ->
+        // 최근 리뷰 1개 → 프로필 사진 포함 카드로 표시
+        reviews.take(1).forEach { review ->
             binding.llRecentReviews.addView(buildReviewCard(review))
         }
 
