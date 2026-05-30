@@ -152,6 +152,11 @@ class OwnerReviewManageActivity : AppCompatActivity() {
         }
 
         dialog.show()
+        // show() 이후에 Window 크기 설정해야 적용됨
+        dialog.window?.setLayout(
+            (resources.displayMetrics.widthPixels * 0.88).toInt(),
+            android.view.ViewGroup.LayoutParams.WRAP_CONTENT
+        )
     }
 
     private fun performReport(reviewId: Long, reason: String) {
