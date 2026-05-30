@@ -98,6 +98,7 @@ object RetrofitClient {
         .readTimeout(60, TimeUnit.SECONDS)
         .writeTimeout(60, TimeUnit.SECONDS)
         .addInterceptor(authInterceptor)
+        .addInterceptor(LoadingInterceptor)
         .authenticator(tokenAuthenticator)
         .addInterceptor(loggingInterceptor)
         .retryOnConnectionFailure(true)
