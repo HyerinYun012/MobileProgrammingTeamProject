@@ -39,7 +39,7 @@ public class ReviewService {
      * ★ 규칙 4 적용: null 방어 가드 및 롤백 S3 청소 공정
      */
     @Transactional(rollbackFor = Exception.class)
-    public Review write(Long restaurantId, Long userId, ReviewRequest req, MultipartFile image) {
+    public Long write(Long restaurantId, Long userId, ReviewRequest req, MultipartFile image) {
         String imageUrl = null;
         final List<String> uploadedFiles = new ArrayList<>(); // 롤백 대비 추적 리스트
 
@@ -70,7 +70,7 @@ public class ReviewService {
                 .imageUrl(imageUrl)
                 .build();
 
-        return reviewRepo.save(rv);
+        return reviewRepo.save(rv).getId();
     }
 
     /**

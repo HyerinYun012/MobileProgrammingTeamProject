@@ -82,8 +82,8 @@ public class ReviewController {
             @Valid @RequestPart("data") ReviewRequest req,
             @RequestPart(value = "imageFile", required = false) MultipartFile imageFile
     ) {
-        Object result = service.write(restaurantId, userId, req, imageFile);
-        return ResponseEntity.ok(ApiResponse.success("리뷰가 등록되었습니다.", result));
+        Long reviewId = service.write(restaurantId, userId, req, imageFile);
+        return ResponseEntity.ok(ApiResponse.success("리뷰가 등록되었습니다.", reviewId));
     }
 
     /**
