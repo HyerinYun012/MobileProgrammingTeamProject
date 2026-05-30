@@ -179,7 +179,8 @@ public class AdminService {
                             report.getId(),
                             review != null ? review.getId() : null,
                             review != null ? review.getContent() : "삭제된 리뷰입니다.",
-                            report.getOwner() != null ? report.getOwner().getName() : "탈퇴한 사장님",
+                            report.getOwner() != null ? report.getOwner().getNickname() : "탈퇴한 사장님", // 이름 -> 닉네임
+                            review != null && review.getUser() != null ? review.getUser().getNickname() : "탈퇴한 사용자", // 리뷰 작성자 닉네임
                             report.getReason(),
                             report.getStatus() != null ? report.getStatus().name() : "PENDING",
                             report.getCreatedAt(),
