@@ -430,8 +430,8 @@ interface ApiService {
     @GET("api/restaurants/filter") fun filterRestaurants(@QueryMap condition: Map<String, @JvmSuppressWildcards Any>, @QueryMap pageable: Map<String, String>): Call<ApiResponse<PageResponse<RestaurantResponse>>>
     @GET("api/search/search") fun getAllRestaurants(@Query("keyword") keyword: String, @Query("size") size: Int): Call<ApiResponse<PageResponse<RestaurantResponse>>>
 
-    @Multipart @POST("api/restaurants/{restaurantId}/notices") fun registerNotice(@Path("restaurantId") restaurantId: Long, @Query("title") title: String, @Query("content") content: String, @Part thumbnail: MultipartBody.Part?, @Part descriptionImage: MultipartBody.Part?): Call<ApiResponse<Any>>
-    @Multipart @PUT("api/restaurants/{restaurantId}/notices/{noticeId}") fun updateNotice(@Path("restaurantId") restaurantId: Long, @Path("noticeId") noticeId: Long, @Part("data") data: RequestBody, @Part thumbnail: MultipartBody.Part?, @Part descriptionImage: MultipartBody.Part?): Call<ApiResponse<Any>>
+    @Multipart @POST("api/restaurants/{restaurantId}/notices") fun registerNotice(@Path("restaurantId") restaurantId: Long, @Part("data") data: RequestBody, @Part thumbnail: MultipartBody.Part?, @Part descriptionImage: MultipartBody.Part?): Call<ApiResponse<Any>>
+    @Multipart @PUT("api/restaurants/notices/{noticeId}") fun updateNotice(@Path("noticeId") noticeId: Long, @Part("data") data: RequestBody, @Part thumbnail: MultipartBody.Part?, @Part descriptionImage: MultipartBody.Part?): Call<ApiResponse<Any>>
     @GET("api/restaurants/{restaurantId}/notices") fun getNotices(@Path("restaurantId") restaurantId: Long, @QueryMap pageable: Map<String, String>): Call<ApiResponse<PageResponse<NoticeResponse>>>
     @DELETE("api/restaurants/notices/{noticeId}") fun deleteNotice(@Path("noticeId") noticeId: Long): Call<ApiResponse<Any>>
 

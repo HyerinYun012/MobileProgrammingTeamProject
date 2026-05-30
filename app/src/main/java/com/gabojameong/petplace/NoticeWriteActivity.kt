@@ -152,13 +152,14 @@ class NoticeWriteActivity : AppCompatActivity() {
             }
         }
 
+        // 서버가 @RequestPart("data") JSON으로 title/content를 받음
+        val dataBody = Gson().toJson(TitleContentRequest(title, content))
+            .toRequestBody("application/json".toMediaTypeOrNull())
+
         if (noticeId == -1L) {
-            apiService.registerNotice(restaurantId, title, content, thumbnailPart, originalPart).enqueue(callback)
+            apiService.registerNotice(restaurantId, dataBody, thumbnailPart, originalPart).enqueue(callback)
         } else {
-            val dataObj = TitleContentRequest(title, content)
-            val json = Gson().toJson(dataObj)
-            val dataBody = json.toRequestBody("application/json".toMediaTypeOrNull())
-            apiService.updateNotice(restaurantId, noticeId, dataBody, thumbnailPart, originalPart).enqueue(callback)
+            apiService.updateNotice(noticeId, dataBody, thumbnailPart, originalPart).enqueue(callback)
         }
     }
 
