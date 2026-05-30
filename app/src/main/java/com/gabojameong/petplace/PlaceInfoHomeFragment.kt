@@ -6,6 +6,11 @@ import android.view.View
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import com.gabojameong.petplace.databinding.FragmentPlaceInfoHomeBinding
+import com.naver.maps.geometry.LatLng
+import com.naver.maps.map.CameraUpdate
+import com.naver.maps.map.MapFragment
+import com.naver.maps.map.NaverMap
+import com.naver.maps.map.overlay.Marker
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
 import java.util.Calendar
@@ -13,13 +18,50 @@ import java.util.Calendar
 class PlaceInfoHomeFragment : Fragment(R.layout.fragment_place_info_home) {
     private var _binding: FragmentPlaceInfoHomeBinding? = null
     private val binding get() = _binding!!
+    private var naverMap: NaverMap? = null
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         _binding = FragmentPlaceInfoHomeBinding.bind(view)
 
         val restaurant = arguments?.getSerializable("restaurant", RestaurantResponse::class.java)
-        restaurant?.let { initUI(it) }
+        restaurant?.let {
+            initUI(it)
+            initMap(it)
+        }
+    }
+
+    private fun initMap(res: RestaurantResponse) {
+        val fm = childFragmentManager
+        val mapFragment = fm.findFragmentById(R.id.map_fragment_container) as MapFragment?
+            ?: MapFragment.newInstance().also {
+                fm.beginTransaction().add(R.id.map_fragment_container, it).commit()
+            }
+
+        mapFragment.getMapAsync { map ->
+            naverMap = map
+
+            // 인터랙션 비활성화 (미니맵으로 사용)
+            map.uiSettings.isZoomControlEnabled = false
+            map.uiSettings.isScrollGesturesEnabled = false
+            map.uiSettings.isRotateGesturesEnabled = false
+            map.uiSettings.isTiltGesturesEnabled = false
+            map.uiSettings.isCompassEnabled = false
+            map.uiSettings.isLocationButtonEnabled = false
+
+            val lat = res.latitude
+            val lng = res.longitude
+
+            // 좌표가 유효한 경우에만 표시
+            if (lat != 0.0 && lng != 0.0) {
+                val position = LatLng(lat, lng)
+                map.moveCamera(CameraUpdate.scrollAndZoomTo(position, 16.0))
+                Marker().apply {
+                    this.position = position
+                    this.map = map
+                }
+            }
+        }
     }
 
     // 부모 Activity에서 상세 데이터를 새로 가져왔을 때 호출되어 UI를 갱신합니다.
