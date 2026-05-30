@@ -26,9 +26,6 @@ import okhttp3.RequestBody
 import okhttp3.RequestBody.Companion.asRequestBody
 import okhttp3.RequestBody.Companion.toRequestBody
 import com.google.gson.Gson
-import retrofit2.Call
-import retrofit2.Callback
-import retrofit2.Response
 import java.io.File
 import java.io.FileOutputStream
 
@@ -112,7 +109,7 @@ class StoreManageActivity : AppCompatActivity() {
                     if (response.isSuccessful && response.body()?.success == true) {
                         myRestaurants.clear()
                         myRestaurants.addAll(response.body()?.data ?: emptyList())
-                        setupRestaurantSpinner()
+                        setupRestaurantSpinner()  // 내부에서 restaurantId 보존해 Spinner 선택
                     }
                 }
                 override fun onFailure(call: Call<ApiResponse<List<OwnerRestaurantSummary>>>, t: Throwable) {
@@ -122,7 +119,7 @@ class StoreManageActivity : AppCompatActivity() {
     }
 
     private fun setupRestaurantSpinner() {
-        val names = mutableListOf("업장을 선택해주세요")
+        val names = mutableListOf("＋ 새로 만들기")
         names.addAll(myRestaurants.map { it.name })
         val adapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, names)
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
@@ -137,7 +134,10 @@ class StoreManageActivity : AppCompatActivity() {
         binding.spinnerRestaurant.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
             override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
                 if (position == 0) {
+                    // 새로 만들기: 폼 초기화
                     restaurantId = -1L
+                    originalData = null
+                    clearForm()
                 } else {
                     restaurantId = myRestaurants[position - 1].id
                     loadStoreDetail()
@@ -145,6 +145,27 @@ class StoreManageActivity : AppCompatActivity() {
             }
             override fun onNothingSelected(parent: AdapterView<*>?) {}
         }
+    }
+
+    private fun clearForm() {
+        binding.etStoreName.text?.clear()
+        binding.etStoreAddress.text?.clear()
+        binding.etStorePhone.text?.clear()
+        binding.cbSmallAnimal.isChecked = false
+        binding.cbMediumAnimal.isChecked = false
+        binding.cbLargeAnimal.isChecked = false
+        binding.cbFence.isChecked = false
+        binding.cbArtificialGrass.isChecked = false
+        binding.cbNaturalGrass.isChecked = false
+        binding.cbSnack.isChecked = false
+        binding.cbIndoor.isChecked = false
+        binding.cbOutdoor.isChecked = false
+        binding.cgSelectedTimes.removeAllViews()
+        isDailyAdded = false
+        addedWeeklyDays.clear()
+        thumbnailUri = null
+        bannerUriList.clear()
+        binding.ivThumbnailAdd.setImageResource(R.drawable.ic_add_photo)
     }
 
     private fun loadStoreDetail() {
@@ -275,18 +296,46 @@ class StoreManageActivity : AppCompatActivity() {
             imageParts.add(MultipartBody.Part.createFormData("images", file.name, file.asRequestBody("image/*".toMediaTypeOrNull())))
         }
 
-        apiService.updateRestaurant(restaurantId, requestBody, if (imageParts.isEmpty()) null else imageParts)
-            .enqueue(object : Callback<ApiResponse<Long>> {
-                override fun onResponse(call: Call<ApiResponse<Long>>, response: Response<ApiResponse<Long>>) {
-                    if (response.isSuccessful) {
-                        Toast.makeText(this@StoreManageActivity, "정보가 수정되었습니다.", Toast.LENGTH_SHORT).show()
-                        finish()
+        val imagePartsArg = if (imageParts.isEmpty()) null else imageParts
+
+        if (restaurantId == -1L) {
+            // 새로 만들기 → registerRestaurant (POST)
+            apiService.registerRestaurant(requestBody, imagePartsArg)
+                .enqueue(object : Callback<ApiResponse<Long>> {
+                    override fun onResponse(call: Call<ApiResponse<Long>>, response: Response<ApiResponse<Long>>) {
+                        if (response.isSuccessful && response.body()?.success == true) {
+                            val newId = response.body()?.data ?: -1L
+                            Toast.makeText(this@StoreManageActivity, "업장이 등록되었습니다.", Toast.LENGTH_SHORT).show()
+                            // 새 업장 ID 반영 후 목록 새로고침
+                            restaurantId = newId
+                            fetchMyRestaurants()
+                        } else {
+                            val msg = RetrofitClient.parseErrorMessage(response)
+                            Toast.makeText(this@StoreManageActivity, "등록 실패: $msg", Toast.LENGTH_SHORT).show()
+                        }
                     }
-                }
-                override fun onFailure(call: Call<ApiResponse<Long>>, t: Throwable) {
-                    Toast.makeText(this@StoreManageActivity, "수정 실패", Toast.LENGTH_SHORT).show()
-                }
-            })
+                    override fun onFailure(call: Call<ApiResponse<Long>>, t: Throwable) {
+                        Toast.makeText(this@StoreManageActivity, "등록 실패: ${t.message}", Toast.LENGTH_SHORT).show()
+                    }
+                })
+        } else {
+            // 기존 업장 수정 → updateRestaurant (PUT)
+            apiService.updateRestaurant(restaurantId, requestBody, imagePartsArg)
+                .enqueue(object : Callback<ApiResponse<Long>> {
+                    override fun onResponse(call: Call<ApiResponse<Long>>, response: Response<ApiResponse<Long>>) {
+                        if (response.isSuccessful) {
+                            Toast.makeText(this@StoreManageActivity, "정보가 수정되었습니다.", Toast.LENGTH_SHORT).show()
+                            finish()
+                        } else {
+                            val msg = RetrofitClient.parseErrorMessage(response)
+                            Toast.makeText(this@StoreManageActivity, "수정 실패: $msg", Toast.LENGTH_SHORT).show()
+                        }
+                    }
+                    override fun onFailure(call: Call<ApiResponse<Long>>, t: Throwable) {
+                        Toast.makeText(this@StoreManageActivity, "수정 실패: ${t.message}", Toast.LENGTH_SHORT).show()
+                    }
+                })
+        }
     }
 
     private fun dayToEng(day: String): String = when (day) {
