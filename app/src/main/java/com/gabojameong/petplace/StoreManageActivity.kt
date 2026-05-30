@@ -3,6 +3,8 @@ package com.gabojameong.petplace
 import android.app.Activity
 import android.content.Intent
 import android.content.res.ColorStateList
+import android.text.Editable
+import android.text.TextWatcher
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Color
@@ -134,6 +136,30 @@ class StoreManageActivity : AppCompatActivity() {
         binding.btnSearchAddress.setOnClickListener {
             addressLauncher.launch(Intent(this, AddressSearchActivity::class.java))
         }
+
+        // 사업자등록번호 자동 포맷팅 (xxx-xx-xxxxx)
+        binding.etBusinessNo.addTextChangedListener(object : TextWatcher {
+            private var isFormatting = false
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
+            override fun afterTextChanged(s: Editable?) {
+                if (isFormatting || s == null) return
+                isFormatting = true
+                val digits = s.toString().replace("-", "").filter { it.isDigit() }.take(10)
+                val formatted = StringBuilder()
+                for (i in digits.indices) {
+                    formatted.append(digits[i])
+                    if (i == 2 && digits.length > 3) formatted.append("-")
+                    else if (i == 4 && digits.length > 5) formatted.append("-")
+                }
+                val finalStr = formatted.toString()
+                if (s.toString() != finalStr) {
+                    s.replace(0, s.length, finalStr)
+                    binding.etBusinessNo.setSelection(s.length)
+                }
+                isFormatting = false
+            }
+        })
     }
 
     private fun convertAddressToCoordinates(address: String) {
