@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="300dp"
+    android:layout_width="340dp"
     android:layout_height="wrap_content"
     android:background="@drawable/bg_dialog_rounded"
     android:gravity="center"
@@ -19,7 +19,7 @@
     <EditText
         android:id="@+id/et_report_reason"
         android:layout_width="match_parent"
-        android:layout_height="100dp"
+        android:layout_height="160dp"
         android:background="@drawable/bg_border_gray"
         android:gravity="top"
         android:hint="신고 사유를 입력해주세요."
