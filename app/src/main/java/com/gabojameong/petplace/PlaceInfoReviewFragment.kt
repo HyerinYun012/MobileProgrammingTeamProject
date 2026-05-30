@@ -186,16 +186,16 @@ class PlaceInfoReviewFragment : Fragment() {
             setTextColor(ContextCompat.getColor(ctx, R.color.black))
         }
 
-        val ratingBar = RatingBar(ctx, null, android.R.attr.ratingBarStyleSmall).apply {
-            numStars = 5
-            rating = review.rating.toFloat()
-            isIndicator = true
-            layoutParams = LinearLayout.LayoutParams(
+        val ratingBar = RatingBar(ctx, null, android.R.attr.ratingBarStyleSmall).also { rb ->
+            rb.numStars = 5
+            rb.rating = review.rating.toFloat()
+            rb.setIsIndicator(true)
+            rb.layoutParams = LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.WRAP_CONTENT,
                 LinearLayout.LayoutParams.WRAP_CONTENT
             ).apply { topMargin = dpToPx(2) }
-            progressTintList = android.content.res.ColorStateList.valueOf(
-                ContextCompat.getColor(ctx, R.color.orange))
+            rb.setProgressTintList(android.content.res.ColorStateList.valueOf(
+                ContextCompat.getColor(ctx, R.color.orange)))
         }
 
         val tvContent = TextView(ctx).apply {
