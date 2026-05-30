@@ -241,14 +241,14 @@ class PlaceInfoHomeFragment : Fragment(R.layout.fragment_place_info_home) {
                 layoutParams = android.widget.LinearLayout.LayoutParams(120, android.widget.LinearLayout.LayoutParams.WRAP_CONTENT)
             }
 
+            // 정기휴무가 아닌데 시간 파싱 실패(null) 시 해당 행 생략
+            val open = if (!hour.regularHoliday) parseLocalTime(hour.openTime) else null
+            val close = if (!hour.regularHoliday) parseLocalTime(hour.closeTime) else null
+            if (!hour.regularHoliday && (open == null || close == null)) return@forEach
+
             val tvTime = android.widget.TextView(requireContext()).apply {
                 text = if (hour.regularHoliday) "정기휴무"
-                else {
-                    val open = parseLocalTime(hour.openTime)
-                    val close = parseLocalTime(hour.closeTime)
-                    if (open != null && close != null) "${open.format(fmt)} - ${close.format(fmt)}"
-                    else "-"
-                }
+                      else "${open!!.format(fmt)} - ${close!!.format(fmt)}"
                 textSize = 14f
                 setTextColor(
                     if (isToday) androidx.core.content.ContextCompat.getColor(requireContext(), R.color.orange)

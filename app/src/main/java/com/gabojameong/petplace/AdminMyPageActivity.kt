@@ -47,7 +47,7 @@ class AdminMyPageActivity : AppCompatActivity() {
             startActivity(intent)
         }
         
-        binding.layoutLogout.setOnClickListener {
+        binding.ivLogout.setOnClickListener {
             RetrofitClient.logout()
         }
     }
