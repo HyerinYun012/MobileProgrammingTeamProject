@@ -45,7 +45,7 @@ class PlaceInfoHomeFragment : Fragment(R.layout.fragment_place_info_home) {
                     putExtra("target_lat", lat)
                     putExtra("target_lng", lng)
                     putExtra("target_name", res.name)
-                    flags = Intent.FLAG_ACTIVITY_REORDER_TO_FRONT
+                    flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
                 }
             )
         }
