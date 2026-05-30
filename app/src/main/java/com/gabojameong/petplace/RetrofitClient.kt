@@ -20,13 +20,11 @@ object RetrofitClient {
     private var authToken: String? = null
     private val gson = Gson()
 
-    // 토큰 설정 함수
     fun setToken(token: String?) {
         Log.d("RetrofitClient", "Setting token: $token")
         authToken = token
     }
 
-    // 모든 요청 헤더에 토큰을 자동으로 넣는 인터셉터
     private val authInterceptor = Interceptor { chain ->
         val original = chain.request()
         val builder = original.newBuilder()
@@ -47,34 +45,28 @@ object RetrofitClient {
     private val tokenAuthenticator = Authenticator { _, _ ->
         synchronized(this) {
             if (authToken != null) {
-                logout() // 인증 실패 시 공통 로그아웃 실행
+                logout()
             }
         }
         null
     }
 
-    /**
-     * 로그아웃 및 세션 초기화 공통 함수
-     */
     fun logout() {
         authToken = null
         val context = GlobalApplication.instance
 
-        // 1. 저장된 모든 로그인 정보 삭제
+        //저장된 모든 로그인 정보 삭제
         context.getSharedPreferences("PetPlacePref", Context.MODE_PRIVATE).edit {
             clear()
         }
 
-        // 2. 메인 화면으로 이동
+        //메인 화면으로 이동
         val intent = Intent(context, MainActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_SINGLE_TOP
         }
         context.startActivity(intent)
     }
 
-    /**
-     * Retrofit 응답에서 에러 메시지를 추출하는 공통 함수
-     */
     fun parseErrorMessage(response: Response<*>): String {
         val errorBodyString = response.errorBody()?.string()
         return response.body()?.let {
@@ -94,7 +86,7 @@ object RetrofitClient {
     }
 
     private val client = OkHttpClient.Builder()
-        .connectTimeout(60, TimeUnit.SECONDS) // 타임아웃을 넉넉하게 늘림
+        .connectTimeout(60, TimeUnit.SECONDS)
         .readTimeout(60, TimeUnit.SECONDS)
         .writeTimeout(60, TimeUnit.SECONDS)
         .addInterceptor(authInterceptor)
@@ -102,9 +94,6 @@ object RetrofitClient {
         .authenticator(tokenAuthenticator)
         .addInterceptor(loggingInterceptor)
         .retryOnConnectionFailure(true)
-        // 특정 서버에서 HTTP/2 이슈가 있을 때 HTTP/1.1을 강제하기도 하지만, 
-        // 오히려 역효과가 날 수 있으므로 기본 설정을 따르거나 안정적인 설정을 유지합니다.
-        // 여기서는 명시적인 프로토콜 제한을 해제하여 OkHttp가 최선의 프로토콜을 선택하게 합니다.
         .build()
 
     private val retrofit: Retrofit by lazy {

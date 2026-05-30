@@ -89,7 +89,7 @@
         android:fontFamily="@font/nanum_gothic_bold"
         android:paddingHorizontal="12dp"
         android:paddingVertical="8dp"
-        android:text="처리완료"
+        android:text="완료처리"
         android:textColor="#FFFFFF"
         android:textSize="13sp"
         app:layout_constraintEnd_toEndOf="parent"

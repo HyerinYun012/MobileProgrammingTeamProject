@@ -14,18 +14,18 @@
         android:layout_height="wrap_content"
         android:isIndicator="true"
         android:numStars="5"
+        android:progressBackgroundTint="#E0E0E0"
+        android:progressTint="#FFC107"
         android:rating="0"
         android:scaleX="0.6"
         android:scaleY="0.6"
+        android:secondaryProgressTint="#FFC107"
         android:stepSize="0.5"
         app:layout_constraintBottom_toBottomOf="@+id/tv_reviewer_name"
         app:layout_constraintEnd_toStartOf="@+id/imageView4"
         app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toEndOf="@+id/tv_reviewer_name"
-        app:layout_constraintTop_toTopOf="@+id/tv_reviewer_name"
-        android:progressTint="#FFC107"
-        android:progressBackgroundTint="#E0E0E0"
-        android:secondaryProgressTint="#FFC107"/>
+        app:layout_constraintTop_toTopOf="@+id/tv_reviewer_name" />
 
     <ImageView
         android:id="@+id/iv_reviewer_profile"
@@ -84,15 +84,14 @@
         android:textColor="#FFFFFF"
         android:textSize="14sp"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintEnd_toStartOf="@+id/btn_complete_review"
         app:layout_constraintTop_toBottomOf="@id/iv_reviewer_profile"
-        app:layout_constraintVertical_bias="0.0" />
+        app:layout_constraintVertical_bias="0.85" />
 
     <TextView
         android:id="@+id/btn_complete_review"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="5dp"
         android:background="@drawable/bg_solid_orange"
         android:fontFamily="@font/nanum_gothic_bold"
         android:paddingHorizontal="12dp"
@@ -100,7 +99,8 @@
         android:text="완료처리"
         android:textColor="#FFFFFF"
         android:textSize="14sp"
+        app:layout_constraintBottom_toBottomOf="@+id/btn_delete_review"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/btn_delete_review" />
+        app:layout_constraintTop_toTopOf="@+id/btn_delete_review" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

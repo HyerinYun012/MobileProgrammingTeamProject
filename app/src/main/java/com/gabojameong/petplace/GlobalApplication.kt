@@ -14,7 +14,7 @@ class GlobalApplication : Application() {
         lateinit var instance: GlobalApplication
             private set
 
-        /** 현재 포그라운드 Activity (로딩 오버레이 부착용) */
+        //로딩 오버레이 부착용
         var currentActivity: Activity? = null
             private set
     }
@@ -31,7 +31,7 @@ class GlobalApplication : Application() {
         val savedToken = sharedPref.getString("jwt_token", null)
         RetrofitClient.setToken(savedToken)
 
-        // 포그라운드 Activity 추적 — 로딩 오버레이 자동 부착에 사용
+        //로딩 오버레이 자동 부착에 사용
         registerActivityLifecycleCallbacks(object : ActivityLifecycleCallbacks {
             override fun onActivityResumed(activity: Activity)  { currentActivity = activity }
             override fun onActivityPaused(activity: Activity)   { currentActivity = null }

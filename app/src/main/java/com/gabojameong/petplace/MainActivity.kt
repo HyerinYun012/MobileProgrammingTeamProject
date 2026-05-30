@@ -1,4 +1,4 @@
-package com.gabojameong.petplace
+﻿package com.gabojameong.petplace
 
 import android.content.Context
 import android.content.Intent
@@ -25,7 +25,6 @@ class MainActivity : AppCompatActivity() {
             val intent = Intent(this, SearchActivity::class.java)
             startActivity(intent)
         }
-
         findViewById<ImageButton>(R.id.btnMypage).setOnClickListener {
             val sharedPref = getSharedPreferences("PetPlacePref", Context.MODE_PRIVATE)
             val token = sharedPref.getString("jwt_token", null)

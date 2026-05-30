@@ -170,17 +170,6 @@
         tools:layout_editor_absoluteX="33dp" />
 
     <Button
-        android:id="@+id/button"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="3dp"
-        android:background="#00000000"
-        android:text="리뷰 관리"
-        android:textColor="#000000"
-        app:layout_constraintTop_toBottomOf="@+id/imageView13"
-        tools:layout_editor_absoluteX="33dp" />
-
-    <Button
         android:id="@+id/button5"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -198,7 +187,7 @@
         android:background="#00000000"
         android:text="메뉴 관리"
         android:textColor="@color/black"
-        app:layout_constraintTop_toBottomOf="@+id/button"
+        app:layout_constraintTop_toBottomOf="@+id/button6"
         tools:layout_editor_absoluteX="0dp" />
 
     <Button
