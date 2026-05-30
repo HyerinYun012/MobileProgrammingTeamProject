@@ -42,6 +42,13 @@ class NoticeManageActivity : AppCompatActivity() {
                 .putExtra("RESTAURANT_ID", restaurantId))
         }
 
+        // OwnerMypageActivity에서 전달된 ID가 있으면 바로 사용
+        val intentId = intent.getLongExtra("RESTAURANT_ID", -1L)
+        if (intentId != -1L) {
+            restaurantId = intentId
+            loadNotices()
+        }
+
         fetchMyRestaurants()
     }
 
@@ -59,11 +66,12 @@ class NoticeManageActivity : AppCompatActivity() {
                     if (response.isSuccessful && response.body()?.success == true) {
                         myRestaurants.clear()
                         myRestaurants.addAll(response.body()?.data ?: emptyList())
-                        setupSpinner()
                     }
+                    setupSpinner()
                 }
                 override fun onFailure(call: Call<ApiResponse<List<OwnerRestaurantSummary>>>, t: Throwable) {
                     Log.e("NoticeManage", "업장 목록 로드 실패", t)
+                    setupSpinner()
                 }
             })
     }
@@ -74,6 +82,12 @@ class NoticeManageActivity : AppCompatActivity() {
         val adapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, names)
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
         binding.spinnerRestaurant.adapter = adapter
+
+        // intent로 받은 ID와 일치하는 업장 자동 선택
+        if (restaurantId != -1L) {
+            val idx = myRestaurants.indexOfFirst { it.id == restaurantId }
+            if (idx >= 0) binding.spinnerRestaurant.setSelection(idx + 1)
+        }
 
         binding.spinnerRestaurant.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
             override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
