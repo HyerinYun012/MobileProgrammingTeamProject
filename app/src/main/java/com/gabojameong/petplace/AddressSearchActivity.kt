@@ -46,8 +46,8 @@ class AddressSearchActivity : AppCompatActivity() {
                     window.onload = function() {
                         new daum.Postcode({
                             oncomplete: function(data) {
-                                // 검색 결과가 나오면 안드로이드로 던져줌!
-                                window.Android.processDATA(data.address, data.bname);
+                                // data.x = 경도(longitude), data.y = 위도(latitude)
+                                window.Android.processDATA(data.address, data.bname, data.x, data.y);
                             },
                             width: '100%',
                             height: '100%'
@@ -61,10 +61,12 @@ class AddressSearchActivity : AppCompatActivity() {
 
     inner class BridgeInterface {
         @JavascriptInterface
-        fun processDATA(fullAddress: String, dongName: String) {
+        fun processDATA(fullAddress: String, dongName: String, x: String, y: String) {
             val intent = Intent()
             intent.putExtra("address", fullAddress)
             intent.putExtra("dong", dongName)
+            intent.putExtra("longitude", x.toDoubleOrNull() ?: 0.0)  // data.x = 경도
+            intent.putExtra("latitude",  y.toDoubleOrNull() ?: 0.0)  // data.y = 위도
             setResult(RESULT_OK, intent)
             finish()
         }

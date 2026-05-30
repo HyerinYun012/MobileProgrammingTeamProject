@@ -54,9 +54,18 @@ class StoreManageActivity : AppCompatActivity() {
     private val addressLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
         if (result.resultCode == Activity.RESULT_OK) {
             val fullAddress = result.data?.getStringExtra("address") ?: ""
-            val dongName   = result.data?.getStringExtra("dong") ?: ""
+            val dongName    = result.data?.getStringExtra("dong") ?: ""
+            val lat         = result.data?.getDoubleExtra("latitude", 0.0) ?: 0.0
+            val lng         = result.data?.getDoubleExtra("longitude", 0.0) ?: 0.0
             binding.etStoreAddress.setText(fullAddress)
-            convertAddressToCoordinates(fullAddress)
+            // 카카오 API가 반환한 좌표 직접 사용 (Geocoder 불필요)
+            if (lat != 0.0 && lng != 0.0) {
+                finalLatitude  = lat
+                finalLongitude = lng
+            } else {
+                // 좌표 없으면 Geocoder 폴백
+                convertAddressToCoordinates(fullAddress)
+            }
             finalRegionCode = convertDongToRegionCode(dongName)
         }
     }

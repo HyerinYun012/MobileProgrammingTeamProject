@@ -34,13 +34,19 @@ class SignupInfoFragment : Fragment() {
     private val apiService = RetrofitClient.apiService
     private val gson = Gson()
     private var selectedDong: String = ""
+    private var selectedLat: Double = 0.0
+    private var selectedLng: Double = 0.0
 
     private val addressLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
         if (result.resultCode == Activity.RESULT_OK) {
             val fullAddress = result.data?.getStringExtra("address") ?: ""
-            val dong = result.data?.getStringExtra("dong") ?: ""
+            val dong        = result.data?.getStringExtra("dong") ?: ""
+            val lat         = result.data?.getDoubleExtra("latitude", 0.0) ?: 0.0
+            val lng         = result.data?.getDoubleExtra("longitude", 0.0) ?: 0.0
             binding.editTextBusinessAdress.setText(fullAddress)
             selectedDong = dong
+            if (lat != 0.0) selectedLat = lat
+            if (lng != 0.0) selectedLng = lng
         }
     }
 
@@ -427,8 +433,8 @@ class SignupInfoFragment : Fragment() {
             businessNo = bNo,
             category = category,
             region = mapRegionToEnum(selectedDong),
-            latitude = 0.0,
-            longitude = 0.0,
+            latitude = selectedLat,
+            longitude = selectedLng,
             operatingHours = emptyList()
         )
 
