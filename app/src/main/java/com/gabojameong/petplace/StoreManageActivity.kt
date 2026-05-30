@@ -275,6 +275,18 @@ class StoreManageActivity : AppCompatActivity() {
             addBannerImageFromUrl(img.imageUrl)
         }
 
+        // 카테고리 Spinner 초기화
+        val categoryIdx = when (data.category?.uppercase()) {
+            "RESTAURANT" -> 1
+            else -> 0  // 기본값 카페
+        }
+        binding.spinnerCategory.setSelection(categoryIdx)
+
+        // 주소 검색 결과가 없을 때 기존 데이터로 fallback
+        if (finalLatitude == 0.0) finalLatitude = data.latitude
+        if (finalLongitude == 0.0) finalLongitude = data.longitude
+        if (finalRegionCode == "ETC" && data.region != null) finalRegionCode = data.region
+
         data.operatingHours?.let { restoreOperatingHours(it) }
     }
 

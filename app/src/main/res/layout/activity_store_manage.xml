@@ -195,16 +195,37 @@
                 android:textColor="#000000"
                 android:textSize="18sp" />
 
-            <EditText
-                android:id="@+id/et_store_address"
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="24dp"
-                android:backgroundTint="#CCCCCC"
-                android:fontFamily="@font/nanum_gothic_regular"
-                android:hint="업장 주소를 입력해주세요"
-                android:textColor="#000000"
-                android:textColorHint="#CCCCCC" android:textSize="16sp" />
+                android:orientation="horizontal">
+
+                <EditText
+                    android:id="@+id/et_store_address"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:backgroundTint="#CCCCCC"
+                    android:clickable="false"
+                    android:focusable="false"
+                    android:fontFamily="@font/nanum_gothic_regular"
+                    android:hint="주소 검색 버튼을 눌러주세요"
+                    android:textColor="#000000"
+                    android:textColorHint="#CCCCCC"
+                    android:textSize="16sp" />
+
+                <Button
+                    android:id="@+id/btn_search_address"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:backgroundTint="#FF8A4C"
+                    android:fontFamily="@font/nanum_gothic_bold"
+                    android:text="검색"
+                    android:textColor="#FFFFFF"
+                    app:cornerRadius="8dp" />
+            </LinearLayout>
 
             <TextView
                 android:layout_width="wrap_content"
@@ -226,6 +247,38 @@
                 android:inputType="phone"
                 android:textColor="#000000"
                 android:textColorHint="#CCCCCC" android:textSize="16sp" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="8dp"
+                android:fontFamily="@font/nanum_gothic_bold"
+                android:text="업장 카테고리"
+                android:textColor="#000000"
+                android:textSize="18sp" />
+
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="40dp"
+                android:layout_marginBottom="24dp"
+                android:background="@drawable/bg_border_box">
+
+                <Spinner
+                    android:id="@+id/spinner_category"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:background="@null"
+                    android:popupBackground="#FFFFFF"
+                    android:paddingHorizontal="12dp" />
+
+                <ImageView
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    android:layout_alignParentEnd="true"
+                    android:layout_centerVertical="true"
+                    android:layout_marginEnd="12dp"
+                    android:src="@drawable/ic_arrow_down" />
+            </RelativeLayout>
 
             <TextView
                 android:layout_width="wrap_content"
