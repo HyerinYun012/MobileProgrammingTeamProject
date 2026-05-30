@@ -62,7 +62,7 @@ class PlaceInfoActivity : AppCompatActivity() {
                         hasParking = detail.hasParking, hasRestroom = detail.hasRestroom,
                         hasIndoor = detail.hasIndoor, hasOutdoor = detail.hasOutdoor,
                         imageUrl = detail.imageUrl,
-                        imageUrls = detail.images?.map { it.imageUrl },
+                        imageUrls = detail.imageUrls ?: detail.images?.map { it.imageUrl },
                         verified = detail.verified, bookmarked = detail.bookmarked
                     )
                     restaurant = stub

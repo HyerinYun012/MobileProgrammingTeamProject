@@ -13,7 +13,9 @@ import com.bumptech.glide.load.resource.bitmap.RoundedCorners
 
 class RecentShopAdapter(
     private val shopList: List<RecentViewResponse>,
-    private val onItemClick: (RecentViewResponse) -> Unit
+    private val bookmarkedIds: MutableSet<Long>,
+    private val onItemClick: (RecentViewResponse) -> Unit,
+    private val onBookmarkClick: (Long, (Boolean) -> Unit) -> Unit
 ) : RecyclerView.Adapter<RecentShopAdapter.RecentShopViewHolder>() {
 
     inner class RecentShopViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
@@ -25,14 +27,32 @@ class RecentShopAdapter(
         fun bind(shop: RecentViewResponse) {
             tvLocation.text  = "[${shop.category}]"
             tvPlaceName.text = shop.restaurantName
+
             Glide.with(itemView.context)
                 .load(shop.imageUrl)
                 .transform(CenterCrop(), RoundedCorners(16))
                 .placeholder(R.drawable.bg_round_gray)
                 .error(R.drawable.bg_round_gray)
                 .into(ivPlace)
+
+            updateBookmarkIcon(shop.restaurantId)
+
             itemView.setOnClickListener { onItemClick(shop) }
-            btnBookmark.setOnClickListener { /* 추후 구현 */ }
+
+            btnBookmark.setOnClickListener {
+                onBookmarkClick(shop.restaurantId) { isNowBookmarked ->
+                    if (isNowBookmarked) bookmarkedIds.add(shop.restaurantId)
+                    else bookmarkedIds.remove(shop.restaurantId)
+                    updateBookmarkIcon(shop.restaurantId)
+                }
+            }
+        }
+
+        private fun updateBookmarkIcon(restaurantId: Long) {
+            btnBookmark.setBackgroundResource(
+                if (bookmarkedIds.contains(restaurantId)) R.drawable.icon_heart
+                else R.drawable.icon_heart_empty
+            )
         }
     }
 

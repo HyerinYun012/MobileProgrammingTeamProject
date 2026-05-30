@@ -190,6 +190,7 @@ data class RestaurantDetailResponse(
     val hasIndoor: Boolean,
     val hasOutdoor: Boolean,
     val images: List<RestaurantImage>?,
+    val imageUrls: List<String>? = null,  // 서버가 imageUrls로 응답하는 경우 대응
     val reviews: List<ReviewResponse>?,
     val menus: List<MenuResponse>?,
     val verified: Boolean,
