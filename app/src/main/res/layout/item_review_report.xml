@@ -17,13 +17,12 @@
         android:progressBackgroundTint="#E0E0E0"
         android:progressTint="#FFC107"
         android:rating="0"
-        android:scaleX="0.6"
-        android:scaleY="0.6"
+        android:scaleX="0.4"
+        android:scaleY="0.4"
         android:secondaryProgressTint="#FFC107"
         android:stepSize="0.5"
+
         app:layout_constraintBottom_toBottomOf="@+id/tv_reviewer_name"
-        app:layout_constraintEnd_toStartOf="@+id/imageView4"
-        app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toEndOf="@+id/tv_reviewer_name"
         app:layout_constraintTop_toTopOf="@+id/tv_reviewer_name" />
 
@@ -67,9 +66,10 @@
         android:textColor="#000000"
         android:textSize="15sp"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toStartOf="@+id/btn_complete_review"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/iv_reviewer_profile" />
+        app:layout_constraintTop_toBottomOf="@id/iv_reviewer_profile"
+        app:layout_constraintVertical_bias="0.0" />
 
     <TextView
         android:id="@+id/btn_delete_review"
@@ -85,7 +85,7 @@
         android:textSize="14sp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toStartOf="@+id/btn_complete_review"
-        app:layout_constraintTop_toBottomOf="@id/iv_reviewer_profile"
+        app:layout_constraintTop_toBottomOf="@+id/tv_review_content"
         app:layout_constraintVertical_bias="0.85" />
 
     <TextView
@@ -99,7 +99,6 @@
         android:text="완료처리"
         android:textColor="#FFFFFF"
         android:textSize="14sp"
-        app:layout_constraintBottom_toBottomOf="@+id/btn_delete_review"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="@+id/btn_delete_review" />
 
