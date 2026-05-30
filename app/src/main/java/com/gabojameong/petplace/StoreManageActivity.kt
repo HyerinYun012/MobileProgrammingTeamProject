@@ -325,6 +325,12 @@ class StoreManageActivity : AppCompatActivity() {
             return
         }
 
+        // 새로 만들기일 때 주소 검색(좌표 변환)을 하지 않은 경우 차단
+        if (restaurantId == -1L && finalLatitude == 0.0 && finalLongitude == 0.0) {
+            Toast.makeText(this, "주소 검색 버튼을 눌러 주소를 검색해주세요.\n(지도 위치 등록에 필요합니다.)", Toast.LENGTH_LONG).show()
+            return
+        }
+
         // --- 영업시간 Chip 데이터 파싱 ---
         val operatingHours = mutableListOf<OperatingHourRequest>()
         for (i in 0 until binding.cgSelectedTimes.childCount) {
@@ -333,8 +339,9 @@ class StoreManageActivity : AppCompatActivity() {
 
             val isHoliday = text.contains("휴무")
             val timePart = if (!isHoliday) text.substringAfterLast(" ") else null
-            val openTime = if (!isHoliday) timePart?.split(" ~ ")?.get(0) else null
-            val closeTime = if (!isHoliday) timePart?.split(" ~ ")?.get(1) else null
+            val timeSplit = timePart?.split(" ~ ")
+            val openTime = if (!isHoliday) timeSplit?.getOrNull(0) else null
+            val closeTime = if (!isHoliday) timeSplit?.getOrNull(1) else null
 
             val daysPart = text.substringBefore(if (isHoliday) " 휴무" else " $timePart")
             val days = if (daysPart == "매일") {
