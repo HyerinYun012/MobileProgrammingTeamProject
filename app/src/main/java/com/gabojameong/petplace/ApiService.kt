@@ -332,7 +332,8 @@ data class ReviewReportItem(
     val id: Long,
     val reviewId: Long,
     val reviewContent: String,
-    val ownerName: String,
+    val ownerName: String,           // 신고한 사장 닉네임
+    val writerNickname: String? = null, // 리뷰 작성자 닉네임
     val reason: String,
     val status: String,
     val createdAt: String,

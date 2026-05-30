@@ -33,7 +33,8 @@ class ReviewReportAdapter(
     inner class ViewHolder(private val binding: ItemReviewReportBinding) : RecyclerView.ViewHolder(binding.root) {
         fun bind(item: ReviewReportItem) {
             binding.tvReviewContent.text = item.reviewContent
-            binding.tvReviewerName.text = item.ownerName
+            // 리뷰 작성자 닉네임 표시 (서버에서 writerNickname 추가됨)
+            binding.tvReviewerName.text = item.writerNickname ?: item.ownerName
             binding.ratingBar.rating = item.rating.toFloat()
 
             binding.btnDeleteReview.setOnClickListener {
