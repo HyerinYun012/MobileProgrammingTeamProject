@@ -319,6 +319,8 @@ class StoreManageActivity : AppCompatActivity() {
                 "SUN" -> "일"
                 else -> hour.dayOfWeek
             }
+            // openTime/closeTime이 null이면 Gson이 String에 null 주입 → "null~null" 방지
+            if (!hour.regularHoliday && (hour.openTime == null || hour.closeTime == null)) return@forEach
             val timeStr = if (hour.regularHoliday) "휴무" else "${hour.openTime} ~ ${hour.closeTime}"
             addChipToGroup("$dayKor $timeStr", false, listOf(dayKor))
             addedWeeklyDays.add(dayKor)
