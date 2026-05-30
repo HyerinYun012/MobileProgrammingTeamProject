@@ -4,6 +4,7 @@ import com.petplace.entity.Inquiry;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -63,4 +64,9 @@ public interface InquiryRepository extends JpaRepository<Inquiry, Long> {
             "left join fetch r.owner " +
             "where i.id = :id")
     Optional<Inquiry> findByIdWithUserAndRestaurant(@Param("id") Long id);
+
+    /** 식당 삭제 시 해당 식당 참조를 null로 처리 (문의 내역 자체는 보존) */
+    @Modifying
+    @Query("UPDATE Inquiry i SET i.restaurant = null WHERE i.restaurant.id = :restaurantId")
+    void clearRestaurantReference(@Param("restaurantId") Long restaurantId);
 }

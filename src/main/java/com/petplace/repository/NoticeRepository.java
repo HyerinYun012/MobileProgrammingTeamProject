@@ -17,4 +17,6 @@ public interface NoticeRepository extends JpaRepository<Notice, Long> {
      * @return Page<Notice> 페이징된 공지사항 목록
      */
     Page<Notice> findByRestaurantIdOrderByCreatedAtDesc(Long restaurantId, Pageable pageable);
+
+    void deleteAllByRestaurantId(Long restaurantId);
 }

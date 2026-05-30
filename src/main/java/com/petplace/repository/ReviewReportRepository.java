@@ -4,7 +4,9 @@ import com.petplace.entity.ReviewReport;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 public interface ReviewReportRepository extends JpaRepository<ReviewReport, Long> {
 
@@ -14,6 +16,10 @@ public interface ReviewReportRepository extends JpaRepository<ReviewReport, Long
     boolean existsByReviewIdAndOwnerId(Long reviewId, Long ownerId);
 
     void deleteByReviewId(Long reviewId);
+
+    @Modifying
+    @Query("DELETE FROM ReviewReport rr WHERE rr.review.restaurant.id = :restaurantId")
+    void deleteAllByRestaurantId(@Param("restaurantId") Long restaurantId);
 
     /**
      * 💡 [페이징 적용] 관리자가 리뷰 삭제 시 관련 신고들을 조회

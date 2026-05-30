@@ -31,6 +31,8 @@ public class AdminService {
     private final CommunityReportRepository communityReportRepository;
     private final RestaurantRepository restaurantRepository;
     private final RecentSearchRepository recentSearchRepository;
+    private final NoticeRepository noticeRepository;
+    private final BookmarkRepository bookmarkRepository;
 
     /**
      * 사장님 승인
@@ -49,9 +51,35 @@ public class AdminService {
     public void rejectOwner(Long ownerId, Long adminId) {
         User owner = userRepository.findById(ownerId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.OWNER_NOT_FOUND));
-        userRepository.delete(owner);
 
+        // 사장님 소유 식당 목록 조회
+        java.util.List<com.petplace.entity.Restaurant> restaurants =
+                restaurantRepository.findAllByOwnerId(ownerId);
+
+        for (com.petplace.entity.Restaurant restaurant : restaurants) {
+            Long restaurantId = restaurant.getId();
+
+            // 1. 리뷰 신고 삭제 (Review cascade 전에 먼저 처리)
+            reportRepository.deleteAllByRestaurantId(restaurantId);
+
+            // 2. 공지사항 삭제 (cascade 없음)
+            noticeRepository.deleteAllByRestaurantId(restaurantId);
+
+            // 3. 북마크 삭제 (cascade 없음)
+            bookmarkRepository.deleteAllByRestaurantId(restaurantId);
+
+            // 4. 문의의 식당 참조 null 처리 (문의 내역 자체는 보존)
+            inquiryRepository.clearRestaurantReference(restaurantId);
+        }
+
+        // 5. 식당 삭제 (images, reviews, menus, operatingHours 자동 cascade)
+        restaurantRepository.deleteAll(restaurants);
+
+        // 6. 최근 검색어 삭제
         recentSearchRepository.deleteByUserId(ownerId);
+
+        // 7. 사용자 삭제
+        userRepository.delete(owner);
 
         log.warn("Admin {} rejected and deleted owner account: {}", adminId, ownerId);
     }
