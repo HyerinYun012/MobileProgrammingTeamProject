@@ -1,16 +1,15 @@
 package com.gabojameong.petplace
 
+import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import android.view.View
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
+import com.bumptech.glide.Glide
+import com.bumptech.glide.load.model.GlideUrl
+import com.bumptech.glide.load.model.LazyHeaders
 import com.gabojameong.petplace.databinding.FragmentPlaceInfoHomeBinding
-import com.naver.maps.geometry.LatLng
-import com.naver.maps.map.CameraUpdate
-import com.naver.maps.map.MapFragment
-import com.naver.maps.map.NaverMap
-import com.naver.maps.map.overlay.Marker
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
 import java.util.Calendar
@@ -18,7 +17,6 @@ import java.util.Calendar
 class PlaceInfoHomeFragment : Fragment(R.layout.fragment_place_info_home) {
     private var _binding: FragmentPlaceInfoHomeBinding? = null
     private val binding get() = _binding!!
-    private var naverMap: NaverMap? = null
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -27,40 +25,50 @@ class PlaceInfoHomeFragment : Fragment(R.layout.fragment_place_info_home) {
         val restaurant = arguments?.getSerializable("restaurant", RestaurantResponse::class.java)
         restaurant?.let {
             initUI(it)
-            initMap(it)
+            loadStaticMap(it)
         }
     }
 
-    private fun initMap(res: RestaurantResponse) {
-        val fm = childFragmentManager
-        val mapFragment = fm.findFragmentById(R.id.map_fragment_container) as MapFragment?
-            ?: MapFragment.newInstance().also {
-                fm.beginTransaction().add(R.id.map_fragment_container, it).commit()
+    private fun loadStaticMap(res: RestaurantResponse) {
+        val lat = res.latitude
+        val lng = res.longitude
+
+        // 좌표가 0,0(미입력)이면 지도 영역 숨김
+        if (lat == 0.0 && lng == 0.0) {
+            binding.staticMapView.visibility = View.GONE
+            return
+        }
+
+        binding.staticMapView.visibility = View.VISIBLE
+
+        // Naver Static Map API
+        val w = 800; val h = 400
+        val url = "https://naveropenapi.apigw.ntruss.com/map-static/v2/raster" +
+                "?w=$w&h=$h&center=$lng,$lat&level=16" +
+                "&markers=type:d|size:mid|pos:$lng $lat"
+
+        val glideUrl = GlideUrl(
+            url,
+            LazyHeaders.Builder()
+                .addHeader("X-NCP-APIGW-API-KEY-ID", BuildConfig.NAVER_MAP_CLIENT_ID)
+                .addHeader("X-NCP-APIGW-API-KEY", BuildConfig.NAVER_MAP_CLIENT_SECRET)
+                .build()
+        )
+
+        Glide.with(this)
+            .load(glideUrl)
+            .placeholder(R.drawable.bg_round_gray)
+            .error(R.drawable.bg_round_gray)
+            .into(binding.staticMapView)
+
+        // 클릭 → MapActivity (해당 좌표로 이동)
+        binding.staticMapView.setOnClickListener {
+            val intent = Intent(requireContext(), MapActivity::class.java).apply {
+                putExtra("target_lat", lat)
+                putExtra("target_lng", lng)
+                putExtra("target_name", res.name)
             }
-
-        mapFragment.getMapAsync { map ->
-            naverMap = map
-
-            // 인터랙션 비활성화 (미니맵으로 사용)
-            map.uiSettings.isZoomControlEnabled = false
-            map.uiSettings.isScrollGesturesEnabled = false
-            map.uiSettings.isRotateGesturesEnabled = false
-            map.uiSettings.isTiltGesturesEnabled = false
-            map.uiSettings.isCompassEnabled = false
-            map.uiSettings.isLocationButtonEnabled = false
-
-            val lat = res.latitude
-            val lng = res.longitude
-
-            // 좌표가 유효한 경우에만 표시
-            if (lat != 0.0 && lng != 0.0) {
-                val position = LatLng(lat, lng)
-                map.moveCamera(CameraUpdate.scrollAndZoomTo(position, 16.0))
-                Marker().apply {
-                    this.position = position
-                    this.map = map
-                }
-            }
+            startActivity(intent)
         }
     }
 

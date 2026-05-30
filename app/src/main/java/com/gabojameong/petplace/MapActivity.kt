@@ -89,9 +89,23 @@ class MapActivity : AppCompatActivity(), OnMapReadyCallback {
         this.naverMap = naverMap
         naverMap.locationSource = locationSource
 
-        // 기본 위치를 시흥으로 설정
-        val siheung = LatLng(37.3801, 126.8030)
-        naverMap.moveCamera(CameraUpdate.scrollAndZoomTo(siheung, 13.0))
+        // intent로 특정 좌표가 전달된 경우 해당 위치로 이동, 아니면 시흥 기본값
+        val targetLat = intent.getDoubleExtra("target_lat", 0.0)
+        val targetLng = intent.getDoubleExtra("target_lng", 0.0)
+        val targetName = intent.getStringExtra("target_name")
+
+        if (targetLat != 0.0 && targetLng != 0.0) {
+            val targetPos = LatLng(targetLat, targetLng)
+            naverMap.moveCamera(CameraUpdate.scrollAndZoomTo(targetPos, 16.0))
+            Marker().apply {
+                position = targetPos
+                captionText = targetName ?: ""
+                this.map = naverMap
+            }
+        } else {
+            val siheung = LatLng(37.3801, 126.8030)
+            naverMap.moveCamera(CameraUpdate.scrollAndZoomTo(siheung, 13.0))
+        }
 
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
             == PackageManager.PERMISSION_GRANTED) {
@@ -108,7 +122,7 @@ class MapActivity : AppCompatActivity(), OnMapReadyCallback {
             fetchNearbyRestaurants(center.latitude, center.longitude)
         }
 
-        //차후 주석처리
+        /*
         val testRestaurant = RestaurantResponse(
             id = -1L, // 중복 방지를 위해 음수 ID 사용
             name = "테스트 애견카페",
@@ -130,11 +144,12 @@ class MapActivity : AppCompatActivity(), OnMapReadyCallback {
             hasRestroom = true,
             hasIndoor = true,
             hasOutdoor = true,
-            imageUrl = null,
+            imageUrls = null,
             verified = true,
             bookmarked = false
         )
         addMarker(testRestaurant)
+        */
     }
 
     private fun fetchNearbyRestaurants(lat: Double, lng: Double) {
@@ -165,9 +180,7 @@ class MapActivity : AppCompatActivity(), OnMapReadyCallback {
     }
 
     private fun addMarker(restaurant: RestaurantResponse) {
-        // 이미 추가된 마커라면 무시
         if (addedRestaurantIds.contains(restaurant.id)) return
-
         val marker = Marker()
         marker.position = LatLng(restaurant.latitude, restaurant.longitude)
         marker.captionText = restaurant.name
@@ -180,7 +193,6 @@ class MapActivity : AppCompatActivity(), OnMapReadyCallback {
         marker.height = 70
         marker.anchor = PointF(0.5f, 0.5f)
         marker.isIconPerspectiveEnabled = true
-        
         marker.onClickListener = Overlay.OnClickListener {
             Log.d("MapActivity", "마커 클릭: ${restaurant.name}")
             val intent = Intent(this, PlaceInfoActivity::class.java)
@@ -192,12 +204,13 @@ class MapActivity : AppCompatActivity(), OnMapReadyCallback {
         markers.add(marker)
         addedRestaurantIds.add(restaurant.id)
     }
-    
+    /*
     private fun clearMarkers() {
         markers.forEach { it.map = null }
         markers.clear()
         addedRestaurantIds.clear()
     }
+    */
 
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<String>, grantResults: IntArray) {
         if (locationSource.onRequestPermissionsResult(requestCode, permissions, grantResults)) {
