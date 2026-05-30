@@ -21,9 +21,9 @@ class SearchResultAdapter(
 
             updateFavoriteUI(item.bookmarked)
 
-            // Glide를 사용하여 이미지 로드 (라운딩 처리 포함)
-            val imageUrl = item.imageUrl
-            
+            // 서버가 imageUrls(복수) 또는 imageUrl(단수) 중 하나로 응답 → 첫 번째 이미지 사용
+            val imageUrl = item.imageUrls?.firstOrNull() ?: item.imageUrl
+
             Glide.with(binding.ivPlace.context)
                 .load(imageUrl)
                 .transform(CenterCrop(), RoundedCorners(24))

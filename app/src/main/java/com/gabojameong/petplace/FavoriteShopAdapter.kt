@@ -19,7 +19,8 @@ data class FavoriteUiModel(
 
 class FavoriteShopAdapter(
     private val shopList: MutableList<FavoriteUiModel>,
-    private val onBookmarkClick: (Long, Boolean) -> Unit
+    private val onBookmarkClick: (Long, Boolean) -> Unit,
+    private val onItemClick: ((Long) -> Unit)? = null
 ) : RecyclerView.Adapter<FavoriteShopAdapter.ShopViewHolder>() {
 
     class ShopViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
@@ -55,6 +56,10 @@ class FavoriteShopAdapter(
             item.isBookmarked = !item.isBookmarked
             notifyItemChanged(position)
             onBookmarkClick(item.restaurantId, item.isBookmarked)
+        }
+
+        holder.itemView.setOnClickListener {
+            onItemClick?.invoke(item.restaurantId)
         }
     }
 

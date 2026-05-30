@@ -1,5 +1,6 @@
 package com.gabojameong.petplace
 
+import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import android.widget.ImageView
@@ -64,7 +65,15 @@ class AttentionPage : AppCompatActivity() {
     }
 
     private fun setupAdapter(dataList: MutableList<FavoriteUiModel>) {
-        adapter = FavoriteShopAdapter(dataList) { restaurantId, _ ->
+        adapter = FavoriteShopAdapter(
+            shopList = dataList,
+            onItemClick = { restaurantId ->
+                startActivity(
+                    Intent(this, PlaceInfoActivity::class.java)
+                        .putExtra("restaurantId", restaurantId)
+                )
+            },
+            onBookmarkClick = { restaurantId, _ ->
             RetrofitClient.apiService.toggleBookmark(restaurantId)
                 .enqueue(object : Callback<ApiResponse<Boolean>> {
                     override fun onResponse(call: Call<ApiResponse<Boolean>>, response: Response<ApiResponse<Boolean>>) {
@@ -76,7 +85,8 @@ class AttentionPage : AppCompatActivity() {
                         Toast.makeText(this@AttentionPage, "네트워크 오류 발생", Toast.LENGTH_SHORT).show()
                     }
                 })
-        }
+            }
+        )
         rvFavoriteList.adapter = adapter
     }
 }

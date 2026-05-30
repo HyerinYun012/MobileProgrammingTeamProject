@@ -123,7 +123,7 @@ class InquiryWriteActivity : AppCompatActivity() {
         val displayList = mutableListOf<RestaurantResponse>()
 
         if (currentCategory == "오류 문의") {
-            displayList.add(RestaurantResponse(-1L, "미정", "", "", "", 0.0, 0.0, "", null, false, false, false, false, false, false, false, false, false, false, false, null, false, false))
+            displayList.add(RestaurantResponse(-1L, "미정", "", "", "", 0.0, 0.0, "", null, false, false, false, false, false, false, false, false, false, false, false, null, null, false, false))
         }
         displayList.addAll(allRestaurants)
         filteredRestaurants.clear()

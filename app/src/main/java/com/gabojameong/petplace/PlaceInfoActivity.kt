@@ -28,7 +28,9 @@ class PlaceInfoActivity : AppCompatActivity() {
         restaurant = intent.getSerializableExtra("restaurant", RestaurantResponse::class.java)
 
         if (restaurant == null && restaurantId > 0) {
-            // restaurantId로 장소 정보를 가져오는 로직
+            // restaurantId만 전달된 경우 서버에서 데이터 로드 (관심목록, 최근 본 가게 등)
+            fetchRestaurantById(restaurantId, savedInstanceState)
+            return
         }
         if (restaurant == null) {
             Toast.makeText(applicationContext, "장소 정보를 불러올 수 없습니다.", Toast.LENGTH_SHORT).show()
@@ -36,12 +38,54 @@ class PlaceInfoActivity : AppCompatActivity() {
             return
         }
 
-        restaurantId = restaurant!!.id
-        isBookmarked = restaurant!!.bookmarked
+        setupUI(restaurant!!, savedInstanceState)
+    }
+
+    private fun fetchRestaurantById(id: Long, savedInstanceState: Bundle?) {
+        apiService.getRestaurantDetail(id).enqueue(object : Callback<ApiResponse<RestaurantDetailResponse>> {
+            override fun onResponse(
+                call: Call<ApiResponse<RestaurantDetailResponse>>,
+                response: Response<ApiResponse<RestaurantDetailResponse>>
+            ) {
+                val detail = response.body()?.data
+                if (response.isSuccessful && detail != null) {
+                    // RestaurantDetailResponse → RestaurantResponse 변환 (필요한 필드만)
+                    val stub = RestaurantResponse(
+                        id = detail.id, name = detail.name, category = detail.category,
+                        region = detail.region, address = detail.address,
+                        latitude = detail.latitude, longitude = detail.longitude,
+                        phone = detail.phone, operatingHours = detail.operatingHours,
+                        allowSmall = detail.allowSmall, allowMedium = detail.allowMedium,
+                        allowLarge = detail.allowLarge, hasFence = detail.hasFence,
+                        hasArtificialGrass = detail.hasArtificialGrass,
+                        hasNaturalGrass = detail.hasNaturalGrass, hasSnack = detail.hasSnack,
+                        hasParking = detail.hasParking, hasRestroom = detail.hasRestroom,
+                        hasIndoor = detail.hasIndoor, hasOutdoor = detail.hasOutdoor,
+                        imageUrl = detail.imageUrl,
+                        imageUrls = detail.images?.map { it.imageUrl },
+                        verified = detail.verified, bookmarked = detail.bookmarked
+                    )
+                    restaurant = stub
+                    setupUI(stub, savedInstanceState)
+                } else {
+                    Toast.makeText(applicationContext, "장소 정보를 불러올 수 없습니다.", Toast.LENGTH_SHORT).show()
+                    finish()
+                }
+            }
+            override fun onFailure(call: Call<ApiResponse<RestaurantDetailResponse>>, t: Throwable) {
+                Toast.makeText(applicationContext, "네트워크 오류: ${t.message}", Toast.LENGTH_SHORT).show()
+                finish()
+            }
+        })
+    }
+
+    private fun setupUI(r: RestaurantResponse, savedInstanceState: Bundle?) {
+        restaurantId = r.id
+        isBookmarked = r.bookmarked
 
         recordRecentShop(restaurantId)
 
-        initUI(restaurant!!)
+        initUI(r)
         initFragmentNavigation()
 
         fetchLatestRestaurantDetail()

@@ -160,7 +160,8 @@ data class RestaurantResponse(
     val hasRestroom: Boolean,
     val hasIndoor: Boolean,
     val hasOutdoor: Boolean,
-    val imageUrl: String?,
+    val imageUrl: String?,          // 단일 썸네일 (일부 API 호환)
+    val imageUrls: List<String>?,   // 검색 결과 API가 반환하는 복수 이미지
     val verified: Boolean,
     val bookmarked: Boolean
 ) : Serializable

@@ -63,20 +63,10 @@ class RecentShopActivity : AppCompatActivity() {
 
     private fun setupAdapter(shopList: List<RecentViewResponse>) {
         val adapter = RecentShopAdapter(shopList) { shop ->
-            val restaurantStub = RestaurantResponse(
-                id = shop.restaurantId,
-                name = shop.restaurantName,
-                category = shop.category,
-                imageUrl = shop.imageUrl,
-                region = "", address = "", latitude = 0.0, longitude = 0.0, phone = "",
-                operatingHours = null,
-                allowSmall = true, allowMedium = false, allowLarge = false,
-                hasFence = false, hasArtificialGrass = false, hasNaturalGrass = false,
-                hasSnack = false, hasParking = false, hasRestroom = false,
-                hasIndoor = false, hasOutdoor = false,
-                verified = false, bookmarked = false
+            startActivity(
+                Intent(this, PlaceInfoActivity::class.java)
+                    .putExtra("restaurantId", shop.restaurantId)
             )
-            startActivity(Intent(this, PlaceInfoActivity::class.java).putExtra("restaurant", restaurantStub))
         }
         rvRecentStores.adapter = adapter
     }
