@@ -175,10 +175,11 @@ class StoreManageActivity : AppCompatActivity() {
         binding.spinnerCategory.adapter = adapter
     }
 
+    // 서버 Category enum: RESTAURANT, REST_AREA, BAKERY, CAFE
     private fun convertCategoryToCode(kor: String) = when (kor) {
         "카페" -> "CAFE"
         "식당" -> "RESTAURANT"
-        else   -> "ETC"
+        else   -> "CAFE"  // ETC 없음, 기본값 CAFE
     }
 
     private fun fetchMyRestaurants() {

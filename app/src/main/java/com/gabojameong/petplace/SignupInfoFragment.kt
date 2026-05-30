@@ -420,10 +420,11 @@ class SignupInfoFragment : Fragment() {
     }
 
     private fun registerRestaurantAfterSignup(name: String, addr: String, phone: String, bNo: String) {
+        // 서버 Category enum: RESTAURANT, REST_AREA, BAKERY, CAFE
         val category = when {
             binding.checkBoxRestaurant.isChecked -> "RESTAURANT"
             binding.checkBoxCafe.isChecked -> "CAFE"
-            else -> "OTHERS"
+            else -> "RESTAURANT"  // 기타 → RESTAURANT 기본값 (OTHERS 없음)
         }
 
         val resRequest = RestaurantRequest(
